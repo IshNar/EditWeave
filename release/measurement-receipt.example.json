@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "kind": "hdr-reference-monitor",
+  "result": "pass",
+  "measuredAt": "2026-08-15T19:00:00+09:00",
+  "operator": "QA operator name",
+  "equipment": "Reference monitor model, probe/analyzer model and calibration date",
+  "checks": [
+    {
+      "name": "PQ peak luminance and EOTF tolerance",
+      "result": "pass",
+      "detail": "Attach the laboratory report identifier and measured tolerance"
+    }
+  ]
+}

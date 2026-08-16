@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cutline.local/schemas/cutline-creator-pack-v2.schema.json",
+  "title": "Cutline Creator Pack v2",
+  "description": "A declarative, code-free bundle of Cutline creator templates and presets.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "apiVersion", "compatibility", "id", "name", "version", "publisher", "createdAt", "security", "contents", "integrity"],
+  "properties": {
+    "schema": { "const": "cutline-creator-pack-v2" },
+    "apiVersion": { "const": "1.0.0" },
+    "compatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimumApiVersion"],
+      "properties": {
+        "minimumApiVersion": { "$ref": "#/$defs/semver" },
+        "maximumApiVersion": { "$ref": "#/$defs/semver" }
+      }
+    },
+    "id": { "type": "string", "minLength": 1, "maxLength": 160 },
+    "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "version": { "$ref": "#/$defs/semver" },
+    "publisher": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "createdAt": { "type": "string", "format": "date-time", "maxLength": 80 },
+    "security": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["executableCode", "networkAccess", "filesystemAccess"],
+      "properties": {
+        "executableCode": { "const": false },
+        "networkAccess": { "const": false },
+        "filesystemAccess": { "const": false }
+      }
+    },
+    "contents": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["motionTemplates", "speedTemplates", "audioTemplates", "titleStyleTemplates", "exportPresets", "transitionPresets"],
+      "properties": {
+        "motionTemplates": { "$ref": "#/$defs/templateList100" },
+        "speedTemplates": { "$ref": "#/$defs/templateList100" },
+        "audioTemplates": { "$ref": "#/$defs/templateList50" },
+        "titleStyleTemplates": { "$ref": "#/$defs/templateList100" },
+        "exportPresets": { "$ref": "#/$defs/templateList100" },
+        "transitionPresets": { "$ref": "#/$defs/templateList100" }
+      }
+    },
+    "integrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "digest"],
+      "properties": {
+        "algorithm": { "const": "SHA-256" },
+        "digest": { "type": "string", "pattern": "^[0-9a-fA-F]{64}$" }
+      }
+    },
+    "signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "keyId", "publicKey", "value"],
+      "properties": {
+        "algorithm": { "const": "Ed25519" },
+        "keyId": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "publicKey": { "type": "string", "contentEncoding": "base64" },
+        "value": { "type": "string", "contentEncoding": "base64" }
+      }
+    }
+  },
+  "$defs": {
+    "semver": { "type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$" },
+    "template": { "type": "object", "required": ["id", "name"] },
+    "templateList100": { "type": "array", "maxItems": 100, "items": { "$ref": "#/$defs/template" } },
+    "templateList50": { "type": "array", "maxItems": 50, "items": { "$ref": "#/$defs/template" } }
+  }
+}

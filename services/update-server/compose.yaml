@@ -1,0 +1,52 @@
+services:
+  update-server:
+    build:
+      context: .
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    environment:
+      CUTLINE_UPDATE_HOST: 0.0.0.0
+      CUTLINE_UPDATE_PORT: 8790
+      CUTLINE_UPDATE_CHANNEL_DIR: /channel
+      CUTLINE_UPDATE_PUBLIC_ORIGIN: https://${CUTLINE_UPDATE_DOMAIN:?Set CUTLINE_UPDATE_DOMAIN in .env}
+      CUTLINE_UPDATE_PUBLIC_KEY: ${CUTLINE_UPDATE_PUBLIC_KEY:?Set CUTLINE_UPDATE_PUBLIC_KEY in .env}
+      CUTLINE_UPDATE_KEY_ID: ${CUTLINE_UPDATE_KEY_ID:?Set CUTLINE_UPDATE_KEY_ID in .env}
+      CUTLINE_UPDATE_ALLOWED_ORIGINS: ${CUTLINE_UPDATE_ALLOWED_ORIGINS:-tauri://localhost,http://tauri.localhost,https://tauri.localhost}
+      CUTLINE_UPDATE_MAX_ACTIVE_DOWNLOADS: ${CUTLINE_UPDATE_MAX_ACTIVE_DOWNLOADS:-100}
+      CUTLINE_UPDATE_MAX_DOWNLOADS_PER_IP: ${CUTLINE_UPDATE_MAX_DOWNLOADS_PER_IP:-4}
+      CUTLINE_UPDATE_TRUST_PROXY: 1
+    volumes:
+      - ../../release/update-channel:/channel:ro
+    networks:
+      - private
+    security_opt:
+      - no-new-privileges:true
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - update-server
+    environment:
+      CUTLINE_UPDATE_DOMAIN: ${CUTLINE_UPDATE_DOMAIN:?Set CUTLINE_UPDATE_DOMAIN in .env}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - private
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  private:
+
+volumes:
+  caddy_data:
+  caddy_config:

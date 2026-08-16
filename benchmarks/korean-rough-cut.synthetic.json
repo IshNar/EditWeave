@@ -1,0 +1,42 @@
+{
+  "version": "cutline-korean-rough-cut-v1",
+  "provenance": "synthetic",
+  "cases": [
+    {
+      "id": "filler-word-timing",
+      "transcript": [{ "id": "s1", "start": 0, "end": 2.2, "text": "음 오늘은 노출을 맞춰볼게요", "words": [{ "start": 0, "end": 0.25, "text": "음" }, { "start": 0.35, "end": 0.8, "text": "오늘은" }, { "start": 0.85, "end": 1.3, "text": "노출을" }, { "start": 1.35, "end": 2.2, "text": "맞춰볼게요" }] }],
+      "expected": [{ "type": "filler", "start": 0, "end": 0.25 }]
+    },
+    {
+      "id": "filler-merged",
+      "transcript": [{ "id": "s1", "start": 3, "end": 5, "text": "어 음 결론부터 말씀드리면", "words": [{ "start": 3, "end": 3.2, "text": "어" }, { "start": 3.25, "end": 3.5, "text": "음" }, { "start": 3.7, "end": 4.2, "text": "결론부터" }, { "start": 4.25, "end": 5, "text": "말씀드리면" }] }],
+      "expected": [{ "type": "filler", "start": 3, "end": 3.5 }]
+    },
+    {
+      "id": "legitimate-weak-expression",
+      "transcript": [{ "id": "s1", "start": 0, "end": 2, "text": "각도를 약간 아래로 조정합니다", "words": [{ "start": 0, "end": 0.4, "text": "각도를" }, { "start": 0.45, "end": 0.8, "text": "약간" }, { "start": 0.85, "end": 1.2, "text": "아래로" }, { "start": 1.25, "end": 2, "text": "조정합니다" }] }],
+      "expected": []
+    },
+    {
+      "id": "adjacent-repetition",
+      "transcript": [{ "id": "s1", "start": 0, "end": 2, "text": "카메라 노출을 맞추는 가장 쉬운 방법입니다" }, { "id": "s2", "start": 2.1, "end": 4.1, "text": "카메라 노출 맞추는 가장 쉬운 방법이에요" }],
+      "expected": [{ "type": "repetition", "start": 2.1, "end": 4.1 }]
+    },
+    {
+      "id": "related-not-repeated",
+      "transcript": [{ "id": "s1", "start": 0, "end": 2, "text": "노출을 먼저 고정합니다" }, { "id": "s2", "start": 2.1, "end": 4.1, "text": "그다음 화이트 밸런스를 조절합니다" }],
+      "expected": []
+    },
+    {
+      "id": "segment-fallback",
+      "transcript": [{ "id": "s1", "start": 5, "end": 6.5, "text": "그러니까 이 설정이 핵심입니다" }],
+      "expected": [{ "type": "filler", "start": 5, "end": 6.5 }]
+    },
+    {
+      "id": "waveform-silence",
+      "transcript": [],
+      "audio": { "duration": 10, "waveform": [0.4, 0.35, 0.01, 0.005, 0.3, 0.4, 0.5, 0.4, 0.35, 0.3] },
+      "expected": [{ "type": "silence", "start": 2, "end": 4 }]
+    }
+  ]
+}

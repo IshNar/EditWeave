@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "cutline-project-reopen-test",
+  "name": "프로젝트 다시 열기 테스트",
+  "createdAt": "2026-08-08T11:00:00.000Z",
+  "updatedAt": "2026-08-08T11:00:00.000Z",
+  "sequence": {
+    "id": "sequence-main",
+    "name": "쇼츠 시퀀스",
+    "aspectRatio": "9:16",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30
+  },
+  "assets": [],
+  "tracks": [
+    { "id": "video-main", "name": "V1 · 메인 영상", "kind": "video", "muted": false, "locked": false, "clips": [] },
+    { "id": "audio-main", "name": "A1 · 원본 음성", "kind": "audio", "muted": false, "locked": false, "clips": [] },
+    { "id": "caption-main", "name": "T1 · 자막", "kind": "caption", "muted": false, "locked": false, "clips": [] }
+  ]
+}

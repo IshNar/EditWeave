@@ -1,0 +1,11 @@
+{
+  "version": "cutline-audio-delivery-v1",
+  "provenance": "synthetic-reference",
+  "cases": [
+    { "id": "web-pass", "profileId": "web-video", "integratedLufs": -14.2, "truePeakDbtp": -1.2, "expected": "pass" },
+    { "id": "web-too-loud", "profileId": "web-video", "integratedLufs": -10.8, "truePeakDbtp": -0.4, "expected": "fail" },
+    { "id": "ebu-pass", "profileId": "broadcast-ebu-r128", "integratedLufs": -23.1, "truePeakDbtp": -2.0, "expected": "pass" },
+    { "id": "ebu-loudness-fail", "profileId": "broadcast-ebu-r128", "integratedLufs": -22.2, "truePeakDbtp": -1.5, "expected": "fail" },
+    { "id": "podcast-pass", "profileId": "podcast-stereo", "integratedLufs": -16.4, "truePeakDbtp": -1.1, "expected": "pass" }
+  ]
+}

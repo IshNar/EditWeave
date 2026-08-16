@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1280" y2="720" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#181329"/>
+      <stop offset=".58" stop-color="#3a2966"/>
+      <stop offset="1" stop-color="#102b2a"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientTransform="translate(1000 120) rotate(130) scale(430)">
+      <stop stop-color="#A995FF" stop-opacity=".82"/>
+      <stop offset="1" stop-color="#7056E8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/>
+  <rect width="1280" height="720" fill="url(#glow)"/>
+  <g opacity=".12" stroke="white">
+    <path d="M0 120h1280M0 240h1280M0 360h1280M0 480h1280M0 600h1280"/>
+    <path d="M160 0v720M320 0v720M480 0v720M640 0v720M800 0v720M960 0v720M1120 0v720"/>
+  </g>
+  <rect x="92" y="118" width="226" height="44" rx="22" fill="none" stroke="#BBAAFF" stroke-opacity=".55"/>
+  <text x="205" y="147" text-anchor="middle" fill="#C9BBFF" font-family="Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="3">CUTLINE TEST</text>
+  <text x="86" y="300" fill="white" font-family="Arial, sans-serif" font-size="86" font-weight="800">LONG-FORM</text>
+  <text x="86" y="394" fill="#A995FF" font-family="Arial, sans-serif" font-size="86" font-weight="800">TO SHORTS</text>
+  <text x="91" y="453" fill="#9B98AA" font-family="Arial, sans-serif" font-size="24">Local media pipeline verification card</text>
+  <circle cx="1015" cy="470" r="190" fill="none" stroke="#B69FFF" stroke-opacity=".32" stroke-width="3"/>
+  <circle cx="1015" cy="470" r="118" fill="none" stroke="#6FE3C0" stroke-opacity=".26" stroke-width="3"/>
+</svg>

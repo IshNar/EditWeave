@@ -1,0 +1,9 @@
+**
+!release/
+release/**
+!release/creator-pack-catalog-lib.mjs
+!services/
+services/**
+!services/creator-pack-server/
+services/creator-pack-server/**
+!services/creator-pack-server/server.mjs

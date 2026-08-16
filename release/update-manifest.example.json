@@ -1,0 +1,13 @@
+{
+  "schema": "cutline-update-v1",
+  "version": "0.1.1",
+  "platform": "windows-x86_64",
+  "channel": "stable",
+  "publishedAt": "2026-08-09T00:00:00.000Z",
+  "minimumSupportedVersion": "0.1.0",
+  "notes": "Cutline 안정화 업데이트",
+  "downloadUrl": "https://updates.example.com/cutline/artifacts/Cutline_0.1.1_windows_x86_64-setup.exe",
+  "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "keyId": "ed25519-replace-after-signing",
+  "signature": "replace-with-base64-ed25519-signature"
+}

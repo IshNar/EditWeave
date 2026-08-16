@@ -1,0 +1,14 @@
+{
+  "version": "cutline-color-hdr-v1",
+  "provenance": "synthetic-reference",
+  "standards": ["IEC 61966-2-1 sRGB", "ITU-R BT.709", "ITU-R BT.2020", "SMPTE ST 2084", "ITU-R BT.2100 HLG"],
+  "tolerance": { "signal": 0.000001, "scope": 0.001, "codeValue": 0 },
+  "cases": [
+    { "id": "black", "srgb": [0, 0, 0], "expected": { "pq": [0.0000007309559, 0.0000007309559, 0.0000007309559], "hlg": [0, 0, 0], "limitedLuma": 64, "scopeLuma": 0 } },
+    { "id": "gray-50", "srgb": [0.5, 0.5, 0.5], "expected": { "pq": [0.4270189667, 0.4270189667, 0.4270189667], "hlg": [0.4124786848, 0.4124786848, 0.4124786848], "limitedLuma": 438, "scopeLuma": 127.5 } },
+    { "id": "white", "srgb": [1, 1, 1], "expected": { "pq": [0.580688881, 0.580688881, 0.580688881], "hlg": [0.75, 0.75, 0.75], "limitedLuma": 573, "scopeLuma": 255 } },
+    { "id": "red", "srgb": [1, 0, 0], "expected": { "pq": [0.5325460592, 0.3270228691, 0.220070066], "hlg": [0.6558736045, 0.2343594546, 0.1141467515], "limitedLuma": 392, "scopeLuma": 54.213 } },
+    { "id": "green", "srgb": [0, 1, 0], "expected": { "pq": [0.468229943, 0.5719390503, 0.3473327838], "hlg": [0.5113727922, 0.7334537973, 0.2645006773], "limitedLuma": 529, "scopeLuma": 182.376 } },
+    { "id": "blue", "srgb": [0, 0, 1], "expected": { "pq": [0.2896489583, 0.1968045455, 0.5691942022], "hlg": [0.1855517367, 0.0950309313, 0.7282187529], "limitedLuma": 277, "scopeLuma": 18.411 } }
+  ]
+}

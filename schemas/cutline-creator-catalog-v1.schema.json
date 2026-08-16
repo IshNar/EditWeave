@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cutline.local/schemas/cutline-creator-catalog-v1.schema.json",
+  "title": "Cutline Creator Pack Catalog v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "generatedAt", "authority", "keyId", "entries", "revocations", "signature"],
+  "properties": {
+    "schema": { "const": "cutline-creator-catalog-v1" },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "authority": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "keyId": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "entries": { "type": "array", "maxItems": 1000, "items": { "$ref": "#/$defs/entry" } },
+    "revocations": { "type": "array", "maxItems": 1000, "items": { "$ref": "#/$defs/revocation" } },
+    "signature": { "type": "string", "contentEncoding": "base64" }
+  },
+  "$defs": {
+    "semver": { "type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$" },
+    "digest": { "type": "string", "pattern": "^[0-9a-fA-F]{64}$" },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["packId", "name", "version", "publisher", "categories", "downloadUrl", "artifactSha256", "publisherKeyFingerprint", "minimumApiVersion", "publishedAt"],
+      "properties": {
+        "packId": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "version": { "$ref": "#/$defs/semver" },
+        "publisher": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 500 },
+        "categories": { "type": "array", "maxItems": 6, "uniqueItems": true, "items": { "enum": ["motion", "speed", "audio", "title", "export", "transition"] } },
+        "downloadUrl": { "type": "string", "format": "uri", "pattern": "^https://" },
+        "artifactSha256": { "$ref": "#/$defs/digest" },
+        "publisherKeyFingerprint": { "$ref": "#/$defs/digest" },
+        "minimumApiVersion": { "$ref": "#/$defs/semver" },
+        "maximumApiVersion": { "$ref": "#/$defs/semver" },
+        "publishedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "revocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["packId", "reason", "publishedAt"],
+      "anyOf": [
+        { "required": ["version"] },
+        { "required": ["artifactSha256"] },
+        { "required": ["publisherKeyFingerprint"] }
+      ],
+      "properties": {
+        "packId": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "version": { "$ref": "#/$defs/semver" },
+        "artifactSha256": { "$ref": "#/$defs/digest" },
+        "publisherKeyFingerprint": { "$ref": "#/$defs/digest" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "publishedAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}
