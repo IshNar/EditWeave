@@ -1,5 +1,5 @@
 {
-  "version": "cutline-audio-delivery-v1",
+  "version": "editweave-audio-delivery-v1",
   "provenance": "synthetic-reference",
   "cases": [
     { "id": "web-pass", "profileId": "web-video", "integratedLufs": -14.2, "truePeakDbtp": -1.2, "expected": "pass" },

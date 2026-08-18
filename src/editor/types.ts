@@ -64,7 +64,7 @@ export interface MediaAsset {
   proxyHeight?: number
   proxyFrameRate?: number
   proxyCachePath?: string
-  /** User-managed proxy file. Unlike proxyCachePath, this path must never be deleted by Cutline. */
+  /** User-managed proxy file. Unlike proxyCachePath, this path must never be deleted by EditWeave. */
   proxySourcePath?: string
   proxySourceName?: string
   proxyOrigin?: 'generated' | 'attached'
@@ -725,7 +725,7 @@ export interface ProjectSequence {
 export type SourceGraphDomain = 'video' | 'audio' | 'transcript' | 'suggestions' | 'markers' | 'settings'
 
 export interface SourceGraphSnapshot {
-  version: 'cutline-source-graph-v1'
+  version: 'editweave-source-graph-v1'
   fingerprints: Record<SourceGraphDomain, string>
 }
 
@@ -783,7 +783,7 @@ export interface PersistedMediaAsset extends Omit<MediaAsset, 'url' | 'sourceFil
   status: 'ready' | 'offline' | 'error'
 }
 
-export interface CutlineProjectDocument {
+export interface EditWeaveProjectDocument {
   schemaVersion: 1
   id: string
   name: string
@@ -811,7 +811,7 @@ export type AiActivityOperation = 'transcription' | 'rough-cut-analysis' | 'sugg
 export type AiActivityStatus = 'running' | 'completed' | 'failed' | 'cancelled'
 
 export interface AiActivityRecord {
-  version: 'cutline-ai-activity-v1'
+  version: 'editweave-ai-activity-v1'
   id: string
   operation: AiActivityOperation
   label: string

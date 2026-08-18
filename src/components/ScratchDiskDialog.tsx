@@ -55,7 +55,7 @@ export function ScratchDiskDialog({ open, preferences, onChange, onClose, onNoti
       const managed = scratchManagedDirectory(kind, preferences)
       return <article key={kind}><div className="scratch-disk-kind"><HardDrive size={16} /><div><strong>{scratchKindLabel(kind)}</strong><small>{kind === 'proxy' ? '편집용 저해상도 미디어' : kind === 'recording' ? 'ADR와 보이스오버 원본' : '중단된 렌더를 이어갈 구간 파일'} · {formatUsage(usage[kind])}</small></div></div><code title={managed ?? '앱 기본 저장소'}>{managed ?? '앱 기본 저장소'}</code><div><button disabled={Boolean(clearing)} onClick={() => void select(kind)}><FolderOpen size={13} /> 폴더 선택</button><button disabled={!root || Boolean(clearing)} onClick={() => reset(kind)}><RotateCcw size={12} /> 기본 위치</button>{kind !== 'recording' && <button className="danger" disabled={Boolean(clearing) || !usage[kind]?.files} onClick={() => void clear(kind)}><Trash2 size={12} /> {clearing === kind ? '정리 중…' : '정리'}</button>}</div></article>
     })}</div>
-    <section className="scratch-disk-policy"><strong>경로 보호 정책</strong><p>선택한 폴더 아래의 Cutline 전용 하위 폴더만 생성·읽기·삭제 대상으로 허용합니다. 경로를 바꿔도 기존 프로젝트가 참조하는 이전 캐시는 유지됩니다.</p></section>
+    <section className="scratch-disk-policy"><strong>경로 보호 정책</strong><p>선택한 폴더 아래의 EditWeave 전용 하위 폴더만 생성·읽기·삭제 대상으로 허용합니다. 경로를 바꿔도 기존 프로젝트가 참조하는 이전 캐시는 유지됩니다.</p></section>
     <footer><button className="primary-button" onClick={onClose}>완료</button></footer>
   </section></div>
 }

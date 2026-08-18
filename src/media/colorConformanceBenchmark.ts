@@ -8,7 +8,7 @@ interface ExpectedPatch {
 }
 
 export interface ColorConformanceBenchmark {
-  version: 'cutline-color-hdr-v1'
+  version: 'editweave-color-hdr-v1'
   provenance: 'synthetic-reference' | 'measured-lab'
   standards: string[]
   tolerance: { signal: number; scope: number; codeValue: number }
@@ -26,7 +26,7 @@ export interface ColorConformanceResult {
 
 export function parseColorConformanceBenchmark(value: unknown): ColorConformanceBenchmark {
   const candidate = value as Partial<ColorConformanceBenchmark>
-  if (candidate.version !== 'cutline-color-hdr-v1' || !['synthetic-reference', 'measured-lab'].includes(candidate.provenance ?? '') || !Array.isArray(candidate.standards) || !Array.isArray(candidate.cases)) {
+  if (candidate.version !== 'editweave-color-hdr-v1' || !['synthetic-reference', 'measured-lab'].includes(candidate.provenance ?? '') || !Array.isArray(candidate.standards) || !Array.isArray(candidate.cases)) {
     throw new Error('지원되는 색상·HDR 기준셋 형식이 아닙니다.')
   }
   const tolerance = candidate.tolerance

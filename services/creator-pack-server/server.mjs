@@ -24,12 +24,12 @@ export async function loadCreatorPackCatalog(options) {
   const artifacts = new Map()
   for (const entry of catalog.entries) {
     const download = new URL(entry.downloadUrl)
-    if (download.origin !== options.publicOrigin || download.search || download.hash || !download.pathname.startsWith('/cutline/packs/')) throw new Error(`Pack URL must use ${options.publicOrigin}/cutline/packs/: ${entry.name}`)
+    if (download.origin !== options.publicOrigin || download.search || download.hash || !download.pathname.startsWith('/editweave/packs/')) throw new Error(`Pack URL must use ${options.publicOrigin}/editweave/packs/: ${entry.name}`)
     const encodedName = download.pathname.split('/').pop() || ''
     let fileName
     try { fileName = decodeURIComponent(encodedName) } catch { throw new Error(`Pack URL encoding is invalid: ${entry.name}`) }
-    if (fileName !== basename(fileName) || !/^[A-Za-z0-9._+-]{1,180}$/.test(fileName) || !fileName.endsWith('.cutline-pack.json')) throw new Error(`Pack filename is unsafe: ${entry.name}`)
-    if (download.pathname !== `/cutline/packs/${encodeURIComponent(fileName)}` || !fileName.includes(entry.version)) throw new Error(`Pack URL is not canonical or versioned: ${entry.name}`)
+    if (fileName !== basename(fileName) || !/^[A-Za-z0-9._+-]{1,180}$/.test(fileName) || !fileName.endsWith('.editweave-pack.json')) throw new Error(`Pack filename is unsafe: ${entry.name}`)
+    if (download.pathname !== `/editweave/packs/${encodeURIComponent(fileName)}` || !fileName.includes(entry.version)) throw new Error(`Pack URL is not canonical or versioned: ${entry.name}`)
     const file = resolve(directory, 'packs', fileName)
     const linkDetails = await lstat(file)
     if (linkDetails.isSymbolicLink()) throw new Error(`Pack artifact symlinks are not allowed: ${fileName}`)
@@ -58,11 +58,11 @@ export function createCreatorPackServer(options) {
       response.writeHead(204, { 'access-control-allow-headers': 'content-type', 'access-control-allow-methods': 'GET,HEAD,OPTIONS', 'access-control-max-age': '600' }); response.end(); return
     }
     let pathname
-    try { pathname = new URL(request.url || '/', 'http://cutline.local').pathname } catch { return sendJson(response, 400, { error: 'invalid_url' }) }
-    if (request.method === 'GET' && pathname === '/healthz') return sendJson(response, shuttingDown ? 503 : 200, { status: shuttingDown ? 'stopping' : 'ok', service: 'cutline-creator-pack-server', entries: snapshot.catalog.entries.length, revocations: snapshot.catalog.revocations.length, artifacts: snapshot.artifacts.size })
+    try { pathname = new URL(request.url || '/', 'http://editweave.local').pathname } catch { return sendJson(response, 400, { error: 'invalid_url' }) }
+    if (request.method === 'GET' && pathname === '/healthz') return sendJson(response, shuttingDown ? 503 : 200, { status: shuttingDown ? 'stopping' : 'ok', service: 'editweave-creator-pack-server', entries: snapshot.catalog.entries.length, revocations: snapshot.catalog.revocations.length, artifacts: snapshot.artifacts.size })
     if (shuttingDown) return sendJson(response, 503, { error: 'shutting_down' })
     if (request.method !== 'GET' && request.method !== 'HEAD') { response.setHeader('allow', 'GET, HEAD, OPTIONS'); return sendJson(response, 405, { error: 'method_not_allowed' }) }
-    if (pathname === '/cutline/catalog.json') return serveCatalog(request, response, snapshot)
+    if (pathname === '/editweave/catalog.json') return serveCatalog(request, response, snapshot)
     const artifact = snapshot.artifacts.get(pathname)
     if (artifact) return serveArtifact(request, response, artifact)
     return sendJson(response, 404, { error: 'not_found' })
@@ -124,15 +124,15 @@ function requiredSetting(name, maximum) { const value = process.env[name]?.trim(
 function csvSetting(name, fallback) { const value = process.env[name]; return value ? value.split(',').map((item) => item.trim()).filter(Boolean) : fallback }
 
 async function main() {
-  const host = process.env.CUTLINE_CREATOR_PACK_HOST?.trim() || '127.0.0.1'
-  const port = integerSetting('CUTLINE_CREATOR_PACK_PORT', 8792, 1, 65_535)
-  const channelDirectory = resolve(process.env.CUTLINE_CREATOR_PACK_CHANNEL_DIR?.trim() || 'release/creator-pack-channel')
-  const publicOrigin = strictHttpsOrigin(requiredSetting('CUTLINE_CREATOR_PACK_PUBLIC_ORIGIN', 240))
-  const expectedKeyId = requiredSetting('CUTLINE_CREATOR_PACK_KEY_ID', 120)
-  const publicKeyBytes = decodeBase64(requiredSetting('CUTLINE_CREATOR_PACK_PUBLIC_KEY', 100), 'CUTLINE_CREATOR_PACK_PUBLIC_KEY')
+  const host = process.env.EDITWEAVE_CREATOR_PACK_HOST?.trim() || '127.0.0.1'
+  const port = integerSetting('EDITWEAVE_CREATOR_PACK_PORT', 8792, 1, 65_535)
+  const channelDirectory = resolve(process.env.EDITWEAVE_CREATOR_PACK_CHANNEL_DIR?.trim() || 'release/creator-pack-channel')
+  const publicOrigin = strictHttpsOrigin(requiredSetting('EDITWEAVE_CREATOR_PACK_PUBLIC_ORIGIN', 240))
+  const expectedKeyId = requiredSetting('EDITWEAVE_CREATOR_PACK_KEY_ID', 120)
+  const publicKeyBytes = decodeBase64(requiredSetting('EDITWEAVE_CREATOR_PACK_PUBLIC_KEY', 100), 'EDITWEAVE_CREATOR_PACK_PUBLIC_KEY')
   const config = { channelDirectory, publicOrigin, expectedKeyId, publicKey: ed25519PublicKey(publicKeyBytes) }
   const snapshot = await loadCreatorPackCatalog(config)
-  const controller = createCreatorPackServer({ snapshot, allowedOrigins: new Set(csvSetting('CUTLINE_CREATOR_PACK_ALLOWED_ORIGINS', ['tauri://localhost', 'http://tauri.localhost', 'https://tauri.localhost'])), maxActiveDownloads: integerSetting('CUTLINE_CREATOR_PACK_MAX_ACTIVE_DOWNLOADS', 100, 1, 10_000), maxDownloadsPerIp: integerSetting('CUTLINE_CREATOR_PACK_MAX_DOWNLOADS_PER_IP', 8, 1, 100) })
+  const controller = createCreatorPackServer({ snapshot, allowedOrigins: new Set(csvSetting('EDITWEAVE_CREATOR_PACK_ALLOWED_ORIGINS', ['tauri://localhost', 'http://tauri.localhost', 'https://tauri.localhost'])), maxActiveDownloads: integerSetting('EDITWEAVE_CREATOR_PACK_MAX_ACTIVE_DOWNLOADS', 100, 1, 10_000), maxDownloadsPerIp: integerSetting('EDITWEAVE_CREATOR_PACK_MAX_DOWNLOADS_PER_IP', 8, 1, 100) })
   controller.server.listen(port, host, () => console.log(`[creator-pack-server] listening on http://${host}:${port} entries=${snapshot.catalog.entries.length}`))
   process.on('SIGHUP', () => { void loadCreatorPackCatalog(config).then((next) => { controller.replaceSnapshot(next); console.log(`[creator-pack-server] catalog reloaded entries=${next.catalog.entries.length}`) }).catch((error) => console.error('[creator-pack-server] reload rejected:', error instanceof Error ? error.message : String(error))) })
   for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => { controller.beginShutdown(); controller.server.close(); setTimeout(() => controller.server.closeAllConnections(), 30_000).unref() })

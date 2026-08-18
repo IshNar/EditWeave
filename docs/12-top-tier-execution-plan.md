@@ -8,7 +8,7 @@
 
 1. E1 출시 신뢰성 게이트를 통과하기 전에는 새로운 효과·템플릿·생성형 AI 범위를 늘리지 않는다.
 2. 각 Epic은 기능 구현, 자동 회귀, 실물 픽스처, 사용자 작업 검증을 모두 가져야 한다.
-3. Cutline은 AI 대본 편집, 롱폼→쇼츠, Creator Source Graph, 로컬 AI 통제를 최상으로 만든다.
+3. EditWeave은 AI 대본 편집, 롱폼→쇼츠, Creator Source Graph, 로컬 AI 통제를 최상으로 만든다.
 4. 정밀 편집·색상·오디오·포맷은 지원 범위를 명시하고 그 범위 안에서 상용 강함을 먼저 달성한다.
 5. 비교표 점수는 코드 양이 아니라 마지막으로 통과한 재현 가능한 증거를 반영한다.
 
@@ -276,7 +276,7 @@ pnpm check:creator-ecosystem
 | 로컬 배포자 신뢰 | 통과 | 서명 Pack의 명시적 신뢰·차단, 키 지문 표시, 같은 `keyId` 공개키 변경 탐지 |
 | 업데이트 키 고정 | 통과 | 설치 시 공개키 지문을 기록하고 다른 키의 동일 Pack ID 업데이트 차단 |
 | 버전 안전성 | 통과 | 신규·재설치·업그레이드·다운그레이드 판정과 기본 다운그레이드 차단 |
-| 운영 카탈로그 계약 | 완료 | `cutline-creator-catalog-v1` JSON Schema, 1MB·1,000항목 한도, 알 수 없는 필드·중복 버전 차단 |
+| 운영 카탈로그 계약 | 완료 | `editweave-creator-catalog-v1` JSON Schema, 1MB·1,000항목 한도, 알 수 없는 필드·중복 버전 차단 |
 | 카탈로그 권위 검증 | 통과 | 빌드 고정 Ed25519 공개키·keyId로 운영 catalog 서명 검증, 변조 거부 |
 | 안전 다운로드 | 통과 | HTTPS·no credentials/referrer/redirect, 2MB·UTF-8·파일 SHA-256 검사 |
 | Pack 신원 결합 | 통과 | catalog와 Pack ID·버전·제작자·공개키 지문이 모두 일치하고 제작자 서명이 있어야 후보 등록 |
@@ -368,9 +368,9 @@ pnpm check:decoded-media
 | 전용 게이트 | 통과 | Vitest 4개 파일 15개 테스트, production build, Rust/Tauri 검사 |
 | 전체 제품 게이트 | 통과 | Vitest 35개 파일 190개 + 운영 경로 Node 3개 테스트, production build와 Rust/Tauri 검사 |
 
-현재 판정은 **실제 코덱 디코딩 artifact QC 엔진 완료**다. 기준과 후보 파일을 실제 코덱으로 인코딩·재디코딩하고 품질·지연을 수치화하므로 타임라인 계약보다 한 단계 강하다. 다음의 기본 Cutline 자체 렌더 E2E가 이 엔진과 연결됐으며, 지원 해상도·fps·효과·코덱 전체 매트릭스까지 확장해야 최종 실물 일치로 판정한다.
+현재 판정은 **실제 코덱 디코딩 artifact QC 엔진 완료**다. 기준과 후보 파일을 실제 코덱으로 인코딩·재디코딩하고 품질·지연을 수치화하므로 타임라인 계약보다 한 단계 강하다. 다음의 기본 EditWeave 자체 렌더 E2E가 이 엔진과 연결됐으며, 지원 해상도·fps·효과·코덱 전체 매트릭스까지 확장해야 최종 실물 일치로 판정한다.
 
-## Cutline 자체 렌더 E2E
+## EditWeave 자체 렌더 E2E
 
 ### 전용 게이트
 
@@ -378,7 +378,7 @@ pnpm check:decoded-media
 pnpm check:desktop-render
 ```
 
-실행 진입점: `/?cutline-conformance=desktop-render`
+실행 진입점: `/?editweave-conformance=desktop-render`
 
 ### 2026-08-15 실제 브라우저 결과
 
@@ -386,8 +386,8 @@ pnpm check:desktop-render
 | --- | --- | --- |
 | capability fail-closed | 통과 | Video/Audio Encoder·Decoder, VideoFrame·AudioData·Canvas2D 누락 시 `blocked` 보고 |
 | 기준 미디어 생성 | 통과 | 결정적 testsrc2·997/1511Hz 다중 톤 H.264/AAC 2초 fixture |
-| Cutline 프로그램 캡처 | 통과 | 소스 프레임을 제품의 `drawVisual` 프로그램 합성 경로로 RGB 캡처 |
-| Cutline 실제 출력 | 통과 | 제품의 `exportSequence`로 H.264 4~20Mbps와 HEVC SDR 4Mbps·AAC mono 128kbps 출력 |
+| EditWeave 프로그램 캡처 | 통과 | 소스 프레임을 제품의 `drawVisual` 프로그램 합성 경로로 RGB 캡처 |
+| EditWeave 실제 출력 | 통과 | 제품의 `exportSequence`로 H.264 4~20Mbps와 HEVC SDR 4Mbps·AAC mono 128kbps 출력 |
 | fps 매트릭스 | 통과 | 23.976·29.97·30·59.94fps H.264 7개와 HEVC SDR 1개, 실행 가능 프로필 8/8 |
 | 화면·합성 매트릭스 | 통과 | 16:9 가로, 9:16 세로, transform keyframe·2개 영상 레이어·crossfade·색상·자막 |
 | 속도·컷 매핑 | 통과 | 1.0→1.4 속도 램프 뒤 sourceOffset 1.2초·0.75배 두 번째 컷의 타임라인→소스 시간을 프레임별 계산; SSIM 0.9999278, PSNR 35.6551dB |
@@ -400,7 +400,8 @@ pnpm check:desktop-render
 | HDR 원본 Main10 직접 보존 | 통과 | Chromium `format=null` 환경에서 번들 FFmpeg 원본 디코드 fallback을 일반 내보내기에 연결. PQ 60초 SSIM 0.999636, HLG 60초 SSIM 0.999711, 각 1,800/1,800 fallback·디코드 오류 0 |
 | HDR10 메타데이터 실파일 | 통과 | MP4 `mdcv` ISO G/B/R 순서를 수정하고 BT.2020 R(0.708,0.292)·G(0.17,0.797)·B(0.131,0.046), D65, 0.005~1000nit, MaxCLL 1000·MaxFALL 400 재확인 |
 | HDR 효과 GPU 합성 | 통과 | WGSL 예약어 `target` 때문에 효과 결과가 검정이 되는 결함을 실출력 QC로 발견. 변수명 수정과 셰이더 컴파일 fail-fast 후 PQ +0.5 노출 900/900프레임에서 YMIN/YAVG/YMAX 108/378.774/528·디코드 오류 0 확인 |
-| 최신 NSIS HDR 설치본 | 통과 | 최종 NSIS 74,870,003바이트·SHA-256 `014CD37E7D9CAD6E41D1B61EEBBD22277644391B31516259DDCB06C8B575D443`를 격리 설치. 설치본 PQ 효과 30초와 중립 PQ·HLG 각 30초를 통과했고 중립 SSIM은 PQ 0.999633·HLG 0.999709, 전 스트림 디코드 오류 0 |
+| 리브랜딩 전 NSIS HDR 설치본 | 통과 | NSIS 74,870,003바이트·SHA-256 `014CD37E7D9CAD6E41D1B61EEBBD22277644391B31516259DDCB06C8B575D443`를 격리 설치. 설치본 PQ 효과 30초와 중립 PQ·HLG 각 30초를 통과했고 중립 SSIM은 PQ 0.999633·HLG 0.999709, 전 스트림 디코드 오류 0 |
+| EditWeave 리브랜딩 패키지 | 통과 | 2026-08-18 `editweave.exe`, MSI `EditWeave_0.1.0_x64_en-US.msi`, NSIS `EditWeave_0.1.0_x64-setup.exe` 생성. NSIS 74,718,655바이트·SHA-256 `3703745EAC25F75EFD24E2F73E10D683ADEE9B95FF023CBD82F2BE6004A4438B`; Authenticode `NotSigned` |
 | 24-bit WAV 5.1 실제 출력 | 통과 | 제품의 `exportAudioStem` Full Mix를 48kHz·6채널 PCM으로 출력·재디코딩; 채널 RMS `[0, 0, 0.04655, 0, 0, 0]`로 대사 센터 전용 라우팅과 타 채널 무누설 확인 |
 | 5.1 센터 PCM | 통과 | 기준 mono 대비 상관 0.9998297, RMSE 0.0193996, 지연 0샘플·0ms |
 | AAC 5.1 MP4 | 통과 | WebView 6ch AAC 직접 인코딩 미지원 시 영상 체크포인트와 연속 24-bit 5.1 WAV를 분리 생성한 뒤 번들 FFmpeg로 원자적 결합; 실제 Tauri 60초 MP4가 AAC 48kHz 6ch `5.1`, 1,800프레임·전 구간 디코드 오류 0·30초 경계 지연 0샘플·센터 상관 0.999828 통과 |

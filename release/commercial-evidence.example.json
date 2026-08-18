@@ -1,19 +1,19 @@
 {
   "schema": 1,
   "media": {
-    "pq": "D:/cutline-evidence/camera-pq.mov",
-    "hlg": "D:/cutline-evidence/camera-hlg.mov",
-    "vfr": "D:/cutline-evidence/iphone-vfr.mov",
-    "professional": "D:/cutline-evidence/prores-422-hq.mov"
+    "pq": "D:/editweave-evidence/camera-pq.mov",
+    "hlg": "D:/editweave-evidence/camera-hlg.mov",
+    "vfr": "D:/editweave-evidence/iphone-vfr.mov",
+    "professional": "D:/editweave-evidence/prores-422-hq.mov"
   },
   "windows": {
-    "installer": "D:/cutline-evidence/Cutline-signed-setup.exe",
-    "expectedSignerSubject": "CN=Cutline Inc., O=Cutline Inc., C=KR"
+    "installer": "D:/editweave-evidence/EditWeave-signed-setup.exe",
+    "expectedSignerSubject": "CN=EditWeave Inc., O=EditWeave Inc., C=KR"
   },
   "receipts": {
-    "macos": "D:/cutline-evidence/macos-signed-notarized-install.json",
-    "hdrMonitor": "D:/cutline-evidence/hdr-reference-monitor.json",
-    "userValidation": "D:/cutline-evidence/user-task-validation.json",
-    "operations": "D:/cutline-evidence/production-operations.json"
+    "macos": "D:/editweave-evidence/macos-signed-notarized-install.json",
+    "hdrMonitor": "D:/editweave-evidence/hdr-reference-monitor.json",
+    "userValidation": "D:/editweave-evidence/user-task-validation.json",
+    "operations": "D:/editweave-evidence/production-operations.json"
   }
 }

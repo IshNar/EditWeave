@@ -43,7 +43,7 @@ describe('timeline exchange conformance', () => {
     expect(importedClip?.sourceOffset).toBeCloseTo(0.5, 2)
   })
 
-  it('preserves Cutline-rich metadata through OTIO', () => {
+  it('preserves EditWeave-rich metadata through OTIO', () => {
     const imported = parseExchangeTimeline(createOtio('Roundtrip', [track], [asset], [marker], 30, 0, preset), 'project.otio')
     expect(imported).toMatchObject({ width: 1920, height: 1080, markers: [{ label: 'Review', description: 'Check cut', kind: 'comment', status: 'open' }] })
     expect(imported.clips[0]).toMatchObject({ start: 1, transform: clip.transform, transitionIn: clip.transitionIn })

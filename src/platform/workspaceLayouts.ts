@@ -18,7 +18,7 @@ export const workspacePresets: Record<Exclude<WorkspacePresetId, 'custom'>, Work
   captions: { mediaWidth: 380, inspectorWidth: 300, timelinePercent: 48 },
 }
 
-const storageKey = 'cutline.workspace.preferences.v1'
+const storageKey = 'editweave.workspace.preferences.v1'
 
 function clampDimensions(value: Partial<WorkspaceDimensions> | undefined, fallback: WorkspaceDimensions): WorkspaceDimensions {
   return {

@@ -10,20 +10,20 @@ export interface AdrTeamDefaults {
 export interface AudioTeamTemplate {
   id: string
   name: string
-  version: 'cutline-audio-template-v1'
+  version: 'editweave-audio-template-v1'
   createdAt: string
   updatedAt: string
   audioBuses: AudioBusMap
   adr: AdrTeamDefaults
 }
 
-const STORAGE_KEY = 'cutline.audio-team-templates.v1'
+const STORAGE_KEY = 'editweave.audio-team-templates.v1'
 export const defaultAdrTeamDefaults: AdrTeamDefaults = { cueDuration: 5, countdownSeconds: 3, preferredDeviceLabel: '' }
 
 export function readAudioTeamTemplates(): AudioTeamTemplate[] {
   try {
     const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]') as AudioTeamTemplate[]
-    return Array.isArray(parsed) ? parsed.filter((item) => item?.version === 'cutline-audio-template-v1' && item.id && item.name).map(normalizeTemplate).slice(0, 50) : []
+    return Array.isArray(parsed) ? parsed.filter((item) => item?.version === 'editweave-audio-template-v1' && item.id && item.name).map(normalizeTemplate).slice(0, 50) : []
   } catch {
     return []
   }
@@ -39,7 +39,7 @@ export function writeAudioTeamTemplates(templates: AudioTeamTemplate[]): void {
 
 export function createAudioTeamTemplate(name: string, audioBuses: AudioBusMap, adr: AdrTeamDefaults = defaultAdrTeamDefaults, existingId?: string): AudioTeamTemplate {
   const now = new Date().toISOString()
-  return normalizeTemplate({ id: existingId ?? crypto.randomUUID(), name: name.trim() || '오디오 템플릿', version: 'cutline-audio-template-v1', createdAt: now, updatedAt: now, audioBuses, adr })
+  return normalizeTemplate({ id: existingId ?? crypto.randomUUID(), name: name.trim() || '오디오 템플릿', version: 'editweave-audio-template-v1', createdAt: now, updatedAt: now, audioBuses, adr })
 }
 
 export function serializeAudioTeamTemplate(template: AudioTeamTemplate): string {
@@ -48,7 +48,7 @@ export function serializeAudioTeamTemplate(template: AudioTeamTemplate): string 
 
 export function parseAudioTeamTemplate(raw: string): AudioTeamTemplate {
   const value = JSON.parse(raw) as Partial<AudioTeamTemplate>
-  if (value.version !== 'cutline-audio-template-v1' || !value.id || !value.name || !value.audioBuses) throw new Error('지원되는 Cutline 오디오 템플릿이 아닙니다.')
+  if (value.version !== 'editweave-audio-template-v1' || !value.id || !value.name || !value.audioBuses) throw new Error('지원되는 EditWeave 오디오 템플릿이 아닙니다.')
   return normalizeTemplate(value as AudioTeamTemplate)
 }
 

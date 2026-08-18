@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import catalogSchema from '../../schemas/cutline-creator-catalog-v1.schema.json'
+import catalogSchema from '../../schemas/editweave-creator-catalog-v1.schema.json'
 import {
   createCreatorPackCatalogSigningPayload,
   downloadCatalogCreatorPack,
@@ -48,16 +48,16 @@ async function signedPackFixture(version = '1.0.0') {
 async function signedCatalog(entry: CreatorPackCatalogEntry, revocations: CreatorPackCatalog['revocations'] = []) {
   const keys = await crypto.subtle.generateKey('Ed25519', true, ['sign', 'verify']) as CryptoKeyPair
   const publicKey = base64(new Uint8Array(await crypto.subtle.exportKey('raw', keys.publicKey)))
-  const draft = { schema: 'cutline-creator-catalog-v1' as const, generatedAt: '2026-08-15T01:00:00.000Z', authority: 'Cutline Catalog', keyId: 'catalog-2026', entries: [entry], revocations }
+  const draft = { schema: 'editweave-creator-catalog-v1' as const, generatedAt: '2026-08-15T01:00:00.000Z', authority: 'EditWeave Catalog', keyId: 'catalog-2026', entries: [entry], revocations }
   const signature = base64(new Uint8Array(await crypto.subtle.sign('Ed25519', keys.privateKey, new TextEncoder().encode(createCreatorPackCatalogSigningPayload(draft)))))
   return { raw: JSON.stringify({ ...draft, signature }), publicKey }
 }
 
 describe('Creator Pack catalog contract', () => {
   it('keeps the published schema aligned and rejects unsafe local entries', async () => {
-    expect(catalogSchema.properties.schema.const).toBe('cutline-creator-catalog-v1')
+    expect(catalogSchema.properties.schema.const).toBe('editweave-creator-catalog-v1')
     const fixture = await signedPackFixture()
-    const local = { schema: 'cutline-creator-catalog-v1', generatedAt: '2026-08-15T00:00:00.000Z', authority: 'Local', entries: [fixture.entry], revocations: [] }
+    const local = { schema: 'editweave-creator-catalog-v1', generatedAt: '2026-08-15T00:00:00.000Z', authority: 'Local', entries: [fixture.entry], revocations: [] }
     await expect(parseCreatorPackCatalog(JSON.stringify(local), { allowUnsignedLocal: true })).resolves.toMatchObject({ verification: 'local-untrusted', entries: [{ packId: 'catalog-pack' }] })
     await expect(parseCreatorPackCatalog(JSON.stringify({ ...local, entries: [{ ...fixture.entry, downloadUrl: 'http://packs.example.com/pack.json' }] }), { allowUnsignedLocal: true })).rejects.toThrow(/HTTPS/)
     await expect(parseCreatorPackCatalog(JSON.stringify({ ...local, entries: [{ ...fixture.entry, minimumApiVersion: '2.0.0' }] }), { allowUnsignedLocal: true })).rejects.toThrow(/호환/)
@@ -68,7 +68,7 @@ describe('Creator Pack catalog contract', () => {
   it('verifies a pinned catalog authority signature and rejects tampering', async () => {
     const fixture = await signedPackFixture()
     const catalog = await signedCatalog(fixture.entry)
-    await expect(parseCreatorPackCatalog(catalog.raw, { expectedPublicKey: catalog.publicKey, expectedKeyId: 'catalog-2026' })).resolves.toMatchObject({ verification: 'signed', authority: 'Cutline Catalog' })
+    await expect(parseCreatorPackCatalog(catalog.raw, { expectedPublicKey: catalog.publicKey, expectedKeyId: 'catalog-2026' })).resolves.toMatchObject({ verification: 'signed', authority: 'EditWeave Catalog' })
     const tampered = JSON.parse(catalog.raw)
     tampered.entries[0].name = 'Tampered'
     await expect(parseCreatorPackCatalog(JSON.stringify(tampered), { expectedPublicKey: catalog.publicKey, expectedKeyId: 'catalog-2026' })).rejects.toThrow(/서명/)

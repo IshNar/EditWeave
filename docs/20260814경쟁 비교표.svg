@@ -1,12 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1320" viewBox="0 0 1800 1320" role="img" aria-labelledby="title desc">
-  <title id="title">2026년 8월 Cutline 경쟁 비교 요약표</title>
-  <desc id="desc">Premiere, DaVinci Resolve, Final Cut Pro, CapCut과 Cutline의 현재 상태 및 집중 목표를 비교한 표. Cutline HDR은 PQ·HLG Main10 원본 보존과 효과 합성 설치본 출력 검증, Creator Pack 생태계는 자동 검증 단계다.</desc>
+  <title id="title">2026년 8월 EditWeave 경쟁 비교 요약표</title>
+  <desc id="desc">Premiere, DaVinci Resolve, Final Cut Pro, CapCut과 EditWeave의 현재 상태 및 집중 목표를 비교한 표. EditWeave HDR은 PQ·HLG Main10 원본 보존과 효과 합성 설치본 출력 검증, Creator Pack 생태계는 자동 검증 단계다.</desc>
   <defs>
     <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#09111f"/>
       <stop offset="1" stop-color="#121b30"/>
     </linearGradient>
-    <linearGradient id="cutlineHeader" x1="0" y1="0" x2="1" y2="0">
+    <linearGradient id="editweaveHeader" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0" stop-color="#7357ff"/>
       <stop offset="1" stop-color="#3d9cff"/>
     </linearGradient>
@@ -29,8 +29,8 @@
   <circle cx="1640" cy="80" r="260" fill="#7357ff" opacity="0.08"/>
   <circle cx="80" cy="1240" r="280" fill="#3d9cff" opacity="0.06"/>
 
-  <text id="title-text" x="90" y="92" class="title">Cutline 경쟁 비교 요약</text>
-  <text x="90" y="132" class="subtitle">2026-08-15 갱신 · 상용 성숙도와 Cutline 원본·효과 실출력 및 자동 검증을 분리 평가</text>
+  <text id="title-text" x="90" y="92" class="title">EditWeave 경쟁 비교 요약</text>
+  <text x="90" y="132" class="subtitle">2026-08-15 갱신 · 상용 성숙도와 EditWeave 원본·효과 실출력 및 자동 검증을 분리 평가</text>
 
   <g filter="url(#shadow)">
     <rect x="70" y="185" width="1660" height="940" rx="24" fill="#111a2c" stroke="#263451" stroke-width="2"/>
@@ -41,7 +41,7 @@
     <rect x="570" y="185" width="240" height="92" fill="#202c45"/>
     <rect x="810" y="185" width="240" height="92" fill="#202c45"/>
     <rect x="1050" y="185" width="240" height="92" fill="#202c45"/>
-    <rect x="1290" y="185" width="220" height="92" fill="url(#cutlineHeader)"/>
+    <rect x="1290" y="185" width="220" height="92" fill="url(#editweaveHeader)"/>
     <rect x="1510" y="185" width="220" height="92" rx="24" fill="#2c466e"/>
 
     <text x="210" y="232" class="header" text-anchor="middle" dominant-baseline="middle">비교 항목</text>
@@ -51,9 +51,9 @@
     <text x="930" y="222" class="header" text-anchor="middle" dominant-baseline="middle">Final Cut</text>
     <text x="930" y="247" class="header" text-anchor="middle" dominant-baseline="middle">Pro</text>
     <text x="1170" y="232" class="header" text-anchor="middle" dominant-baseline="middle">CapCut</text>
-    <text x="1400" y="222" class="header" text-anchor="middle" dominant-baseline="middle">Cutline</text>
+    <text x="1400" y="222" class="header" text-anchor="middle" dominant-baseline="middle">EditWeave</text>
     <text x="1400" y="247" class="header" text-anchor="middle" dominant-baseline="middle">현재</text>
-    <text x="1620" y="222" class="header" text-anchor="middle" dominant-baseline="middle">Cutline</text>
+    <text x="1620" y="222" class="header" text-anchor="middle" dominant-baseline="middle">EditWeave</text>
     <text x="1620" y="247" class="header" text-anchor="middle" dominant-baseline="middle">집중 목표</text>
 
     <!-- Alternating row backgrounds -->
@@ -184,5 +184,5 @@
     <circle cx="610" cy="30" r="10" fill="#b95063"/><text x="630" y="36" class="legend">출시 차단</text>
     <text x="32" y="70" class="note">전략: 모든 분야의 챔피언을 동시에 복제하기보다, AI 대본 편집·롱폼→쇼츠·Source Graph·로컬 통제를 최상으로 만든다.</text>
   </g>
-  <text x="1710" y="1292" class="note" text-anchor="end">Cutline · competitive benchmark</text>
+  <text x="1710" y="1292" class="note" text-anchor="end">EditWeave · competitive benchmark</text>
 </svg>

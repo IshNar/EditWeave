@@ -259,8 +259,8 @@ async function exportSequenceInternal(options: SequenceExportOptions): Promise<S
     hardwareAcceleration: options.hardwareAcceleration ?? 'prefer-hardware',
     transform: { width: dimensions.width, height: dimensions.height, fit: 'contain', alpha: 'discard' },
   }) : undefined
-  if (canvasSource) output!.addVideoTrack(canvasSource, { name: 'Cutline Program' })
-  if (hdrVideoSource) output!.addVideoTrack(hdrVideoSource, { name: colorMode === 'hdr10-pq' ? 'Cutline HDR10 Program' : 'Cutline HLG Program' })
+  if (canvasSource) output!.addVideoTrack(canvasSource, { name: 'EditWeave Program' })
+  if (hdrVideoSource) output!.addVideoTrack(hdrVideoSource, { name: colorMode === 'hdr10-pq' ? 'EditWeave HDR10 Program' : 'EditWeave HLG Program' })
   const hdrConverter = colorMode !== 'sdr' ? new Hdr10FrameConverter(dimensions.width, dimensions.height, colorMode === 'hdr10-pq' ? 'pq' : 'hlg') : undefined
   const hdrLinearCompositor = colorMode !== 'sdr' ? new HdrLinearCompositor(dimensions.width, dimensions.height, colorMode === 'hdr10-pq' ? 'pq' : 'hlg') : undefined
 
@@ -274,7 +274,7 @@ async function exportSequenceInternal(options: SequenceExportOptions): Promise<S
     bitrate: audioBitrate,
     transform: { sampleRate: audioSampleRate, numberOfChannels: audioChannels },
   }) : undefined
-  if (audioSource) output!.addAudioTrack(audioSource, { name: 'Cutline Mix' })
+  if (audioSource) output!.addAudioTrack(audioSource, { name: 'EditWeave Mix' })
 
   // Keep one decoder pipeline open per source for the whole render. Calling
   // VideoSampleSink.getSample() for every frame recreates a decoder and seeks
@@ -323,7 +323,7 @@ async function exportSequenceInternal(options: SequenceExportOptions): Promise<S
     if (source?.videoSink) source.videoSamples = source.videoSink.samplesAtTimestamps(timestamps)[Symbol.asyncIterator]()
   })
 
-  output?.setMetadataTags({ title: options.projectName, comment: 'Created with Cutline' })
+  output?.setMetadataTags({ title: options.projectName, comment: 'Created with EditWeave' })
   await output?.start()
 
   try {
@@ -584,8 +584,8 @@ async function exportAudioMasterInternal(options: AudioMasterExportOptions): Pro
   const target = options.outputStream ? new StreamTarget(options.outputStream, { chunked: true, chunkSize: DESKTOP_STREAM_CHUNK_BYTES }) : new BufferTarget()
   const output = new Output({ format: new Mp4OutputFormat({ fastStart: options.outputStream ? false : 'in-memory' }), target })
   const audioSource = new AudioSampleSource({ codec: 'aac', bitrate, transform: { sampleRate, numberOfChannels: channels } })
-  output.addAudioTrack(audioSource, { name: 'Cutline Continuous Mix' })
-  output.setMetadataTags({ title: `${options.projectName} · Continuous Mix`, comment: 'Single-pass audio master created with Cutline' })
+  output.addAudioTrack(audioSource, { name: 'EditWeave Continuous Mix' })
+  output.setMetadataTags({ title: `${options.projectName} · Continuous Mix`, comment: 'Single-pass audio master created with EditWeave' })
   await output.start()
   try {
     await appendAudio(audioPlans, prepared, audioSource, AudioSample, rangeStart, rangeEnd, normalizeAudioBuses(options.audioBuses), options.signal, (progress) => options.onProgress?.(0.03 + progress * 0.94, `${sampleRate / 1_000}kHz 연속 오디오 합성`), options.waitWhilePaused, audioPlans, sampleRate, channels)
@@ -631,7 +631,7 @@ async function exportAudioStemInternal(options: AudioStemExportOptions): Promise
   const outputChannels = options.channels === 1 ? 1 : options.channels === 6 ? 6 : 2
   const audioSource = new AudioSampleSource({ codec: 'pcm-s24', transform: { sampleRate, numberOfChannels: outputChannels } })
   output.addAudioTrack(audioSource, { name: `${options.stemName} Stem` })
-  output.setMetadataTags({ title: `${options.projectName} · ${options.stemName}`, comment: `${sampleRate / 1_000}kHz 24-bit audio deliverable created with Cutline` })
+  output.setMetadataTags({ title: `${options.projectName} · ${options.stemName}`, comment: `${sampleRate / 1_000}kHz 24-bit audio deliverable created with EditWeave` })
   await output.start()
   try {
     const stemBuses = normalizeAudioBuses(options.audioBuses)

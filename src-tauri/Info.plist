@@ -3,6 +3,6 @@
 <plist version="1.0">
 <dict>
   <key>NSMicrophoneUsageDescription</key>
-  <string>Cutline은 타임라인에 ADR 및 보이스오버 오디오를 녹음하기 위해 마이크를 사용합니다.</string>
+  <string>EditWeave은 타임라인에 ADR 및 보이스오버 오디오를 녹음하기 위해 마이크를 사용합니다.</string>
 </dict>
 </plist>

@@ -110,7 +110,7 @@ interface MonitorOverlaySettings { actionSafe: boolean; titleSafe: boolean; thir
 
 function readMonitorOverlays(): MonitorOverlaySettings {
   const defaults: MonitorOverlaySettings = { actionSafe: true, titleSafe: false, thirds: false, center: false, timecode: false }
-  try { return { ...defaults, ...JSON.parse(localStorage.getItem('cutline.monitor-overlays.v1') ?? '{}') } } catch { return defaults }
+  try { return { ...defaults, ...JSON.parse(localStorage.getItem('editweave.monitor-overlays.v1') ?? '{}') } } catch { return defaults }
 }
 
 function applyMonitorAssist(context: CanvasRenderingContext2D, width: number, height: number, mode: MonitorAssistMode): void {
@@ -1100,7 +1100,7 @@ function SourceMonitor({ asset, sourceTime, syncKey, isPlaying, playbackRate, mu
 }
 
 function curveFilterId(clipId: string): string {
-  return `cutline-curve-${clipId.replace(/[^a-zA-Z0-9_-]/g, '-')}`
+  return `editweave-curve-${clipId.replace(/[^a-zA-Z0-9_-]/g, '-')}`
 }
 
 function ColorCurveFilterDefinitions({ clips }: { clips: TimelineClip[] }) {
@@ -1498,7 +1498,7 @@ export function PreviewPanel({ preset, fps, timecodeStart = 0, timecodeDropFrame
     document.addEventListener('fullscreenchange', update)
     return () => document.removeEventListener('fullscreenchange', update)
   }, [])
-  useEffect(() => { localStorage.setItem('cutline.monitor-overlays.v1', JSON.stringify(monitorOverlays)) }, [monitorOverlays])
+  useEffect(() => { localStorage.setItem('editweave.monitor-overlays.v1', JSON.stringify(monitorOverlays)) }, [monitorOverlays])
   const toggleFullscreen = () => {
     if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined)
     else {

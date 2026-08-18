@@ -2,7 +2,7 @@
 
 ## 목적
 
-긴 개발 대화의 기억이나 이전 완료 보고가 아니라 현재 작업 폴더의 소스와 실제 사용자 검증을 근거로 Cutline의 상태를 판정한다. 이 문서는 `08-production-completion-plan.md`의 상세 요구를 실무 흐름 단위로 묶은 색인이며, 소스 파일이 있다는 사실만으로 출시 완료를 선언하지 않는다.
+긴 개발 대화의 기억이나 이전 완료 보고가 아니라 현재 작업 폴더의 소스와 실제 사용자 검증을 근거로 EditWeave의 상태를 판정한다. 이 문서는 `08-production-completion-plan.md`의 상세 요구를 실무 흐름 단위로 묶은 색인이며, 소스 파일이 있다는 사실만으로 출시 완료를 선언하지 않는다.
 
 ## 상태 표기
 
@@ -66,7 +66,8 @@
 - 로컬 런타임 스모크: MP4/MP3/PNG 가져오기·분석, 미지원 SVG 거부, 빈 시퀀스 생성, MP4 배치, 5.06초 실제 MP4를 720×1280 H.264 SDR 30fps로 출력하고 영속 렌더 큐에서 100% 완료 확인.
 - NSIS 설치 스모크: 작업 폴더 아래 격리 경로에 무인 설치(종료 코드 0), 설치된 EXE 8초 기동, 무인 제거(종료 코드 0), 설치 폴더와 HKCU 제거 항목 정리를 확인했다.
 - 2026-08-15 NSIS 장시간 실물: 설치된 EXE와 번들 FFmpeg·FFprobe로 60분 108,000프레임을 출력했다. 26/120 체크포인트 뒤 강제 종료해 정상 구간 26개를 복구하고 0바이트 부분 구간을 거부했으며, 전체 디코드 오류 0·SSIM 0.976030·8개 PCM 창 지연 0ms·512MiB 힙 방어선을 통과했다.
-- 2026-08-15 HDR 원본·효과 실물: Chromium `format=null` Main10 조건에서 네이티브 원본 디코드 fallback을 제품 일반 내보내기에 연결했다. PQ/HLG 중립 60초는 SSIM 0.999636/0.999711을 통과했다. WGSL `target` 예약어로 효과 출력이 검정이던 결함은 컴파일 fail-fast와 변수명 수정으로 차단했고, 최종 NSIS 설치본 PQ +0.5 노출 900프레임은 YAVG 378.774·디코드 오류 0을 통과했다. 최종 NSIS는 74,870,003바이트, SHA-256 `014CD37E7D9CAD6E41D1B61EEBBD22277644391B31516259DDCB06C8B575D443`, Authenticode `NotSigned`다.
+- 2026-08-15 HDR 원본·효과 실물: Chromium `format=null` Main10 조건에서 네이티브 원본 디코드 fallback을 제품 일반 내보내기에 연결했다. PQ/HLG 중립 60초는 SSIM 0.999636/0.999711을 통과했다. WGSL `target` 예약어로 효과 출력이 검정이던 결함은 컴파일 fail-fast와 변수명 수정으로 차단했고, 리브랜딩 전 NSIS 설치본 PQ +0.5 노출 900프레임은 YAVG 378.774·디코드 오류 0을 통과했다. 해당 NSIS는 74,870,003바이트, SHA-256 `014CD37E7D9CAD6E41D1B61EEBBD22277644391B31516259DDCB06C8B575D443`, Authenticode `NotSigned`다.
+- 2026-08-18 EditWeave 리브랜딩: 앱·Tauri ID·Rust crate/실행 파일·프로젝트/Pack/업데이트 schema·서비스 환경변수·문서·아이콘을 EditWeave로 통일하고 기존 Cutline 로컬 저장 키와 프로젝트 구조를 읽는 마이그레이션을 추가했다. `editweave.exe`와 MSI/NSIS를 실제 패키징했으며 NSIS는 74,718,655바이트, SHA-256 `3703745EAC25F75EFD24E2F73E10D683ADEE9B95FF023CBD82F2BE6004A4438B`, Authenticode `NotSigned`다.
 - 2026-08-15 상용화 통합 게이트: `release/check-commercial-readiness.mjs`가 실제 10-bit BT.2020 PQ/HLG, 240 packet 내 duration 변동 VFR, 전문 코덱, Windows Authenticode 고정 Subject, macOS 서명·공증 설치, HDR 기준 모니터, 사용자 과업, 운영 인프라 영수증을 10개 fail-closed 항목으로 판정한다. 순수 판정 회귀 4개는 통과했고 증거가 없는 현재 환경에서는 의도대로 `blocked`다.
 - 로컬 다운로드 폴더의 `[4K HDR]` 표기 MOV/MP4 3개를 FFprobe로 확인했으나 모두 640×272 H.264 8-bit BT.709 CFR이었다. 이름만 HDR인 파일은 실물 증거로 승격하지 않았다.
 - AAC 5.1 fallback 실물: WebView 6채널 AAC 미지원 시 연속 24-bit 5.1 WAV를 생성하고 번들 FFmpeg로 영상에 원자적 결합한다. 실제 Tauri 60초 MP4가 AAC 48kHz 6ch `5.1`, 센터 전용 대사·다른 채널 0·경계 지연 0샘플·전 구간 디코드 오류 0을 통과했다.
@@ -78,4 +79,4 @@
 - 기능을 수정한 작업은 해당 행의 소스 근거와 알려진 공백을 함께 갱신한다.
 - 사용자 검증 결과는 사용한 파일 형식·길이·OS·절차와 함께 `troubleshooting.md`에 기록한 뒤 상태를 바꾼다.
 - 검색 결과, 버튼 존재, 타입 정의, 계획 문장만으로 `검증 완료`를 표시하지 않는다.
-- Top 3의 모든 세부 기능과 생태계를 완전히 대체한다는 표현은 사용하지 않는다. Cutline 전체 제품 완료는 이 표의 실무 흐름과 `08-production-completion-plan.md`의 출시 조건을 충족했을 때만 선언한다.
+- Top 3의 모든 세부 기능과 생태계를 완전히 대체한다는 표현은 사용하지 않는다. EditWeave 전체 제품 완료는 이 표의 실무 흐름과 `08-production-completion-plan.md`의 출시 조건을 충족했을 때만 선언한다.

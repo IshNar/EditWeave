@@ -1,4 +1,4 @@
-# Cutline 품질 기준셋
+# EditWeave 품질 기준셋
 
 `korean-rough-cut.synthetic.json`은 한국어 AI 초벌 평가 파이프라인을 고정하기 위한 합성 기준셋이다. 군더더기·반복·무음의 시간 범위 정답과 오탐 방지 사례를 포함한다.
 

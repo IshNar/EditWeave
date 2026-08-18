@@ -10,7 +10,7 @@ export interface ScratchDiskPreferences {
   knownRoots: string[]
 }
 
-const KEY = 'cutline.scratch-disks.v1'
+const KEY = 'editweave.scratch-disks.v1'
 const EMPTY: ScratchDiskPreferences = { knownRoots: [] }
 const subdirectories: Record<ScratchDiskKind, string> = { proxy: 'Proxies', recording: 'Recordings', render: 'Render-Cache' }
 
@@ -34,7 +34,7 @@ export function scratchRoot(kind: ScratchDiskKind, preferences = readScratchDisk
 
 export function scratchManagedDirectory(kind: ScratchDiskKind, preferences = readScratchDiskPreferences()): string | undefined {
   const root = scratchRoot(kind, preferences)
-  return root ? joinPath(root, 'Cutline', subdirectories[kind]) : undefined
+  return root ? joinPath(root, 'EditWeave', subdirectories[kind]) : undefined
 }
 
 export function scratchManagedPath(kind: ScratchDiskKind, parts: string[], preferences = readScratchDiskPreferences()): string | undefined {
@@ -44,7 +44,7 @@ export function scratchManagedPath(kind: ScratchDiskKind, parts: string[], prefe
 
 export function isKnownScratchPath(kind: ScratchDiskKind, path: string, preferences = readScratchDiskPreferences()): boolean {
   const normalized = normalizePath(path)
-  return preferences.knownRoots.some((root) => normalized.startsWith(`${normalizePath(joinPath(root, 'Cutline', subdirectories[kind]))}/`))
+  return preferences.knownRoots.some((root) => ['EditWeave', 'Cutline'].some((brand) => normalized.startsWith(`${normalizePath(joinPath(root, brand, subdirectories[kind]))}/`)))
 }
 
 export function isCurrentScratchPath(kind: ScratchDiskKind, path: string, preferences = readScratchDiskPreferences()): boolean {

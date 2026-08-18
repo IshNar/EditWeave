@@ -1,7 +1,7 @@
 import { clipSourceTime } from '../editor/effects'
 import { frameAlignmentError, frameIndexAtTime, timeAtFrame } from '../editor/frameMath'
 import { createProjectDocument, getProjectSequences } from '../editor/project'
-import type { CutlineProjectDocument, MediaAsset, TimelineClip, TimelineTrack, TrackKind } from '../editor/types'
+import type { EditWeaveProjectDocument, MediaAsset, TimelineClip, TimelineTrack, TrackKind } from '../editor/types'
 
 export interface LongFormConformanceOptions {
   minutes: 10 | 30 | 60
@@ -23,7 +23,7 @@ export interface LongFormConformanceResult {
 
 const transform = { positionX: 0, positionY: 0, scale: 100, rotation: 0, opacity: 100 }
 
-export function createLongFormConformanceProject(options: LongFormConformanceOptions): CutlineProjectDocument {
+export function createLongFormConformanceProject(options: LongFormConformanceOptions): EditWeaveProjectDocument {
   const totalFrames = Math.round(options.minutes * 60 * options.fps)
   const segmentFrames = Math.max(1, Math.round((options.segmentSeconds ?? 5) * options.fps))
   const segments = Math.ceil(totalFrames / segmentFrames)
@@ -55,7 +55,7 @@ export function createLongFormConformanceProject(options: LongFormConformanceOpt
   return project
 }
 
-export function evaluateLongFormConformance(project: CutlineProjectDocument): LongFormConformanceResult {
+export function evaluateLongFormConformance(project: EditWeaveProjectDocument): LongFormConformanceResult {
   const sequence = getProjectSequences(project).find((item) => item.id === project.activeSequenceId) ?? getProjectSequences(project)[0]
   const clips = sequence.tracks.flatMap((track) => track.clips)
   const byLink = new Map<string, TimelineClip[]>()

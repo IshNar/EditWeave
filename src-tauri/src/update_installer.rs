@@ -54,7 +54,7 @@ pub fn download(download_url: &str, expected_sha256: &str, destination_path: &st
         .connect_timeout(Duration::from_secs(20))
         .timeout(Duration::from_secs(30 * 60))
         .redirect(redirect_policy)
-        .user_agent("Cutline-Updater/1")
+        .user_agent("EditWeave-Updater/1")
         .build().map_err(|_| "업데이트 다운로드 클라이언트를 만들지 못했습니다.".to_string())?;
     let mut response = client.get(initial_url).send().map_err(|error| format!("업데이트 설치 파일을 다운로드하지 못했습니다: {error}"))?;
     if !response.status().is_success() { return Err(format!("업데이트 설치 파일 서버 응답 오류 ({})", response.status())); }
@@ -187,7 +187,7 @@ fn validate_sha256(value: &str) -> Result<(), String> {
 
 fn temporary_path(destination: &Path) -> PathBuf {
     let mut value = OsString::from(destination.as_os_str());
-    value.push(format!(".cutline-{}.part", std::process::id()));
+    value.push(format!(".editweave-{}.part", std::process::id()));
     PathBuf::from(value)
 }
 
@@ -213,7 +213,7 @@ fn now_ms() -> u128 {
 }
 
 fn verify_platform_signature(path: &Path) -> Result<String, String> {
-    if cfg!(debug_assertions) && option_env!("CUTLINE_ALLOW_UNSIGNED_UPDATES") == Some("1") { return Ok("DEBUG UNSIGNED OVERRIDE".into()); }
+    if cfg!(debug_assertions) && option_env!("EDITWEAVE_ALLOW_UNSIGNED_UPDATES") == Some("1") { return Ok("DEBUG UNSIGNED OVERRIDE".into()); }
     #[cfg(target_os = "windows")]
     return verify_windows_authenticode(path);
     #[cfg(target_os = "macos")]
@@ -227,9 +227,9 @@ fn verify_windows_authenticode(path: &Path) -> Result<String, String> {
     let system_root = std::env::var_os("SystemRoot").ok_or_else(|| "Windows 시스템 경로를 찾지 못했습니다.".to_string())?;
     let powershell = PathBuf::from(system_root).join("System32").join("WindowsPowerShell").join("v1.0").join("powershell.exe");
     if !powershell.is_file() { return Err("Windows Authenticode 검사기를 찾지 못했습니다.".into()); }
-    let script = "$s=Get-AuthenticodeSignature -LiteralPath $env:CUTLINE_INSTALLER_PATH; [Console]::OutputEncoding=[Text.Encoding]::UTF8; [Console]::WriteLine($s.Status.ToString()); if ($null -ne $s.SignerCertificate) {[Console]::WriteLine($s.SignerCertificate.Subject)}";
+    let script = "$s=Get-AuthenticodeSignature -LiteralPath $env:EDITWEAVE_INSTALLER_PATH; [Console]::OutputEncoding=[Text.Encoding]::UTF8; [Console]::WriteLine($s.Status.ToString()); if ($null -ne $s.SignerCertificate) {[Console]::WriteLine($s.SignerCertificate.Subject)}";
     let mut command = Command::new(powershell);
-    command.args(["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", script]).env("CUTLINE_INSTALLER_PATH", path);
+    command.args(["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", script]).env("EDITWEAVE_INSTALLER_PATH", path);
     use std::os::windows::process::CommandExt;
     command.creation_flags(0x08000000);
     let output = command.output().map_err(|_| "Windows Authenticode 검사를 실행하지 못했습니다.".to_string())?;
@@ -239,7 +239,7 @@ fn verify_windows_authenticode(path: &Path) -> Result<String, String> {
     if lines.next().map(|line| line.trim_start_matches('\u{feff}')) != Some("Valid") { return Err("업데이트 설치 파일의 Windows Authenticode 서명이 유효하지 않습니다.".into()); }
     let signer = lines.collect::<Vec<_>>().join(" ");
     if signer.is_empty() { return Err("업데이트 설치 파일의 Windows 서명자를 읽지 못했습니다.".into()); }
-    require_expected_signer(&signer, "CUTLINE_UPDATE_SIGNER_SUBJECT")?;
+    require_expected_signer(&signer, "EDITWEAVE_UPDATE_SIGNER_SUBJECT")?;
     Ok(signer)
 }
 
@@ -260,7 +260,7 @@ fn verify_macos_signature(path: &Path) -> Result<String, String> {
         if !gatekeeper.status.success() { return Err("업데이트 DMG가 Gatekeeper 공증 검사를 통과하지 못했습니다.".into()); }
         format!("{}\n{}", String::from_utf8_lossy(&details.stdout), String::from_utf8_lossy(&details.stderr))
     };
-    let expected_team = option_env!("CUTLINE_UPDATE_APPLE_TEAM_ID").map(str::trim).filter(|value| !value.is_empty());
+    let expected_team = option_env!("EDITWEAVE_UPDATE_APPLE_TEAM_ID").map(str::trim).filter(|value| !value.is_empty());
     if expected_team.is_none() && !cfg!(debug_assertions) { return Err("릴리스 앱에 Apple Team ID가 포함되지 않았습니다.".into()); }
     if let Some(team) = expected_team {
         if !report.to_ascii_lowercase().contains(&team.to_ascii_lowercase()) { return Err("업데이트 설치 파일의 Apple Team ID가 허용된 팀과 다릅니다.".into()); }
@@ -270,7 +270,7 @@ fn verify_macos_signature(path: &Path) -> Result<String, String> {
 
 #[cfg(target_os = "windows")]
 fn require_expected_signer(actual: &str, _environment_name: &str) -> Result<(), String> {
-    let expected = option_env!("CUTLINE_UPDATE_SIGNER_SUBJECT").map(str::trim).filter(|value| !value.is_empty());
+    let expected = option_env!("EDITWEAVE_UPDATE_SIGNER_SUBJECT").map(str::trim).filter(|value| !value.is_empty());
     if expected.is_none() && !cfg!(debug_assertions) { return Err("릴리스 앱에 Windows 업데이트 서명자 이름이 포함되지 않았습니다.".into()); }
     if let Some(expected) = expected {
         if !actual.to_ascii_lowercase().contains(&expected.to_ascii_lowercase()) { return Err("업데이트 설치 파일의 Windows 서명자가 허용된 게시자와 다릅니다.".into()); }

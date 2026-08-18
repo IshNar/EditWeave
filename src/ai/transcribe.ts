@@ -411,7 +411,7 @@ function cosineSimilarity(left: number[], right: number[]): number {
 async function decodeToMono16Khz(file: File, signal?: AbortSignal): Promise<Float32Array> {
   throwIfAborted(signal)
   const { ALL_FORMATS, AudioSampleSink, Input } = await import('mediabunny')
-  const sourcePath = (file as File & { __cutlineSourcePath?: string }).__cutlineSourcePath
+  const sourcePath = (file as File & { __editweaveSourcePath?: string }).__editweaveSourcePath
   const input = new Input({ source: await createMediaSource(file, sourcePath), formats: ALL_FORMATS })
   try {
     const track = await input.getPrimaryAudioTrack()

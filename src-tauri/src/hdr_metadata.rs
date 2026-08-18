@@ -19,8 +19,8 @@ pub fn apply(path: &std::path::Path, mastering: Option<&serde_json::Value>, max_
     let boxes = metadata_boxes(mastering, max_cll, max_fall)?;
     if boxes.is_empty() { return Ok(()); }
     let delta = boxes.len() as u64;
-    let temporary = path.with_extension("cutline-hdr.tmp");
-    let backup = path.with_extension("cutline-hdr.backup");
+    let temporary = path.with_extension("editweave-hdr.tmp");
+    let backup = path.with_extension("editweave-hdr.backup");
     let mut output = std::fs::File::create(&temporary).map_err(|error| error.to_string())?;
     source.seek(SeekFrom::Start(0)).map_err(|error| error.to_string())?;
     std::io::copy(&mut Read::by_ref(&mut source).take(insertion), &mut output).map_err(|error| error.to_string())?;

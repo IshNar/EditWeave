@@ -21,10 +21,10 @@ if (!inputArgument || !privateKeyArgument) {
   const canonical = structuredClone(pack)
   delete canonical.integrity; delete canonical.signature; delete canonical.verification
   const digest = sha256(Buffer.from(stableStringify(canonical)))
-  const signature = sign(null, Buffer.from(`cutline-creator-pack-v2\n${digest}`), privateKey).toString('base64')
+  const signature = sign(null, Buffer.from(`editweave-creator-pack-v2\n${digest}`), privateKey).toString('base64')
   const signed = { ...canonical, integrity: { algorithm: 'SHA-256', digest }, signature: { algorithm: 'Ed25519', keyId, publicKey: publicKey.toString('base64'), value: signature } }
   validateSignedPackArtifact(Buffer.from(JSON.stringify(signed)), input)
-  const defaultOutput = input.endsWith('.cutline-pack.json') ? input.replace(/\.cutline-pack\.json$/, '.signed.cutline-pack.json') : `${input}.signed.cutline-pack.json`
+  const defaultOutput = input.endsWith('.editweave-pack.json') ? input.replace(/\.editweave-pack\.json$/, '.signed.editweave-pack.json') : `${input}.signed.editweave-pack.json`
   const output = resolve(outputArgument || defaultOutput)
   await writeFile(output, `${JSON.stringify(signed, null, 2)}\n`, { encoding: 'utf8', flag: 'wx' })
   console.log(`Signed Creator Pack: ${output}`)

@@ -3,7 +3,7 @@ import { getVersion } from '@tauri-apps/api/app'
 import { save } from '@tauri-apps/plugin-dialog'
 
 export interface UpdateManifest {
-  schema: 'cutline-update-v1'
+  schema: 'editweave-update-v1'
   version: string
   platform: 'windows-x86_64' | 'windows-aarch64' | 'macos-x86_64' | 'macos-aarch64' | 'macos-universal'
   notes?: string
@@ -31,7 +31,7 @@ export interface DownloadedUpdateInstaller {
 }
 
 export interface StoredUpdateInstaller {
-  schema: 'cutline-update-attempt-v1'
+  schema: 'editweave-update-attempt-v1'
   targetVersion: string
   previousVersion: string
   platform: UpdateManifest['platform']
@@ -48,7 +48,7 @@ export type UpdateAttemptResult =
   | { status: 'applied' | 'not-applied' | 'expired'; targetVersion: string; installerPath?: string }
 
 interface SigningPayload {
-  schema: 'cutline-update-v1'
+  schema: 'editweave-update-v1'
   version: string
   platform: UpdateManifest['platform']
   channel: 'stable' | 'beta' | null
@@ -59,15 +59,15 @@ interface SigningPayload {
   sha256: string
 }
 
-const UPDATE_SCHEMA = 'cutline-update-v1' as const
+const UPDATE_SCHEMA = 'editweave-update-v1' as const
 const VERSION_PATTERN = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/
-const UPDATE_ATTEMPT_KEY = 'cutline-update-attempt-v1'
+const UPDATE_ATTEMPT_KEY = 'editweave-update-attempt-v1'
 const UPDATE_ATTEMPT_MAX_AGE = 7 * 24 * 60 * 60 * 1000
 const UPDATE_LAUNCH_GRACE = 10 * 60 * 1000
 const UPDATE_SESSION_ID = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`
 
 export async function checkForUpdate(currentVersion: string, signal?: AbortSignal): Promise<UpdateCheckResult> {
-  const endpoint = import.meta.env.VITE_CUTLINE_UPDATE_MANIFEST as string | undefined
+  const endpoint = import.meta.env.VITE_EDITWEAVE_UPDATE_MANIFEST as string | undefined
   if (!endpoint) return { available: false, configured: false }
   const endpointUrl = assertSafeUpdateUrl(endpoint, '업데이트 매니페스트')
   const response = await fetch(endpointUrl, { cache: 'no-store', credentials: 'omit', redirect: 'error', referrerPolicy: 'no-referrer', signal })
@@ -87,9 +87,9 @@ export async function checkForUpdate(currentVersion: string, signal?: AbortSigna
   return { configured: true, available: compareVersions(manifest.version, currentVersion) > 0, manifest }
 }
 
-export async function currentCutlineVersion(): Promise<string> {
+export async function currentEditWeaveVersion(): Promise<string> {
   if (isTauri()) return getVersion()
-  return (import.meta.env.VITE_CUTLINE_APP_VERSION as string | undefined) ?? '0.1.0'
+  return (import.meta.env.VITE_EDITWEAVE_APP_VERSION as string | undefined) ?? '0.1.0'
 }
 
 export async function selectUpdateInstallerDestination(manifest: UpdateManifest): Promise<string | undefined> {
@@ -99,19 +99,19 @@ export async function selectUpdateInstallerDestination(manifest: UpdateManifest)
   const mac = /Macintosh|Mac OS X/i.test(navigator.userAgent)
   const allowed = mac ? ['dmg', 'pkg'] : ['exe', 'msi']
   if (!allowed.includes(extension)) throw new Error(`현재 운영체제용 업데이트 설치 파일이 아닙니다: .${extension || 'unknown'}`)
-  return await save({ title: `Cutline ${manifest.version} 업데이트 저장`, defaultPath: fileName, filters: [{ name: 'Cutline Installer', extensions: [extension] }] }) ?? undefined
+  return await save({ title: `EditWeave ${manifest.version} 업데이트 저장`, defaultPath: fileName, filters: [{ name: 'EditWeave Installer', extensions: [extension] }] }) ?? undefined
 }
 
 export async function downloadVerifiedUpdateInstaller(manifest: UpdateManifest, destinationPath: string): Promise<DownloadedUpdateInstaller> {
   if (!isTauri()) throw new Error('설치 파일 직접 다운로드는 데스크톱 앱에서만 사용할 수 있습니다.')
-  const publicKey = (import.meta.env.VITE_CUTLINE_UPDATE_PUBLIC_KEY as string | undefined)?.trim()
+  const publicKey = (import.meta.env.VITE_EDITWEAVE_UPDATE_PUBLIC_KEY as string | undefined)?.trim()
   if (!publicKey || !manifest.signature) throw new Error('서명된 운영 업데이트만 앱에서 직접 다운로드할 수 있습니다.')
   return invoke<DownloadedUpdateInstaller>('download_update_installer', { publicKey, signature: manifest.signature, payload: createUpdateSigningPayload(manifest), destinationPath })
 }
 
 export async function prepareExistingVerifiedUpdateInstaller(manifest: UpdateManifest, installerPath: string): Promise<DownloadedUpdateInstaller> {
   if (!isTauri()) throw new Error('기존 설치 파일 재검증은 데스크톱 앱에서만 사용할 수 있습니다.')
-  const publicKey = (import.meta.env.VITE_CUTLINE_UPDATE_PUBLIC_KEY as string | undefined)?.trim()
+  const publicKey = (import.meta.env.VITE_EDITWEAVE_UPDATE_PUBLIC_KEY as string | undefined)?.trim()
   if (!publicKey || !manifest.signature) throw new Error('서명된 운영 업데이트만 다시 실행할 수 있습니다.')
   return invoke<DownloadedUpdateInstaller>('prepare_existing_update_installer', { publicKey, signature: manifest.signature, payload: createUpdateSigningPayload(manifest), installerPath })
 }
@@ -123,7 +123,7 @@ export async function launchVerifiedUpdateInstaller(installer: DownloadedUpdateI
 
 export function rememberVerifiedUpdateInstaller(manifest: UpdateManifest, installer: DownloadedUpdateInstaller, previousVersion: string): void {
   if (!manifest.signature) return
-  writeStoredUpdate({ schema: 'cutline-update-attempt-v1', targetVersion: manifest.version, previousVersion, platform: manifest.platform, signedPayload: createUpdateSigningPayload(manifest), signature: manifest.signature, installerPath: installer.path, verifiedAt: Date.now() })
+  writeStoredUpdate({ schema: 'editweave-update-attempt-v1', targetVersion: manifest.version, previousVersion, platform: manifest.platform, signedPayload: createUpdateSigningPayload(manifest), signature: manifest.signature, installerPath: installer.path, verifiedAt: Date.now() })
 }
 
 export function markUpdateInstallerLaunched(): void {
@@ -223,7 +223,7 @@ function readStoredUpdate(): StoredUpdateInstaller | undefined {
     const raw = localStorage.getItem(UPDATE_ATTEMPT_KEY)
     if (!raw) return undefined
     const value = JSON.parse(raw) as Partial<StoredUpdateInstaller>
-    if (value.schema !== 'cutline-update-attempt-v1' || typeof value.targetVersion !== 'string' || !VERSION_PATTERN.test(value.targetVersion) || typeof value.previousVersion !== 'string' || !VERSION_PATTERN.test(value.previousVersion) || typeof value.platform !== 'string' || !['windows-x86_64', 'windows-aarch64', 'macos-x86_64', 'macos-aarch64', 'macos-universal'].includes(value.platform) || typeof value.signedPayload !== 'string' || value.signedPayload.length > 16_384 || typeof value.signature !== 'string' || value.signature.length > 120 || typeof value.installerPath !== 'string' || value.installerPath.length > 1_024 || typeof value.verifiedAt !== 'number' || !Number.isFinite(value.verifiedAt)) return undefined
+    if (value.schema !== 'editweave-update-attempt-v1' || typeof value.targetVersion !== 'string' || !VERSION_PATTERN.test(value.targetVersion) || typeof value.previousVersion !== 'string' || !VERSION_PATTERN.test(value.previousVersion) || typeof value.platform !== 'string' || !['windows-x86_64', 'windows-aarch64', 'macos-x86_64', 'macos-aarch64', 'macos-universal'].includes(value.platform) || typeof value.signedPayload !== 'string' || value.signedPayload.length > 16_384 || typeof value.signature !== 'string' || value.signature.length > 120 || typeof value.installerPath !== 'string' || value.installerPath.length > 1_024 || typeof value.verifiedAt !== 'number' || !Number.isFinite(value.verifiedAt)) return undefined
     return value as StoredUpdateInstaller
   } catch { return undefined }
 }
@@ -233,8 +233,8 @@ function writeStoredUpdate(value: StoredUpdateInstaller): void {
 }
 
 async function verifyManifestSignature(manifest: UpdateManifest, localEndpoint: boolean): Promise<void> {
-  const encodedPublicKey = (import.meta.env.VITE_CUTLINE_UPDATE_PUBLIC_KEY as string | undefined)?.trim()
-  const expectedKeyId = (import.meta.env.VITE_CUTLINE_UPDATE_KEY_ID as string | undefined)?.trim()
+  const encodedPublicKey = (import.meta.env.VITE_EDITWEAVE_UPDATE_PUBLIC_KEY as string | undefined)?.trim()
+  const expectedKeyId = (import.meta.env.VITE_EDITWEAVE_UPDATE_KEY_ID as string | undefined)?.trim()
   if (!encodedPublicKey) {
     if (localEndpoint) return
     throw new Error('운영 업데이트 공개 키가 설정되지 않았습니다.')
@@ -295,11 +295,11 @@ function isLocalUrl(url: URL): boolean {
 
 function installerFileName(downloadUrl: string): string {
   const pathName = new URL(downloadUrl).pathname
-  const encoded = pathName.split('/').filter(Boolean).pop() ?? 'Cutline-update'
+  const encoded = pathName.split('/').filter(Boolean).pop() ?? 'EditWeave-update'
   let candidate: string
-  try { candidate = decodeURIComponent(encoded) } catch { candidate = 'Cutline-update' }
+  try { candidate = decodeURIComponent(encoded) } catch { candidate = 'EditWeave-update' }
   const safe = candidate.replace(/[<>:"/\\|?*\u0000-\u001f]/g, '-').slice(0, 180)
-  return safe || 'Cutline-update'
+  return safe || 'EditWeave-update'
 }
 
 async function assertCurrentPlatform(target: UpdateManifest['platform']): Promise<void> {

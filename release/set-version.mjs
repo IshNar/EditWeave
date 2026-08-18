@@ -27,4 +27,4 @@ await Promise.all([
 ])
 
 if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, `version=${version}\n`, 'utf8')
-console.log(`Cutline release version synchronized: ${version}`)
+console.log(`EditWeave release version synchronized: ${version}`)

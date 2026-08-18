@@ -16,8 +16,8 @@ interface ComfyDialogProps {
   onCancel: () => void
 }
 
-const ENDPOINT_KEY = 'cutline.comfyui.endpoint'
-const WORKFLOW_KEY = 'cutline.comfyui.workflow'
+const ENDPOINT_KEY = 'editweave.comfyui.endpoint'
+const WORKFLOW_KEY = 'editweave.comfyui.workflow'
 
 export function ComfyDialog({ open, asset, running, progress, stage, error, externalProcessingAllowed, onClose, onExternalProcessingAllowedChange, onRun, onCancel }: ComfyDialogProps) {
   const [endpoint, setEndpoint] = useState('http://127.0.0.1:8188')
@@ -44,7 +44,7 @@ export function ComfyDialog({ open, asset, running, progress, stage, error, exte
           if (file) void file.text().then(setWorkflow)
           event.target.value = ''
         }} />
-        <textarea value={workflow} disabled={running} onChange={(event) => setWorkflow(event.target.value)} placeholder={'ComfyUI에서 “Save (API Format)”으로 저장한 JSON을 붙여 넣으세요.\nLoadImage 노드가 자동으로 Cutline 입력 이미지로 교체됩니다.'} />
+        <textarea value={workflow} disabled={running} onChange={(event) => setWorkflow(event.target.value)} placeholder={'ComfyUI에서 “Save (API Format)”으로 저장한 JSON을 붙여 넣으세요.\nLoadImage 노드가 자동으로 EditWeave 입력 이미지로 교체됩니다.'} />
         <p className="comfy-note"><Network size={11} /> 선택 이미지와 워크플로가 위 주소의 별도 ComfyUI 프로세스로 전송됩니다. ComfyUI를 `--enable-cors-header` 옵션으로 실행해야 웹뷰에서 연결할 수 있습니다.</p>
         <label className="comfy-consent"><input type="checkbox" checked={externalProcessingAllowed} disabled={running} onChange={(event) => onExternalProcessingAllowedChange(event.target.checked)} /><span>전송 범위와 결과 이미지 보관에 동의합니다.</span></label>
         {error && <p className="export-error">{error}</p>}

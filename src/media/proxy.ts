@@ -261,7 +261,7 @@ export async function createEditingProxy(
     disposeInput()
   }
   const safeName = asset.name.replace(/\.[^.]+$/, '').replace(/[<>:"/\\|?*]+/g, '-') || 'media'
-  const file = cachePath ? await loadProxyFile(cachePath, asset.name) : target instanceof BufferTarget && target.buffer ? new File([target.buffer], `${safeName}.cutline-proxy.mp4`, { type: 'video/mp4' }) : undefined
+  const file = cachePath ? await loadProxyFile(cachePath, asset.name) : target instanceof BufferTarget && target.buffer ? new File([target.buffer], `${safeName}.editweave-proxy.mp4`, { type: 'video/mp4' }) : undefined
   if (!file) throw new Error('프록시 출력 파일을 만들지 못했습니다.')
   return {
     file,

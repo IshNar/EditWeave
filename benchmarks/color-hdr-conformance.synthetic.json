@@ -1,5 +1,5 @@
 {
-  "version": "cutline-color-hdr-v1",
+  "version": "editweave-color-hdr-v1",
   "provenance": "synthetic-reference",
   "standards": ["IEC 61966-2-1 sRGB", "ITU-R BT.709", "ITU-R BT.2020", "SMPTE ST 2084", "ITU-R BT.2100 HLG"],
   "tolerance": { "signal": 0.000001, "scope": 0.001, "codeValue": 0 },

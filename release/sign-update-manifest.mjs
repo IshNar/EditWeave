@@ -19,16 +19,16 @@ if (!inputArgument || !privateKeyArgument) {
   const keyId = manifest.keyId || `ed25519-${createHash('sha256').update(publicKey).digest('hex').slice(0, 16)}`
   const payload = signingPayload(manifest)
   const signature = sign(null, Buffer.from(payload), privateKey).toString('base64')
-  const signed = { ...manifest, schema: 'cutline-update-v1', keyId, signature }
+  const signed = { ...manifest, schema: 'editweave-update-v1', keyId, signature }
   await writeFile(outputPath, `${JSON.stringify(signed, null, 2)}\n`, 'utf8')
   console.log(`Signed: ${outputPath}`)
-  console.log(`VITE_CUTLINE_UPDATE_KEY_ID=${keyId}`)
-  console.log(`VITE_CUTLINE_UPDATE_PUBLIC_KEY=${publicKey.toString('base64')}`)
+  console.log(`VITE_EDITWEAVE_UPDATE_KEY_ID=${keyId}`)
+  console.log(`VITE_EDITWEAVE_UPDATE_PUBLIC_KEY=${publicKey.toString('base64')}`)
 }
 
 function validateManifest(manifest) {
   if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) throw new Error('매니페스트 JSON 객체가 필요합니다.')
-  if (manifest.schema !== undefined && manifest.schema !== 'cutline-update-v1') throw new Error('schema는 cutline-update-v1이어야 합니다.')
+  if (manifest.schema !== undefined && manifest.schema !== 'editweave-update-v1') throw new Error('schema는 editweave-update-v1이어야 합니다.')
   if (typeof manifest.version !== 'string' || !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(manifest.version)) throw new Error('version은 SemVer 형식이어야 합니다.')
   if (!['windows-x86_64', 'windows-aarch64', 'macos-x86_64', 'macos-aarch64', 'macos-universal'].includes(manifest.platform)) throw new Error('platform 형식이 올바르지 않습니다.')
   if (typeof manifest.downloadUrl !== 'string' || !manifest.downloadUrl.startsWith('https://')) throw new Error('downloadUrl은 HTTPS여야 합니다.')
@@ -42,7 +42,7 @@ function validateManifest(manifest) {
 
 function signingPayload(manifest) {
   return JSON.stringify({
-    schema: 'cutline-update-v1',
+    schema: 'editweave-update-v1',
     version: manifest.version,
     platform: manifest.platform,
     channel: manifest.channel ?? null,

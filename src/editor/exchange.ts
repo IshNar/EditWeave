@@ -103,7 +103,7 @@ export function materializeImportedTimeline(imported: ImportedTimeline, existing
       return candidates.flatMap(mediaMatchKeys).some((key) => assetKeys.has(key))
     })
     if (match) {
-      const hasCutlineSourceMetadata = clip.masterEffectsEnabled !== undefined
+      const hasEditWeaveSourceMetadata = clip.masterEffectsEnabled !== undefined
         || clip.sourceRotation !== undefined
         || clip.sourcePixelAspectRatio !== undefined
         || clip.sourceFrameRateOverride !== undefined
@@ -113,7 +113,7 @@ export function materializeImportedTimeline(imported: ImportedTimeline, existing
         || clip.sourceAlphaBackground !== undefined
         || clip.sourceAudioLayout !== undefined
         || clip.sourceAudioStreamIndex !== undefined
-      const resolvedMatch = !hasCutlineSourceMetadata ? match : {
+      const resolvedMatch = !hasEditWeaveSourceMetadata ? match : {
         ...match,
         masterEffectsEnabled: clip.masterEffectsEnabled,
         masterColorAdjustment: structuredClone(clip.masterColorAdjustment),
@@ -295,7 +295,7 @@ interface OtioItem {
   tracks?: OtioItem
   children?: OtioItem[]
   markers?: OtioItem[]
-  metadata?: Record<string, unknown> & { cutline?: Partial<ImportedTimelineClip> & { type?: NonNullable<TimelineClip['transitionIn']>['type']; alignment?: NonNullable<TimelineClip['transitionIn']>['alignment']; easing?: NonNullable<TimelineClip['transitionIn']>['easing']; curve?: NonNullable<TimelineClip['transitionIn']>['curve']; audioCurve?: NonNullable<TimelineClip['transitionIn']>['audioCurve']; kind?: TimelineMarker['kind']; color?: string; status?: TimelineMarker['status']; sourceTarget?: boolean; editTarget?: boolean; syncLock?: boolean; muted?: boolean; locked?: boolean; visible?: boolean; solo?: boolean; volume?: number; pan?: number; mixAutomationMode?: TimelineTrack['mixAutomationMode']; mixKeyframes?: TimelineTrack['mixKeyframes']; multicamAngleIndex?: number; labelColor?: string; audioRole?: TimelineTrack['audioRole']; trackKind?: TimelineTrack['kind']; captionFormat?: TimelineTrack['captionFormat']; width?: number; height?: number; timecodeDropFrame?: boolean; transitionDefaults?: SequenceTransitionDefaults } }
+  metadata?: Record<string, unknown> & { editweave?: Partial<ImportedTimelineClip> & { type?: NonNullable<TimelineClip['transitionIn']>['type']; alignment?: NonNullable<TimelineClip['transitionIn']>['alignment']; easing?: NonNullable<TimelineClip['transitionIn']>['easing']; curve?: NonNullable<TimelineClip['transitionIn']>['curve']; audioCurve?: NonNullable<TimelineClip['transitionIn']>['audioCurve']; kind?: TimelineMarker['kind']; color?: string; status?: TimelineMarker['status']; sourceTarget?: boolean; editTarget?: boolean; syncLock?: boolean; muted?: boolean; locked?: boolean; visible?: boolean; solo?: boolean; volume?: number; pan?: number; mixAutomationMode?: TimelineTrack['mixAutomationMode']; mixKeyframes?: TimelineTrack['mixKeyframes']; multicamAngleIndex?: number; labelColor?: string; audioRole?: TimelineTrack['audioRole']; trackKind?: TimelineTrack['kind']; captionFormat?: TimelineTrack['captionFormat']; width?: number; height?: number; timecodeDropFrame?: boolean; transitionDefaults?: SequenceTransitionDefaults } }
   in_offset?: OtioRationalTime
   out_offset?: OtioRationalTime
   global_start_time?: OtioRationalTime
@@ -312,8 +312,8 @@ export function parseOtio(contents: string, fallbackFps = 30): ImportedTimeline 
   const clips: ImportedTimelineClip[] = []
   const trackSettings: NonNullable<ImportedTimeline['trackSettings']> = []
   tracks.forEach((track, lane) => {
-    const kind: TimelineTrack['kind'] = track.metadata?.cutline?.trackKind === 'caption' ? 'caption' : track.kind?.toLocaleLowerCase() === 'audio' ? 'audio' : 'video'
-    trackSettings.push({ kind, lane, name: track.name, sourceTarget: track.metadata?.cutline?.sourceTarget, editTarget: track.metadata?.cutline?.editTarget, syncLock: track.metadata?.cutline?.syncLock, muted: track.metadata?.cutline?.muted, locked: track.metadata?.cutline?.locked, visible: track.metadata?.cutline?.visible, solo: track.metadata?.cutline?.solo, volume: track.metadata?.cutline?.volume, pan: track.metadata?.cutline?.pan, mixAutomationMode: track.metadata?.cutline?.mixAutomationMode, mixKeyframes: track.metadata?.cutline?.mixKeyframes, compositePriority: track.metadata?.cutline?.compositePriority, multicamAngleIndex: track.metadata?.cutline?.multicamAngleIndex, labelColor: track.metadata?.cutline?.labelColor, audioRole: track.metadata?.cutline?.audioRole, captionLanguage: track.metadata?.cutline?.captionLanguage, captionFormat: track.metadata?.cutline?.captionFormat, captionStyle: track.metadata?.cutline?.captionStyle })
+    const kind: TimelineTrack['kind'] = track.metadata?.editweave?.trackKind === 'caption' ? 'caption' : track.kind?.toLocaleLowerCase() === 'audio' ? 'audio' : 'video'
+    trackSettings.push({ kind, lane, name: track.name, sourceTarget: track.metadata?.editweave?.sourceTarget, editTarget: track.metadata?.editweave?.editTarget, syncLock: track.metadata?.editweave?.syncLock, muted: track.metadata?.editweave?.muted, locked: track.metadata?.editweave?.locked, visible: track.metadata?.editweave?.visible, solo: track.metadata?.editweave?.solo, volume: track.metadata?.editweave?.volume, pan: track.metadata?.editweave?.pan, mixAutomationMode: track.metadata?.editweave?.mixAutomationMode, mixKeyframes: track.metadata?.editweave?.mixKeyframes, compositePriority: track.metadata?.editweave?.compositePriority, multicamAngleIndex: track.metadata?.editweave?.multicamAngleIndex, labelColor: track.metadata?.editweave?.labelColor, audioRole: track.metadata?.editweave?.audioRole, captionLanguage: track.metadata?.editweave?.captionLanguage, captionFormat: track.metadata?.editweave?.captionFormat, captionStyle: track.metadata?.editweave?.captionStyle })
     let cursor = 0
     let pendingTransition: TimelineClip['transitionIn'] | undefined
     for (const item of track.children ?? []) {
@@ -323,7 +323,7 @@ export function parseOtio(contents: string, fallbackFps = 30): ImportedTimeline 
         const after = otioTime(item.out_offset, fps)
         const duration = before + after
         const inferredAlignment: NonNullable<TimelineClip['transitionIn']>['alignment'] = before <= 1 / fps ? 'start-at-cut' : after <= 1 / fps ? 'end-at-cut' : 'center-on-cut'
-        pendingTransition = { type: item.metadata?.cutline?.type ?? (item.name?.toLocaleLowerCase().includes('wipe') ? 'wipe-left' : 'crossfade'), duration: Math.max(1 / fps, duration), alignment: item.metadata?.cutline?.alignment ?? inferredAlignment, easing: item.metadata?.cutline?.easing, curve: item.metadata?.cutline?.curve, audioCurve: item.metadata?.cutline?.audioCurve }
+        pendingTransition = { type: item.metadata?.editweave?.type ?? (item.name?.toLocaleLowerCase().includes('wipe') ? 'wipe-left' : 'crossfade'), duration: Math.max(1 / fps, duration), alignment: item.metadata?.editweave?.alignment ?? inferredAlignment, easing: item.metadata?.editweave?.easing, curve: item.metadata?.editweave?.curve, audioCurve: item.metadata?.editweave?.audioCurve }
         continue
       }
       const duration = otioRangeDuration(item.source_range, fps)
@@ -333,8 +333,8 @@ export function parseOtio(contents: string, fallbackFps = 30): ImportedTimeline 
       const mediaReference = item.media_reference
       const targetUrl = mediaReference?.target_url
       const mediaName = mediaReference?.name || (targetUrl ? decodeMediaSourceName(targetUrl) : undefined) || item.name || 'Offline Media'
-      const metadata = item.metadata?.cutline
-      const assetMetadata = mediaReference?.metadata?.cutline
+      const metadata = item.metadata?.editweave
+      const assetMetadata = mediaReference?.metadata?.editweave
       clips.push({
         id: crypto.randomUUID(), name: item.name || mediaName, mediaName, kind, lane, start: cursor,
         duration: Math.max(1 / fps, duration), sourceOffset, playbackRate: Math.max(1 / 1000, metadata?.playbackRate ?? 1),
@@ -363,9 +363,9 @@ export function parseOtio(contents: string, fallbackFps = 30): ImportedTimeline 
   const markers = [...(timeline.markers ?? []), ...(tracksContainer.markers ?? [])].map((marker): TimelineMarker => ({
     id: crypto.randomUUID(), time: otioTime(marker.marked_range?.start_time, fps), duration: otioRangeDuration(marker.marked_range, fps) || undefined,
     label: marker.name || 'Marker', description: typeof marker.metadata === 'object' ? String((marker.metadata as Record<string, unknown>).comment ?? '') || undefined : undefined,
-    color: marker.metadata?.cutline?.color ?? '#8169e8', kind: marker.metadata?.cutline?.kind ?? 'edit', status: marker.metadata?.cutline?.status,
+    color: marker.metadata?.editweave?.color ?? '#8169e8', kind: marker.metadata?.editweave?.kind ?? 'edit', status: marker.metadata?.editweave?.status,
   }))
-  return { name: timeline.name || '가져온 OTIO', fps, width: timeline.metadata?.cutline?.width, height: timeline.metadata?.cutline?.height, timecodeStart: otioTime(timeline.global_start_time, fps), timecodeDropFrame: timeline.metadata?.cutline?.timecodeDropFrame, transitionDefaults: timeline.metadata?.cutline?.transitionDefaults ? normalizeSequenceTransitionDefaults(timeline.metadata.cutline.transitionDefaults) : undefined, clips, markers, trackSettings }
+  return { name: timeline.name || '가져온 OTIO', fps, width: timeline.metadata?.editweave?.width, height: timeline.metadata?.editweave?.height, timecodeStart: otioTime(timeline.global_start_time, fps), timecodeDropFrame: timeline.metadata?.editweave?.timecodeDropFrame, transitionDefaults: timeline.metadata?.editweave?.transitionDefaults ? normalizeSequenceTransitionDefaults(timeline.metadata.editweave.transitionDefaults) : undefined, clips, markers, trackSettings }
 }
 
 function otioTime(value: OtioRationalTime | undefined, fallbackRate: number): number {
@@ -389,7 +389,7 @@ export function parsePremiereXml(contents: string, fallbackFps = 30): ImportedTi
   const width = Number(directText(characteristics, 'width')) || undefined
   const height = Number(directText(characteristics, 'height')) || undefined
   const sequenceTimecode = parseMediaTimecode(directText(sequence.querySelector(':scope > timecode'), 'string'), fps)
-  const transitionDefaults = parseTransitionDefaultsMetadata(directText(sequence.querySelector(':scope > metadata'), 'cutline-transition-defaults'))
+  const transitionDefaults = parseTransitionDefaultsMetadata(directText(sequence.querySelector(':scope > metadata'), 'editweave-transition-defaults'))
   const files = new Map<string, { name: string }>()
   for (const file of document.querySelectorAll('file')) {
     const id = file.getAttribute('id') ?? ''
@@ -422,15 +422,15 @@ export function parsePremiereXml(contents: string, fallbackFps = 30): ImportedTi
       }
       const motion = effects.find((effect) => ['basic', 'basicmotion'].includes(normalizedId(directText(effect, 'effectid'))) || normalizedId(directText(effect, 'name')) === 'motion')
       const opacityEffect = effects.find((effect) => normalizedId(directText(effect, 'effectid')).includes('opacity') || normalizedId(directText(effect, 'name')) === 'opacity')
-      const audioFadeEffect = effects.find((effect) => normalizedId(directText(effect, 'effectid')) === 'cutlineaudiofade' || normalizedId(directText(effect, 'name')) === 'cutlineaudiofade')
+      const audioFadeEffect = effects.find((effect) => normalizedId(directText(effect, 'effectid')) === 'editweaveaudiofade' || normalizedId(directText(effect, 'name')) === 'editweaveaudiofade')
       const textParameter = (effect: Element | undefined, fallback: string, ...ids: string[]) => directText(parameter(effect, ...ids), 'value').trim() || fallback
       const fadeCurve = (value: string): NonNullable<NonNullable<TimelineClip['audioAdjustment']>['fadeInCurve']> => ['linear', 'equal-power', 'logarithmic'].includes(value) ? value as NonNullable<NonNullable<TimelineClip['audioAdjustment']>['fadeInCurve']> : 'linear'
       const audioAdjustment: TimelineClip['audioAdjustment'] = audioFadeEffect ? {
         ...defaultAudioAdjustment(),
-        fadeIn: Math.max(0, Math.min((endFrames - startFrames) / fps, numericParameter(audioFadeEffect, 0, 'cutlinefadein'))),
-        fadeOut: Math.max(0, Math.min((endFrames - startFrames) / fps, numericParameter(audioFadeEffect, 0, 'cutlinefadeout'))),
-        fadeInCurve: fadeCurve(textParameter(audioFadeEffect, 'linear', 'cutlinefadeincurve')),
-        fadeOutCurve: fadeCurve(textParameter(audioFadeEffect, 'linear', 'cutlinefadeoutcurve')),
+        fadeIn: Math.max(0, Math.min((endFrames - startFrames) / fps, numericParameter(audioFadeEffect, 0, 'editweavefadein'))),
+        fadeOut: Math.max(0, Math.min((endFrames - startFrames) / fps, numericParameter(audioFadeEffect, 0, 'editweavefadeout'))),
+        fadeInCurve: fadeCurve(textParameter(audioFadeEffect, 'linear', 'editweavefadeincurve')),
+        fadeOutCurve: fadeCurve(textParameter(audioFadeEffect, 'linear', 'editweavefadeoutcurve')),
       } : undefined
       const centerValue = parameter(motion, 'center', 'position')?.querySelector(':scope > value')
       const centerXRaw = directText(centerValue, 'horiz').trim()
@@ -441,27 +441,27 @@ export function parsePremiereXml(contents: string, fallbackFps = 30): ImportedTi
         positionX: Number.isFinite(centerX) ? centerX - (width ?? 0) / 2 : 0,
         positionY: Number.isFinite(centerY) ? centerY - (height ?? 0) / 2 : 0,
         scale: numericParameter(motion, 100, 'scale'),
-        scaleX: numericParameter(motion, 100, 'cutlinescalex'),
-        scaleY: numericParameter(motion, 100, 'cutlinescaley'),
-        anchorX: numericParameter(motion, 50, 'cutlineanchorx'),
-        anchorY: numericParameter(motion, 50, 'cutlineanchory'),
-        skewX: numericParameter(motion, 0, 'cutlineskewx'),
-        skewY: numericParameter(motion, 0, 'cutlineskewy'),
+        scaleX: numericParameter(motion, 100, 'editweavescalex'),
+        scaleY: numericParameter(motion, 100, 'editweavescaley'),
+        anchorX: numericParameter(motion, 50, 'editweaveanchorx'),
+        anchorY: numericParameter(motion, 50, 'editweaveanchory'),
+        skewX: numericParameter(motion, 0, 'editweaveskewx'),
+        skewY: numericParameter(motion, 0, 'editweaveskewy'),
         rotation: numericParameter(motion, 0, 'rotation'),
         opacity: Math.max(0, Math.min(100, numericParameter(opacityEffect, 100, 'opacity', 'level'))),
       } : undefined
-      const motionBlur: TimelineClip['motionBlur'] | undefined = kind === 'video' && numericParameter(motion, 0, 'cutlinemotionblurenabled') >= 0.5 ? {
+      const motionBlur: TimelineClip['motionBlur'] | undefined = kind === 'video' && numericParameter(motion, 0, 'editweavemotionblurenabled') >= 0.5 ? {
         enabled: true,
-        shutterAngle: Math.max(0, Math.min(720, numericParameter(motion, 180, 'cutlinemotionblurshutter'))),
-        samples: Math.max(2, Math.min(16, Math.round(numericParameter(motion, 8, 'cutlinemotionblursamples')))),
+        shutterAngle: Math.max(0, Math.min(720, numericParameter(motion, 180, 'editweavemotionblurshutter'))),
+        samples: Math.max(2, Math.min(16, Math.round(numericParameter(motion, 8, 'editweavemotionblursamples')))),
       } : undefined
-      const motionPathAutoOrient = kind === 'video' && numericParameter(motion, 0, 'cutlinemotionpathautoorient') >= 0.5
-      const motionPathOrientationOffset = kind === 'video' ? numericParameter(motion, 0, 'cutlinemotionpathorientationoffset') : undefined
+      const motionPathAutoOrient = kind === 'video' && numericParameter(motion, 0, 'editweavemotionpathautoorient') >= 0.5
+      const motionPathOrientationOffset = kind === 'video' ? numericParameter(motion, 0, 'editweavemotionpathorientationoffset') : undefined
       const motionParameters = kind === 'video' ? {
         center: parameter(motion, 'center', 'position'), scale: parameter(motion, 'scale'), rotation: parameter(motion, 'rotation'),
-        scaleX: parameter(motion, 'cutlinescalex'), scaleY: parameter(motion, 'cutlinescaley'), anchorX: parameter(motion, 'cutlineanchorx'), anchorY: parameter(motion, 'cutlineanchory'), skewX: parameter(motion, 'cutlineskewx'), skewY: parameter(motion, 'cutlineskewy'),
-        spatialInEnabled: parameter(motion, 'cutlinespatialinenabled'), spatialInX: parameter(motion, 'cutlinespatialinx'), spatialInY: parameter(motion, 'cutlinespatialiny'),
-        spatialOutEnabled: parameter(motion, 'cutlinespatialoutenabled'), spatialOutX: parameter(motion, 'cutlinespatialoutx'), spatialOutY: parameter(motion, 'cutlinespatialouty'),
+        scaleX: parameter(motion, 'editweavescalex'), scaleY: parameter(motion, 'editweavescaley'), anchorX: parameter(motion, 'editweaveanchorx'), anchorY: parameter(motion, 'editweaveanchory'), skewX: parameter(motion, 'editweaveskewx'), skewY: parameter(motion, 'editweaveskewy'),
+        spatialInEnabled: parameter(motion, 'editweavespatialinenabled'), spatialInX: parameter(motion, 'editweavespatialinx'), spatialInY: parameter(motion, 'editweavespatialiny'),
+        spatialOutEnabled: parameter(motion, 'editweavespatialoutenabled'), spatialOutX: parameter(motion, 'editweavespatialoutx'), spatialOutY: parameter(motion, 'editweavespatialouty'),
         opacity: parameter(opacityEffect, 'opacity', 'level'),
       } : undefined
       const parameterKeyframes = (value?: Element) => [...(value?.querySelectorAll(':scope > keyframe') ?? [])]
@@ -517,13 +517,13 @@ export function parsePremiereXml(contents: string, fallbackFps = 30): ImportedTi
       const effectName = `${directText(transition, 'effectid')} ${directText(transition, 'name')}`.toLocaleLowerCase()
       const type: NonNullable<TimelineClip['transitionIn']>['type'] = effectName.includes('wipe right') ? 'wipe-right' : effectName.includes('wipe up') ? 'wipe-up' : effectName.includes('wipe down') ? 'wipe-down' : effectName.includes('wipe') ? 'wipe-left' : effectName.includes('dip to white') ? 'dip-white' : effectName.includes('dip') ? 'dip-black' : effectName.includes('blur') ? 'blur-dissolve' : effectName.includes('slide right') ? 'slide-right' : effectName.includes('slide') ? 'slide-left' : effectName.includes('zoom') ? 'zoom' : 'crossfade'
       const parameterValue = (id: string) => [...transition.querySelectorAll('effect > parameter')].find((parameter) => directText(parameter, 'parameterid') === id)?.querySelector(':scope > value')?.textContent?.trim()
-      const rawAlignment = parameterValue('cutline-transition-alignment') || directText(transition, 'alignment').toLocaleLowerCase()
+      const rawAlignment = parameterValue('editweave-transition-alignment') || directText(transition, 'alignment').toLocaleLowerCase()
       const alignment: NonNullable<TimelineClip['transitionIn']>['alignment'] = rawAlignment.includes('start') ? 'start-at-cut' : rawAlignment.includes('end') ? 'end-at-cut' : 'center-on-cut'
-      const rawEasing = parameterValue('cutline-transition-easing')
+      const rawEasing = parameterValue('editweave-transition-easing')
       const easing = rawEasing && ['linear', 'ease-in', 'ease-out', 'ease-in-out', 'bezier'].includes(rawEasing) ? rawEasing as NonNullable<TimelineClip['transitionIn']>['easing'] : undefined
-      const audioCurveValue = parameterValue('cutline-transition-audio-curve')
+      const audioCurveValue = parameterValue('editweave-transition-audio-curve')
       const audioCurve = audioCurveValue && ['linear', 'equal-power', 'logarithmic'].includes(audioCurveValue) ? audioCurveValue as NonNullable<TimelineClip['transitionIn']>['audioCurve'] : undefined
-      const curveValues = ['x1', 'y1', 'x2', 'y2'].map((axis) => Number(parameterValue(`cutline-transition-${axis}`)))
+      const curveValues = ['x1', 'y1', 'x2', 'y2'].map((axis) => Number(parameterValue(`editweave-transition-${axis}`)))
       const curve = curveValues.every(Number.isFinite) ? { x1: curveValues[0], y1: curveValues[1], x2: curveValues[2], y2: curveValues[3] } : undefined
       const cutTime = alignment === 'start-at-cut' ? start : alignment === 'end-at-cut' ? end : (start + end) / 2
       const next = trackClips.filter((clip) => Math.abs(clip.start - cutTime) <= Math.max(2 / fps, duration)).sort((left, right) => Math.abs(left.start - cutTime) - Math.abs(right.start - cutTime))[0]
@@ -563,7 +563,7 @@ export function parseEdl(contents: string, fps = 30): ImportedTimeline {
   const name = lines.find((line) => /^TITLE:/i.test(line))?.replace(/^TITLE:\s*/i, '').trim() || '가져온 EDL'
   const dropFrame = lines.some((line) => /^FCM:\s*DROP FRAME/i.test(line))
   const timelineFps = dropFrame && Math.abs(fps - 30) < 1 ? 30_000 / 1_001 : dropFrame && Math.abs(fps - 60) < 1 ? 60_000 / 1_001 : fps
-  const transitionDefaults = parseTransitionDefaultsMetadata(lines.find((line) => /^\*\s*CUTLINE TRANSITION DEFAULTS:/i.test(line))?.replace(/^\*\s*CUTLINE TRANSITION DEFAULTS:\s*/i, ''))
+  const transitionDefaults = parseTransitionDefaultsMetadata(lines.find((line) => /^\*\s*EDITWEAVE TRANSITION DEFAULTS:/i.test(line))?.replace(/^\*\s*EDITWEAVE TRANSITION DEFAULTS:\s*/i, ''))
   const clips: ImportedTimelineClip[] = []
   let current: ImportedTimelineClip | undefined
   for (const line of lines) {
@@ -598,7 +598,7 @@ export function parseEdl(contents: string, fps = 30): ImportedTimeline {
       siblings.forEach((clip) => { clip.name = clipName; clip.mediaName = clipName })
       continue
     }
-    const transitionMetadata = line.match(/^\*\s*CUTLINE TRANSITION:\s*alignment=([^;]+);\s*easing=([^;]+);\s*audio=([^;]+)(?:;\s*curve=([^;]+))?/i)
+    const transitionMetadata = line.match(/^\*\s*EDITWEAVE TRANSITION:\s*alignment=([^;]+);\s*easing=([^;]+);\s*audio=([^;]+)(?:;\s*curve=([^;]+))?/i)
     if (transitionMetadata && current?.transitionIn) {
       const alignmentValue = transitionMetadata[1].trim()
       const easingValue = transitionMetadata[2].trim()
@@ -614,7 +614,7 @@ export function parseEdl(contents: string, fps = 30): ImportedTimeline {
       clips.filter((clip) => clip.start === current!.start && clip.reel === current!.reel).forEach((clip) => { if (clip.transitionIn) clip.transitionIn = { ...patch } })
       continue
     }
-    const audioFadeMetadata = line.match(/^\*\s*CUTLINE AUDIO FADE:\s*in=([\d.]+);\s*out=([\d.]+);\s*inCurve=([^;]+);\s*outCurve=([^;]+)/i)
+    const audioFadeMetadata = line.match(/^\*\s*EDITWEAVE AUDIO FADE:\s*in=([\d.]+);\s*out=([\d.]+);\s*inCurve=([^;]+);\s*outCurve=([^;]+)/i)
     if (audioFadeMetadata && current) {
       const duration = current.duration
       const curve = (value: string): NonNullable<NonNullable<TimelineClip['audioAdjustment']>['fadeInCurve']> => ['linear', 'equal-power', 'logarithmic'].includes(value.trim()) ? value.trim() as NonNullable<NonNullable<TimelineClip['audioAdjustment']>['fadeInCurve']> : 'linear'
@@ -656,7 +656,7 @@ export function parseFcpxml(contents: string, fallbackFps = 30): ImportedTimelin
   const height = Number(format?.getAttribute('height')) || undefined
   const timecodeStart = parseRationalSeconds(sequence.getAttribute('tcStart') ?? '0s', 0)
   const timecodeDropFrame = sequence.getAttribute('tcFormat') === 'DF'
-  const sequenceTransitionDefaults = parseTransitionDefaultsMetadata([...sequence.querySelectorAll(':scope > metadata > md')].find((item) => item.getAttribute('key') === 'com.cutline.transition-defaults')?.getAttribute('value'))
+  const sequenceTransitionDefaults = parseTransitionDefaultsMetadata([...sequence.querySelectorAll(':scope > metadata > md')].find((item) => item.getAttribute('key') === 'com.editweave.transition-defaults')?.getAttribute('value'))
   const assets = new Map([...document.querySelectorAll('resources > asset')].map((asset) => {
     const source = asset.querySelector('media-rep')?.getAttribute('src')
     const sourceName = source ? decodeMediaSourceName(source) : undefined
@@ -682,37 +682,37 @@ export function parseFcpxml(contents: string, fallbackFps = 30): ImportedTimelin
     const importedScaleY = Number.isFinite(scale[1]) && Math.abs(scale[1]) >= 0.0001 ? scale[1] * 100 : importedScaleX
     const opacity = Number(element.querySelector(':scope > adjust-blend')?.getAttribute('amount') ?? 1)
     const metadataValue = (key: string) => [...element.querySelectorAll(':scope > metadata > md')].find((item) => item.getAttribute('key') === key)?.getAttribute('value')?.trim()
-    const fadeInMetadata = Number(metadataValue('com.cutline.audio.fade-in'))
-    const fadeOutMetadata = Number(metadataValue('com.cutline.audio.fade-out'))
+    const fadeInMetadata = Number(metadataValue('com.editweave.audio.fade-in'))
+    const fadeOutMetadata = Number(metadataValue('com.editweave.audio.fade-out'))
     const hasAudioFadeMetadata = Number.isFinite(fadeInMetadata) || Number.isFinite(fadeOutMetadata)
     const audioFadeCurve = (value: string | undefined): NonNullable<NonNullable<TimelineClip['audioAdjustment']>['fadeInCurve']> => value && ['linear', 'equal-power', 'logarithmic'].includes(value) ? value as NonNullable<NonNullable<TimelineClip['audioAdjustment']>['fadeInCurve']> : 'linear'
     const audioAdjustment: TimelineClip['audioAdjustment'] = hasAudioFadeMetadata ? {
       ...defaultAudioAdjustment(),
       fadeIn: Math.max(0, Math.min(duration, Number.isFinite(fadeInMetadata) ? fadeInMetadata : 0)),
       fadeOut: Math.max(0, Math.min(duration, Number.isFinite(fadeOutMetadata) ? fadeOutMetadata : 0)),
-      fadeInCurve: audioFadeCurve(metadataValue('com.cutline.audio.fade-in-curve')),
-      fadeOutCurve: audioFadeCurve(metadataValue('com.cutline.audio.fade-out-curve')),
+      fadeInCurve: audioFadeCurve(metadataValue('com.editweave.audio.fade-in-curve')),
+      fadeOutCurve: audioFadeCurve(metadataValue('com.editweave.audio.fade-out-curve')),
     } : undefined
     const kinds: Array<'video' | 'audio'> = element.localName === 'audio' || resource?.hasVideo === false ? ['audio'] : ['video']
     if (element.localName !== 'audio' && resource?.hasAudio) kinds.push('audio')
     const linkedBase = crypto.randomUUID()
-    kinds.forEach((kind) => clips.push({ id: `${linkedBase}-${kind}`, name, mediaName: resource?.name ?? name, kind, lane, start, duration, sourceOffset: timePoints[0]?.value ?? sourceOffset, playbackRate: Math.max(1 / 1000, Math.abs(sourceDelta) / duration), reverse: sourceDelta < 0, transform: { positionX: position[0] || 0, positionY: -(position[1] || 0), scale: 100, scaleX: importedScaleX, scaleY: importedScaleY, anchorX: 50, anchorY: 50, skewX: Number(transformElement?.getAttribute('cutline-skew-x')) || 0, skewY: Number(transformElement?.getAttribute('cutline-skew-y')) || 0, rotation: Number(transformElement?.getAttribute('rotation')) || 0, opacity: Math.max(0, Math.min(100, opacity * 100)) }, audioAdjustment: structuredClone(audioAdjustment) }))
+    kinds.forEach((kind) => clips.push({ id: `${linkedBase}-${kind}`, name, mediaName: resource?.name ?? name, kind, lane, start, duration, sourceOffset: timePoints[0]?.value ?? sourceOffset, playbackRate: Math.max(1 / 1000, Math.abs(sourceDelta) / duration), reverse: sourceDelta < 0, transform: { positionX: position[0] || 0, positionY: -(position[1] || 0), scale: 100, scaleX: importedScaleX, scaleY: importedScaleY, anchorX: 50, anchorY: 50, skewX: Number(transformElement?.getAttribute('editweave-skew-x')) || 0, skewY: Number(transformElement?.getAttribute('editweave-skew-y')) || 0, rotation: Number(transformElement?.getAttribute('rotation')) || 0, opacity: Math.max(0, Math.min(100, opacity * 100)) }, audioAdjustment: structuredClone(audioAdjustment) }))
   }
   for (const transition of sequence.querySelectorAll('spine transition')) {
     const offset = parseRationalSeconds(transition.getAttribute('offset') ?? '0s', 0)
     const duration = Math.max(1 / fps, parseRationalSeconds(transition.getAttribute('duration') ?? `${1 / fps}s`, 1 / fps))
     const transitionMetadata = (key: string) => [...transition.querySelectorAll(':scope > metadata > md')].find((item) => item.getAttribute('key') === key)?.getAttribute('value')?.trim()
     const effectName = `${transition.getAttribute('name') ?? ''} ${transition.querySelector('filter-video, filter-audio')?.getAttribute('name') ?? ''}`.toLocaleLowerCase()
-    const metadataType = transitionMetadata('com.cutline.transition.type')
+    const metadataType = transitionMetadata('com.editweave.transition.type')
     const inferredType: NonNullable<TimelineClip['transitionIn']>['type'] = effectName.includes('wipe right') ? 'wipe-right' : effectName.includes('wipe up') ? 'wipe-up' : effectName.includes('wipe down') ? 'wipe-down' : effectName.includes('wipe') ? 'wipe-left' : effectName.includes('dip to white') ? 'dip-white' : effectName.includes('dip') ? 'dip-black' : effectName.includes('blur') ? 'blur-dissolve' : effectName.includes('slide right') ? 'slide-right' : effectName.includes('slide') ? 'slide-left' : effectName.includes('zoom') ? 'zoom' : 'crossfade'
     const type = metadataType && ['crossfade', 'dip-black', 'dip-white', 'blur-dissolve', 'wipe-left', 'wipe-right', 'wipe-up', 'wipe-down', 'slide-left', 'slide-right', 'zoom'].includes(metadataType) ? metadataType as NonNullable<TimelineClip['transitionIn']>['type'] : inferredType
-    const alignmentValue = transitionMetadata('com.cutline.transition.alignment')
+    const alignmentValue = transitionMetadata('com.editweave.transition.alignment')
     const alignment: NonNullable<TimelineClip['transitionIn']>['alignment'] = alignmentValue && ['start-at-cut', 'center-on-cut', 'end-at-cut'].includes(alignmentValue) ? alignmentValue as NonNullable<TimelineClip['transitionIn']>['alignment'] : 'center-on-cut'
-    const easingValue = transitionMetadata('com.cutline.transition.easing')
+    const easingValue = transitionMetadata('com.editweave.transition.easing')
     const easing = easingValue && ['linear', 'ease-in', 'ease-out', 'ease-in-out', 'bezier'].includes(easingValue) ? easingValue as NonNullable<TimelineClip['transitionIn']>['easing'] : undefined
-    const audioCurveValue = transitionMetadata('com.cutline.transition.audio-curve')
+    const audioCurveValue = transitionMetadata('com.editweave.transition.audio-curve')
     const audioCurve = audioCurveValue && ['linear', 'equal-power', 'logarithmic'].includes(audioCurveValue) ? audioCurveValue as NonNullable<TimelineClip['transitionIn']>['audioCurve'] : undefined
-    const curveValues = ['x1', 'y1', 'x2', 'y2'].map((axis) => Number(transitionMetadata(`com.cutline.transition.${axis}`)))
+    const curveValues = ['x1', 'y1', 'x2', 'y2'].map((axis) => Number(transitionMetadata(`com.editweave.transition.${axis}`)))
     const curve = curveValues.every(Number.isFinite) ? { x1: curveValues[0], y1: curveValues[1], x2: curveValues[2], y2: curveValues[3] } : undefined
     const nextStart = offset + duration
     clips.filter((clip) => Math.abs(clip.start - nextStart) <= 2 / fps).forEach((clip) => { clip.transitionIn = { type, duration, alignment, easing, audioCurve, curve } })
@@ -763,7 +763,7 @@ export function createEdl(projectName: string, tracks: TimelineTrack[], assets: 
   const clips = tracks.filter((track) => (track.kind === 'video' || track.kind === 'audio') && !track.muted).flatMap((track) => track.clips)
     .filter((clip) => clip.assetId)
     .sort((a, b) => a.start - b.start)
-  const lines = [`TITLE: ${projectName}`, `FCM: ${dropFrame ? 'DROP FRAME' : 'NON-DROP FRAME'}`, `* CUTLINE TRANSITION DEFAULTS: ${JSON.stringify(normalizeSequenceTransitionDefaults(transitionDefaults))}`, '']
+  const lines = [`TITLE: ${projectName}`, `FCM: ${dropFrame ? 'DROP FRAME' : 'NON-DROP FRAME'}`, `* EDITWEAVE TRANSITION DEFAULTS: ${JSON.stringify(normalizeSequenceTransitionDefaults(transitionDefaults))}`, '']
   clips.forEach((clip, index) => {
     const asset = assets.find((item) => item.id === clip.assetId)
     const reel = sanitizeReel(asset?.name ?? clip.name)
@@ -778,10 +778,10 @@ export function createEdl(projectName: string, tracks: TimelineTrack[], assets: 
     const transitionDuration = transitionType === 'C' ? '' : ` ${Math.max(1, Math.round((clip.transitionIn?.duration ?? 0) * fps)).toString().padStart(3, '0')}`
     lines.push(`${String(index + 1).padStart(3, '0')}  ${reel.padEnd(8, ' ')} ${clip.kind === 'audio' ? 'A' : 'V'}     ${transitionType.padEnd(4, ' ')}${transitionDuration.padEnd(5, ' ')} ${sourceIn} ${sourceOut} ${recordIn} ${recordOut}`)
     lines.push(`* FROM CLIP NAME: ${asset?.name ?? clip.name}`)
-    if (clip.transitionIn && clip.transitionIn.type !== 'none') lines.push(`* CUTLINE TRANSITION: alignment=${clip.transitionIn.alignment ?? 'center-on-cut'}; easing=${clip.transitionIn.easing ?? 'ease-in-out'}; audio=${clip.transitionIn.audioCurve ?? 'equal-power'}${clip.transitionIn.curve ? `; curve=${clip.transitionIn.curve.x1},${clip.transitionIn.curve.y1},${clip.transitionIn.curve.x2},${clip.transitionIn.curve.y2}` : ''}`)
-    if ((clip.audioAdjustment?.fadeIn ?? 0) > 0 || (clip.audioAdjustment?.fadeOut ?? 0) > 0) lines.push(`* CUTLINE AUDIO FADE: in=${clip.audioAdjustment?.fadeIn ?? 0}; out=${clip.audioAdjustment?.fadeOut ?? 0}; inCurve=${clip.audioAdjustment?.fadeInCurve ?? 'linear'}; outCurve=${clip.audioAdjustment?.fadeOutCurve ?? 'linear'}`)
+    if (clip.transitionIn && clip.transitionIn.type !== 'none') lines.push(`* EDITWEAVE TRANSITION: alignment=${clip.transitionIn.alignment ?? 'center-on-cut'}; easing=${clip.transitionIn.easing ?? 'ease-in-out'}; audio=${clip.transitionIn.audioCurve ?? 'equal-power'}${clip.transitionIn.curve ? `; curve=${clip.transitionIn.curve.x1},${clip.transitionIn.curve.y1},${clip.transitionIn.curve.x2},${clip.transitionIn.curve.y2}` : ''}`)
+    if ((clip.audioAdjustment?.fadeIn ?? 0) > 0 || (clip.audioAdjustment?.fadeOut ?? 0) > 0) lines.push(`* EDITWEAVE AUDIO FADE: in=${clip.audioAdjustment?.fadeIn ?? 0}; out=${clip.audioAdjustment?.fadeOut ?? 0}; inCurve=${clip.audioAdjustment?.fadeInCurve ?? 'linear'}; outCurve=${clip.audioAdjustment?.fadeOutCurve ?? 'linear'}`)
     if (!clip.speedKeyframes?.length && clip.playbackRate && clip.playbackRate !== 1) lines.push(`M2  ${reel.padEnd(8, ' ')} ${(clip.playbackRate * 100).toFixed(3)} ${sourceIn}`)
-    if (clip.speedKeyframes?.length) lines.push(`* CUTLINE SPEED RAMP: ${clip.speedKeyframes.map((keyframe) => `${keyframe.time.toFixed(3)}s=${(keyframe.rate * 100).toFixed(1)}%`).join(', ')}`)
+    if (clip.speedKeyframes?.length) lines.push(`* EDITWEAVE SPEED RAMP: ${clip.speedKeyframes.map((keyframe) => `${keyframe.time.toFixed(3)}s=${(keyframe.rate * 100).toFixed(1)}%`).join(', ')}`)
     lines.push('')
   })
   return lines.join('\n')
@@ -810,12 +810,12 @@ export function createFcpxml(projectName: string, preset: SequencePreset, tracks
     const timeMap = timePoints ? `<timeMap>${timePoints}</timeMap>` : ''
     const scaleX = transform.scale / 100 * (transform.scaleX ?? 100) / 100
     const scaleY = transform.scale / 100 * (transform.scaleY ?? 100) / 100
-    const audioFadeMetadata = (clip.audioAdjustment?.fadeIn ?? 0) > 0 || (clip.audioAdjustment?.fadeOut ?? 0) > 0 ? `<metadata><md key="com.cutline.audio.fade-in" value="${clip.audioAdjustment?.fadeIn ?? 0}"/><md key="com.cutline.audio.fade-out" value="${clip.audioAdjustment?.fadeOut ?? 0}"/><md key="com.cutline.audio.fade-in-curve" value="${escapeXml(clip.audioAdjustment?.fadeInCurve ?? 'linear')}"/><md key="com.cutline.audio.fade-out-curve" value="${escapeXml(clip.audioAdjustment?.fadeOutCurve ?? 'linear')}"/></metadata>` : ''
+    const audioFadeMetadata = (clip.audioAdjustment?.fadeIn ?? 0) > 0 || (clip.audioAdjustment?.fadeOut ?? 0) > 0 ? `<metadata><md key="com.editweave.audio.fade-in" value="${clip.audioAdjustment?.fadeIn ?? 0}"/><md key="com.editweave.audio.fade-out" value="${clip.audioAdjustment?.fadeOut ?? 0}"/><md key="com.editweave.audio.fade-in-curve" value="${escapeXml(clip.audioAdjustment?.fadeInCurve ?? 'linear')}"/><md key="com.editweave.audio.fade-out-curve" value="${escapeXml(clip.audioAdjustment?.fadeOutCurve ?? 'linear')}"/></metadata>` : ''
     const transition = clip.transitionIn
     const transitionXml = transition && transition.type !== 'none' && transition.duration > 0 ? (() => {
       const name = transition.type === 'crossfade' ? clip.kind === 'audio' ? 'Cross Fade (+3dB)' : 'Cross Dissolve' : transition.type === 'dip-black' ? 'Dip to Black' : transition.type === 'dip-white' ? 'Dip to White' : transition.type === 'blur-dissolve' ? 'Blur Dissolve' : transition.type === 'wipe-right' ? 'Wipe Right' : transition.type === 'wipe-up' ? 'Wipe Up' : transition.type === 'wipe-down' ? 'Wipe Down' : transition.type === 'wipe-left' ? 'Wipe Left' : transition.type === 'slide-right' ? 'Slide Right' : transition.type === 'slide-left' ? 'Slide Left' : 'Zoom'
       const curve = transition.curve
-      const metadata = `<metadata><md key="com.cutline.transition.type" value="${transition.type}"/><md key="com.cutline.transition.alignment" value="${transition.alignment ?? 'center-on-cut'}"/><md key="com.cutline.transition.easing" value="${transition.easing ?? 'ease-in-out'}"/><md key="com.cutline.transition.audio-curve" value="${transition.audioCurve ?? 'equal-power'}"/>${curve ? `<md key="com.cutline.transition.x1" value="${curve.x1}"/><md key="com.cutline.transition.y1" value="${curve.y1}"/><md key="com.cutline.transition.x2" value="${curve.x2}"/><md key="com.cutline.transition.y2" value="${curve.y2}"/>` : ''}</metadata>`
+      const metadata = `<metadata><md key="com.editweave.transition.type" value="${transition.type}"/><md key="com.editweave.transition.alignment" value="${transition.alignment ?? 'center-on-cut'}"/><md key="com.editweave.transition.easing" value="${transition.easing ?? 'ease-in-out'}"/><md key="com.editweave.transition.audio-curve" value="${transition.audioCurve ?? 'equal-power'}"/>${curve ? `<md key="com.editweave.transition.x1" value="${curve.x1}"/><md key="com.editweave.transition.y1" value="${curve.y1}"/><md key="com.editweave.transition.x2" value="${curve.x2}"/><md key="com.editweave.transition.y2" value="${curve.y2}"/>` : ''}</metadata>`
       return `<transition name="${name}" offset="${seconds(Math.max(0, clip.start - transition.duration), fps)}" duration="${seconds(transition.duration, fps)}" lane="${lane}"><filter-${clip.kind === 'audio' ? 'audio' : 'video'} name="${name}"/>${metadata}</transition>`
     })() : ''
     return `          ${transitionXml}<asset-clip name="${escapeXml(clip.name)}" ref="${ref}" offset="${seconds(clip.start, fps)}" start="${seconds(clip.sourceOffset, fps)}" duration="${seconds(clip.duration, fps)}" lane="${lane}">${timeMap}<adjust-transform position="${transform.positionX} ${-transform.positionY}" scale="${scaleX} ${scaleY}" rotation="${transform.rotation}"/><adjust-blend amount="${transform.opacity / 100}"/>${audioFadeMetadata}</asset-clip>`
@@ -824,10 +824,10 @@ export function createFcpxml(projectName: string, preset: SequencePreset, tracks
 <!DOCTYPE fcpxml>
 <fcpxml version="1.10">
   <resources>
-    <format id="r1" name="Cutline ${preset.ratio}" frameDuration="1/${fps}s" width="${preset.width}" height="${preset.height}"/>
+    <format id="r1" name="EditWeave ${preset.ratio}" frameDuration="1/${fps}s" width="${preset.width}" height="${preset.height}"/>
 ${resources}
   </resources>
-  <library><event name="${escapeXml(projectName)}"><project name="${escapeXml(projectName)}"><sequence format="r1" duration="${seconds(duration, fps)}" tcStart="${seconds(timecodeStart, fps)}" tcFormat="${dropFrame ? 'DF' : 'NDF'}"><metadata><md key="com.cutline.transition-defaults" value="${escapeXml(JSON.stringify(normalizeSequenceTransitionDefaults(transitionDefaults)))}"/></metadata><spine>
+  <library><event name="${escapeXml(projectName)}"><project name="${escapeXml(projectName)}"><sequence format="r1" duration="${seconds(duration, fps)}" tcStart="${seconds(timecodeStart, fps)}" tcFormat="${dropFrame ? 'DF' : 'NDF'}"><metadata><md key="com.editweave.transition-defaults" value="${escapeXml(JSON.stringify(normalizeSequenceTransitionDefaults(transitionDefaults)))}"/></metadata><spine>
 ${spine}
         </spine></sequence></project></event></library>
 </fcpxml>`
@@ -861,10 +861,10 @@ export function createPremiereXml(projectName: string, preset: SequencePreset, t
       const scalarParameter = (id: string, name: string, base: number, value: (keyframe: NonNullable<TimelineClip['keyframes']>[number]) => number) => `<parameter><parameterid>${id}</parameterid><name>${name}</name><value>${base}</value>${scalarKeyframes(value)}</parameter>`
       const centerKeyframes = motionKeyframes.map((keyframe) => `<keyframe><when>${frame(keyframe.time)}</when><value><horiz>${preset.width / 2 + keyframe.transform.positionX}</horiz><vert>${preset.height / 2 + keyframe.transform.positionY}</vert></value><interp>${interpolation(keyframe.easing)}</interp></keyframe>`).join('')
       const centerParameter = `<parameter><parameterid>center</parameterid><name>Center</name><value><horiz>${preset.width / 2 + transform.positionX}</horiz><vert>${preset.height / 2 + transform.positionY}</vert></value>${centerKeyframes}</parameter>`
-      const motionBlurParameters = `<parameter><parameterid>cutline-motion-blur-enabled</parameterid><value>${clip.motionBlur?.enabled ? 1 : 0}</value></parameter><parameter><parameterid>cutline-motion-blur-shutter</parameterid><value>${clip.motionBlur?.shutterAngle ?? 180}</value></parameter><parameter><parameterid>cutline-motion-blur-samples</parameterid><value>${clip.motionBlur?.samples ?? 8}</value></parameter><parameter><parameterid>cutline-motion-path-auto-orient</parameterid><value>${clip.motionPathAutoOrient ? 1 : 0}</value></parameter><parameter><parameterid>cutline-motion-path-orientation-offset</parameterid><value>${clip.motionPathOrientationOffset ?? 0}</value></parameter>`
-      const spatialParameters = motionKeyframes.some((keyframe) => keyframe.spatialIn || keyframe.spatialOut) ? `${scalarParameter('cutline-spatial-in-enabled', 'Cutline Spatial In Enabled', 0, (keyframe) => keyframe.spatialIn ? 1 : 0)}${scalarParameter('cutline-spatial-in-x', 'Cutline Spatial In X', 0, (keyframe) => keyframe.spatialIn?.x ?? 0)}${scalarParameter('cutline-spatial-in-y', 'Cutline Spatial In Y', 0, (keyframe) => keyframe.spatialIn?.y ?? 0)}${scalarParameter('cutline-spatial-out-enabled', 'Cutline Spatial Out Enabled', 0, (keyframe) => keyframe.spatialOut ? 1 : 0)}${scalarParameter('cutline-spatial-out-x', 'Cutline Spatial Out X', 0, (keyframe) => keyframe.spatialOut?.x ?? 0)}${scalarParameter('cutline-spatial-out-y', 'Cutline Spatial Out Y', 0, (keyframe) => keyframe.spatialOut?.y ?? 0)}` : ''
-      const motionFilter = kind === 'video' ? `<filter><effect><name>Motion</name><effectid>basic</effectid><effectcategory>motion</effectcategory>${centerParameter}${scalarParameter('scale', 'Scale', transform.scale, (keyframe) => keyframe.transform.scale)}${scalarParameter('rotation', 'Rotation', transform.rotation, (keyframe) => keyframe.transform.rotation)}${scalarParameter('cutline-scale-x', 'Cutline Scale X', transform.scaleX ?? 100, (keyframe) => keyframe.transform.scaleX ?? 100)}${scalarParameter('cutline-scale-y', 'Cutline Scale Y', transform.scaleY ?? 100, (keyframe) => keyframe.transform.scaleY ?? 100)}${scalarParameter('cutline-anchor-x', 'Cutline Anchor X', transform.anchorX ?? 50, (keyframe) => keyframe.transform.anchorX ?? 50)}${scalarParameter('cutline-anchor-y', 'Cutline Anchor Y', transform.anchorY ?? 50, (keyframe) => keyframe.transform.anchorY ?? 50)}${scalarParameter('cutline-skew-x', 'Cutline Skew X', transform.skewX ?? 0, (keyframe) => keyframe.transform.skewX ?? 0)}${scalarParameter('cutline-skew-y', 'Cutline Skew Y', transform.skewY ?? 0, (keyframe) => keyframe.transform.skewY ?? 0)}${spatialParameters}${motionBlurParameters}</effect></filter><filter><effect><name>Opacity</name><effectid>opacity</effectid>${scalarParameter('opacity', 'Opacity', transform.opacity, (keyframe) => keyframe.transform.opacity)}</effect></filter>` : ''
-      const audioFadeFilter = !clip.audioDisabled && ((clip.audioAdjustment?.fadeIn ?? 0) > 0 || (clip.audioAdjustment?.fadeOut ?? 0) > 0) ? `<filter><effect><name>Cutline Audio Fade</name><effectid>cutline-audio-fade</effectid><effectcategory>audio</effectcategory><parameter><parameterid>cutline-fade-in</parameterid><value>${clip.audioAdjustment?.fadeIn ?? 0}</value></parameter><parameter><parameterid>cutline-fade-out</parameterid><value>${clip.audioAdjustment?.fadeOut ?? 0}</value></parameter><parameter><parameterid>cutline-fade-in-curve</parameterid><value>${escapeXml(clip.audioAdjustment?.fadeInCurve ?? 'linear')}</value></parameter><parameter><parameterid>cutline-fade-out-curve</parameterid><value>${escapeXml(clip.audioAdjustment?.fadeOutCurve ?? 'linear')}</value></parameter></effect></filter>` : ''
+      const motionBlurParameters = `<parameter><parameterid>editweave-motion-blur-enabled</parameterid><value>${clip.motionBlur?.enabled ? 1 : 0}</value></parameter><parameter><parameterid>editweave-motion-blur-shutter</parameterid><value>${clip.motionBlur?.shutterAngle ?? 180}</value></parameter><parameter><parameterid>editweave-motion-blur-samples</parameterid><value>${clip.motionBlur?.samples ?? 8}</value></parameter><parameter><parameterid>editweave-motion-path-auto-orient</parameterid><value>${clip.motionPathAutoOrient ? 1 : 0}</value></parameter><parameter><parameterid>editweave-motion-path-orientation-offset</parameterid><value>${clip.motionPathOrientationOffset ?? 0}</value></parameter>`
+      const spatialParameters = motionKeyframes.some((keyframe) => keyframe.spatialIn || keyframe.spatialOut) ? `${scalarParameter('editweave-spatial-in-enabled', 'EditWeave Spatial In Enabled', 0, (keyframe) => keyframe.spatialIn ? 1 : 0)}${scalarParameter('editweave-spatial-in-x', 'EditWeave Spatial In X', 0, (keyframe) => keyframe.spatialIn?.x ?? 0)}${scalarParameter('editweave-spatial-in-y', 'EditWeave Spatial In Y', 0, (keyframe) => keyframe.spatialIn?.y ?? 0)}${scalarParameter('editweave-spatial-out-enabled', 'EditWeave Spatial Out Enabled', 0, (keyframe) => keyframe.spatialOut ? 1 : 0)}${scalarParameter('editweave-spatial-out-x', 'EditWeave Spatial Out X', 0, (keyframe) => keyframe.spatialOut?.x ?? 0)}${scalarParameter('editweave-spatial-out-y', 'EditWeave Spatial Out Y', 0, (keyframe) => keyframe.spatialOut?.y ?? 0)}` : ''
+      const motionFilter = kind === 'video' ? `<filter><effect><name>Motion</name><effectid>basic</effectid><effectcategory>motion</effectcategory>${centerParameter}${scalarParameter('scale', 'Scale', transform.scale, (keyframe) => keyframe.transform.scale)}${scalarParameter('rotation', 'Rotation', transform.rotation, (keyframe) => keyframe.transform.rotation)}${scalarParameter('editweave-scale-x', 'EditWeave Scale X', transform.scaleX ?? 100, (keyframe) => keyframe.transform.scaleX ?? 100)}${scalarParameter('editweave-scale-y', 'EditWeave Scale Y', transform.scaleY ?? 100, (keyframe) => keyframe.transform.scaleY ?? 100)}${scalarParameter('editweave-anchor-x', 'EditWeave Anchor X', transform.anchorX ?? 50, (keyframe) => keyframe.transform.anchorX ?? 50)}${scalarParameter('editweave-anchor-y', 'EditWeave Anchor Y', transform.anchorY ?? 50, (keyframe) => keyframe.transform.anchorY ?? 50)}${scalarParameter('editweave-skew-x', 'EditWeave Skew X', transform.skewX ?? 0, (keyframe) => keyframe.transform.skewX ?? 0)}${scalarParameter('editweave-skew-y', 'EditWeave Skew Y', transform.skewY ?? 0, (keyframe) => keyframe.transform.skewY ?? 0)}${spatialParameters}${motionBlurParameters}</effect></filter><filter><effect><name>Opacity</name><effectid>opacity</effectid>${scalarParameter('opacity', 'Opacity', transform.opacity, (keyframe) => keyframe.transform.opacity)}</effect></filter>` : ''
+      const audioFadeFilter = !clip.audioDisabled && ((clip.audioAdjustment?.fadeIn ?? 0) > 0 || (clip.audioAdjustment?.fadeOut ?? 0) > 0) ? `<filter><effect><name>EditWeave Audio Fade</name><effectid>editweave-audio-fade</effectid><effectcategory>audio</effectcategory><parameter><parameterid>editweave-fade-in</parameterid><value>${clip.audioAdjustment?.fadeIn ?? 0}</value></parameter><parameter><parameterid>editweave-fade-out</parameterid><value>${clip.audioAdjustment?.fadeOut ?? 0}</value></parameter><parameter><parameterid>editweave-fade-in-curve</parameterid><value>${escapeXml(clip.audioAdjustment?.fadeInCurve ?? 'linear')}</value></parameter><parameter><parameterid>editweave-fade-out-curve</parameterid><value>${escapeXml(clip.audioAdjustment?.fadeOutCurve ?? 'linear')}</value></parameter></effect></filter>` : ''
       return `<clipitem id="clipitem-${escapeXml(clip.id)}"><name>${escapeXml(clip.name)}</name><duration>${frame(clip.duration)}</duration><rate><timebase>${nominalFps}</timebase><ntsc>${ntsc ? 'TRUE' : 'FALSE'}</ntsc></rate><start>${frame(clip.start)}</start><end>${frame(clip.start + clip.duration)}</end><in>${frame(Math.min(sourceStart, sourceEnd))}</in><out>${frame(Math.max(sourceStart, sourceEnd))}</out>${fileXml(asset, clip.name)}${speedFilter}${motionFilter}${audioFadeFilter}</clipitem>`
     }).join('')
     const transitions = orderedClips.flatMap((clip) => {
@@ -876,7 +876,7 @@ export function createPremiereXml(projectName: string, preset: SequencePreset, t
       const effectName = kind === 'audio' ? 'Cross Fade (+3dB)' : transition.type === 'crossfade' ? 'Cross Dissolve' : transition.type === 'dip-black' ? 'Dip to Black' : transition.type === 'dip-white' ? 'Dip to White' : transition.type === 'blur-dissolve' ? 'Blur Dissolve' : transition.type === 'wipe-right' ? 'Wipe Right' : transition.type === 'wipe-up' ? 'Wipe Up' : transition.type === 'wipe-down' ? 'Wipe Down' : transition.type === 'wipe-left' ? 'Wipe Left' : transition.type === 'slide-right' ? 'Slide Right' : transition.type === 'slide-left' ? 'Slide Left' : 'Zoom'
       const parameter = (id: string, value: string | number | undefined) => value === undefined ? '' : `<parameter><parameterid>${id}</parameterid><value>${value}</value></parameter>`
       const curve = transition.curve
-      const parameters = `${parameter('cutline-transition-alignment', alignment)}${parameter('cutline-transition-easing', transition.easing)}${parameter('cutline-transition-audio-curve', transition.audioCurve)}${parameter('cutline-transition-x1', curve?.x1)}${parameter('cutline-transition-y1', curve?.y1)}${parameter('cutline-transition-x2', curve?.x2)}${parameter('cutline-transition-y2', curve?.y2)}`
+      const parameters = `${parameter('editweave-transition-alignment', alignment)}${parameter('editweave-transition-easing', transition.easing)}${parameter('editweave-transition-audio-curve', transition.audioCurve)}${parameter('editweave-transition-x1', curve?.x1)}${parameter('editweave-transition-y1', curve?.y1)}${parameter('editweave-transition-x2', curve?.x2)}${parameter('editweave-transition-y2', curve?.y2)}`
       return [`<transitionitem><name>${effectName}</name><duration>${frame(transition.duration)}</duration><rate><timebase>${nominalFps}</timebase><ntsc>${ntsc ? 'TRUE' : 'FALSE'}</ntsc></rate><start>${frame(clip.start - before)}</start><end>${frame(clip.start + after)}</end><alignment>${alignment === 'center-on-cut' ? 'center' : alignment === 'start-at-cut' ? 'start' : 'end'}</alignment><effect><name>${effectName}</name><effectid>${effectName}</effectid><effectcategory>${kind === 'audio' ? 'Audio Crossfade' : 'Dissolve'}</effectcategory><effecttype>transition</effecttype><mediatype>${kind}</mediatype>${parameters}</effect></transitionitem>`]
     }).join('')
     return `<track><name>${escapeXml(track.name)}</name><enabled>${track.muted ? 'FALSE' : 'TRUE'}</enabled><locked>${track.locked ? 'TRUE' : 'FALSE'}</locked>${clips}${transitions}</track>`
@@ -884,7 +884,7 @@ export function createPremiereXml(projectName: string, preset: SequencePreset, t
   const markerXml = markers.map((marker) => `<marker><name>${escapeXml(marker.label)}</name>${marker.description ? `<comment>${escapeXml(marker.description)}</comment>` : ''}<in>${frame(marker.time)}</in><out>${frame(marker.time + (marker.duration ?? 0))}</out></marker>`).join('')
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xmeml>
-<xmeml version="5"><sequence id="sequence-1"><name>${escapeXml(projectName)}</name><duration>${frame(sequenceDuration)}</duration><rate><timebase>${nominalFps}</timebase><ntsc>${ntsc ? 'TRUE' : 'FALSE'}</ntsc></rate><timecode><rate><timebase>${nominalFps}</timebase><ntsc>${ntsc ? 'TRUE' : 'FALSE'}</ntsc></rate><string>${formatMediaTimecode(timecodeStart, fps, dropFrame)}</string><displayformat>${dropFrame ? 'DF' : 'NDF'}</displayformat></timecode><metadata><cutline-transition-defaults>${escapeXml(JSON.stringify(normalizeSequenceTransitionDefaults(transitionDefaults)))}</cutline-transition-defaults></metadata><media><video><format><samplecharacteristics><rate><timebase>${nominalFps}</timebase><ntsc>${ntsc ? 'TRUE' : 'FALSE'}</ntsc></rate><width>${preset.width}</width><height>${preset.height}</height><pixelaspectratio>square</pixelaspectratio></samplecharacteristics></format>${tracks.filter((track) => track.kind === 'video').map((track) => trackXml(track, 'video')).join('')}</video><audio><format><samplecharacteristics><depth>24</depth><samplerate>48000</samplerate></samplecharacteristics></format>${tracks.filter((track) => track.kind === 'audio').map((track) => trackXml(track, 'audio')).join('')}</audio></media>${markerXml}</sequence></xmeml>`
+<xmeml version="5"><sequence id="sequence-1"><name>${escapeXml(projectName)}</name><duration>${frame(sequenceDuration)}</duration><rate><timebase>${nominalFps}</timebase><ntsc>${ntsc ? 'TRUE' : 'FALSE'}</ntsc></rate><timecode><rate><timebase>${nominalFps}</timebase><ntsc>${ntsc ? 'TRUE' : 'FALSE'}</ntsc></rate><string>${formatMediaTimecode(timecodeStart, fps, dropFrame)}</string><displayformat>${dropFrame ? 'DF' : 'NDF'}</displayformat></timecode><metadata><editweave-transition-defaults>${escapeXml(JSON.stringify(normalizeSequenceTransitionDefaults(transitionDefaults)))}</editweave-transition-defaults></metadata><media><video><format><samplecharacteristics><rate><timebase>${nominalFps}</timebase><ntsc>${ntsc ? 'TRUE' : 'FALSE'}</ntsc></rate><width>${preset.width}</width><height>${preset.height}</height><pixelaspectratio>square</pixelaspectratio></samplecharacteristics></format>${tracks.filter((track) => track.kind === 'video').map((track) => trackXml(track, 'video')).join('')}</video><audio><format><samplecharacteristics><depth>24</depth><samplerate>48000</samplerate></samplecharacteristics></format>${tracks.filter((track) => track.kind === 'audio').map((track) => trackXml(track, 'audio')).join('')}</audio></media>${markerXml}</sequence></xmeml>`
 }
 
 export function createOtio(projectName: string, tracks: TimelineTrack[], assets: MediaAsset[], markers: TimelineMarker[] = [], fps = 30, timecodeStart = 0, preset?: SequencePreset, timecodeDropFrame = false, transitionDefaults?: SequenceTransitionDefaults): string {
@@ -899,13 +899,13 @@ export function createOtio(projectName: string, tracks: TimelineTrack[], assets:
         const alignment = clip.transitionIn.alignment ?? 'start-at-cut'
         const before = alignment === 'end-at-cut' ? clip.transitionIn.duration : alignment === 'center-on-cut' ? clip.transitionIn.duration / 2 : 0
         const after = clip.transitionIn.duration - before
-        items.push({ OTIO_SCHEMA: 'Transition.1', name: clip.transitionIn.type, transition_type: 'SMPTE_Dissolve', in_offset: rationalTime(before), out_offset: rationalTime(after), metadata: { cutline: { type: clip.transitionIn.type, alignment, easing: clip.transitionIn.easing, curve: clip.transitionIn.curve, audioCurve: clip.transitionIn.audioCurve } } })
+        items.push({ OTIO_SCHEMA: 'Transition.1', name: clip.transitionIn.type, transition_type: 'SMPTE_Dissolve', in_offset: rationalTime(before), out_offset: rationalTime(after), metadata: { editweave: { type: clip.transitionIn.type, alignment, easing: clip.transitionIn.easing, curve: clip.transitionIn.curve, audioCurve: clip.transitionIn.audioCurve } } })
       }
       const asset = assets.find((candidate) => candidate.id === clip.assetId)
       items.push({
         OTIO_SCHEMA: 'Clip.2', name: clip.name, source_range: timeRange(clip.sourceOffset, clip.duration), effects: [], markers: [],
-        media_reference: asset ? { OTIO_SCHEMA: 'ExternalReference.1', name: asset.name, target_url: asset.sourcePath ? toPremierePathUrl(asset.sourcePath) : '', available_range: timeRange(0, asset.duration), metadata: { cutline: { assetId: asset.id, reelName: asset.reelName, masterEffectsEnabled: asset.masterEffectsEnabled, masterColorAdjustment: asset.masterColorAdjustment, masterVisualEffects: asset.masterVisualEffects, masterAudioAdjustment: asset.masterAudioAdjustment, sourceRotation: asset.sourceRotation, sourcePixelAspectRatio: asset.sourcePixelAspectRatio, sourceFrameRateOverride: asset.sourceFrameRateOverride, sourceFieldOrder: asset.sourceFieldOrder, sourceColorSpaceOverride: asset.sourceColorSpaceOverride, sourceAlphaMode: asset.sourceAlphaMode, sourceAlphaBackground: asset.sourceAlphaBackground, sourceAudioLayout: asset.sourceAudioLayout, sourceAudioStreamIndex: asset.sourceAudioStreamIndex } } } : { OTIO_SCHEMA: 'MissingReference.1', name: track.kind === 'caption' ? 'Cutline Caption' : clip.name, metadata: { cutline: {} } },
-        metadata: { cutline: {
+        media_reference: asset ? { OTIO_SCHEMA: 'ExternalReference.1', name: asset.name, target_url: asset.sourcePath ? toPremierePathUrl(asset.sourcePath) : '', available_range: timeRange(0, asset.duration), metadata: { editweave: { assetId: asset.id, reelName: asset.reelName, masterEffectsEnabled: asset.masterEffectsEnabled, masterColorAdjustment: asset.masterColorAdjustment, masterVisualEffects: asset.masterVisualEffects, masterAudioAdjustment: asset.masterAudioAdjustment, sourceRotation: asset.sourceRotation, sourcePixelAspectRatio: asset.sourcePixelAspectRatio, sourceFrameRateOverride: asset.sourceFrameRateOverride, sourceFieldOrder: asset.sourceFieldOrder, sourceColorSpaceOverride: asset.sourceColorSpaceOverride, sourceAlphaMode: asset.sourceAlphaMode, sourceAlphaBackground: asset.sourceAlphaBackground, sourceAudioLayout: asset.sourceAudioLayout, sourceAudioStreamIndex: asset.sourceAudioStreamIndex } } } : { OTIO_SCHEMA: 'MissingReference.1', name: track.kind === 'caption' ? 'EditWeave Caption' : clip.name, metadata: { editweave: {} } },
+        metadata: { editweave: {
           playbackRate: clip.playbackRate ?? 1, reverse: Boolean(clip.reverse), transform: clip.transform, color: clip.color,
           groupId: clip.groupId, linkGroupId: clip.linkGroupId, freezeFrame: clip.freezeFrame, freezeFrameSourceTime: clip.freezeFrameSourceTime,
           adjustmentLayer: clip.adjustmentLayer, transitionOut: clip.transitionOut, trackId: track.id,
@@ -918,13 +918,13 @@ export function createOtio(projectName: string, tracks: TimelineTrack[], assets:
       })
       cursor = Math.max(cursor, clip.start + clip.duration)
     }
-    return { OTIO_SCHEMA: 'Track.1', name: track.name, kind: track.kind === 'audio' ? 'Audio' : 'Video', source_range: null, effects: [], markers: [], children: items, metadata: { cutline: { trackKind: track.kind, sourceTarget: track.sourceTarget, editTarget: track.editTarget, syncLock: track.syncLock, muted: track.muted, locked: track.locked, visible: track.visible, solo: track.solo, volume: track.volume, pan: track.pan, mixAutomationMode: track.mixAutomationMode, mixKeyframes: track.mixKeyframes, compositePriority: track.compositePriority, multicamAngleIndex: track.multicamAngleIndex, labelColor: track.labelColor, audioRole: track.audioRole, captionLanguage: track.captionLanguage, captionFormat: track.captionFormat, captionStyle: track.captionStyle } } }
+    return { OTIO_SCHEMA: 'Track.1', name: track.name, kind: track.kind === 'audio' ? 'Audio' : 'Video', source_range: null, effects: [], markers: [], children: items, metadata: { editweave: { trackKind: track.kind, sourceTarget: track.sourceTarget, editTarget: track.editTarget, syncLock: track.syncLock, muted: track.muted, locked: track.locked, visible: track.visible, solo: track.solo, volume: track.volume, pan: track.pan, mixAutomationMode: track.mixAutomationMode, mixKeyframes: track.mixKeyframes, compositePriority: track.compositePriority, multicamAngleIndex: track.multicamAngleIndex, labelColor: track.labelColor, audioRole: track.audioRole, captionLanguage: track.captionLanguage, captionFormat: track.captionFormat, captionStyle: track.captionStyle } } }
   })
   const document = {
     OTIO_SCHEMA: 'Timeline.1', name: projectName, global_start_time: rationalTime(timecodeStart),
     tracks: { OTIO_SCHEMA: 'Stack.1', name: 'tracks', source_range: null, effects: [], markers: [], children, metadata: {} },
-    markers: markers.map((marker) => ({ OTIO_SCHEMA: 'Marker.2', name: marker.label, color: 'PURPLE', marked_range: timeRange(marker.time, marker.duration ?? 0), metadata: { comment: marker.description ?? '', cutline: { kind: marker.kind, color: marker.color, status: marker.status } } })),
-    metadata: { cutline: { exportedAt: new Date().toISOString(), width: preset?.width, height: preset?.height, timecodeDropFrame, transitionDefaults: normalizeSequenceTransitionDefaults(transitionDefaults) } },
+    markers: markers.map((marker) => ({ OTIO_SCHEMA: 'Marker.2', name: marker.label, color: 'PURPLE', marked_range: timeRange(marker.time, marker.duration ?? 0), metadata: { comment: marker.description ?? '', editweave: { kind: marker.kind, color: marker.color, status: marker.status } } })),
+    metadata: { editweave: { exportedAt: new Date().toISOString(), width: preset?.width, height: preset?.height, timecodeDropFrame, transitionDefaults: normalizeSequenceTransitionDefaults(transitionDefaults) } },
   }
   return JSON.stringify(document, (_key, value) => value === undefined ? undefined : value, 2)
 }
@@ -970,7 +970,7 @@ function seconds(value: number, fps: number): string {
 
 
 function sanitizeReel(value: string): string {
-  return value.replace(/\.[^.]+$/, '').replace(/[^A-Za-z0-9]/g, '').slice(0, 8).toUpperCase() || 'CUTLINE'
+  return value.replace(/\.[^.]+$/, '').replace(/[^A-Za-z0-9]/g, '').slice(0, 8).toUpperCase() || 'EDITWEAVE'
 }
 
 function escapeXml(value: string): string {

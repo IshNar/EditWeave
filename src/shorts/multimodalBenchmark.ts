@@ -14,7 +14,7 @@ export interface MultimodalShortsBenchmarkCase {
 }
 
 export interface MultimodalShortsBenchmark {
-  version: 'cutline-shorts-multimodal-v1'
+  version: 'editweave-shorts-multimodal-v1'
   provenance: 'synthetic' | 'licensed-real'
   cases: MultimodalShortsBenchmarkCase[]
 }
@@ -31,7 +31,7 @@ export interface MultimodalShortsBenchmarkResult {
 export function parseMultimodalShortsBenchmark(value: unknown): MultimodalShortsBenchmark {
   if (!value || typeof value !== 'object') throw new Error('쇼츠 기준셋이 객체가 아닙니다.')
   const candidate = value as Partial<MultimodalShortsBenchmark>
-  if (candidate.version !== 'cutline-shorts-multimodal-v1' || !['synthetic', 'licensed-real'].includes(candidate.provenance ?? '') || !Array.isArray(candidate.cases)) throw new Error('지원되는 멀티모달 쇼츠 기준셋 형식이 아닙니다.')
+  if (candidate.version !== 'editweave-shorts-multimodal-v1' || !['synthetic', 'licensed-real'].includes(candidate.provenance ?? '') || !Array.isArray(candidate.cases)) throw new Error('지원되는 멀티모달 쇼츠 기준셋 형식이 아닙니다.')
   for (const item of candidate.cases) {
     if (!item?.id || !Number.isFinite(item.duration) || item.duration <= 0 || !Array.isArray(item.transcript) || !Array.isArray(item.suggestions) || !Array.isArray(item.markers) || !Array.isArray(item.waveform) || !Array.isArray(item.faceTrack)) throw new Error('멀티모달 쇼츠 기준셋 사례가 손상됐습니다.')
     if (!validRange(item.expectedHookRange) || item.excludedHookRange && !validRange(item.excludedHookRange)) throw new Error(`멀티모달 쇼츠 기준셋 “${item.id}”의 정답 범위가 손상됐습니다.`)

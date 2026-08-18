@@ -14,7 +14,7 @@ pub fn verify(public_key: &str, signature: &str, payload: &str) -> Result<bool, 
 }
 
 pub fn verify_trusted(provided_public_key: &str, signature: &str, payload: &str) -> Result<bool, String> {
-    let trusted = match option_env!("CUTLINE_UPDATE_PUBLIC_KEY") {
+    let trusted = match option_env!("EDITWEAVE_UPDATE_PUBLIC_KEY") {
         Some(value) if !value.trim().is_empty() => {
             if compact_base64(value) != compact_base64(provided_public_key) { return Err("앱에 고정된 업데이트 공개 키와 요청 키가 다릅니다.".into()); }
             value

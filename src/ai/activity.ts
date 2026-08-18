@@ -8,7 +8,7 @@ export function startAiActivity(input: NewAiActivity, now = new Date().toISOStri
   if (input.processing.location === 'external-user-service' && input.approval !== 'user-confirmed-external-transfer') {
     throw new Error('외부 AI 처리는 명시적인 외부 전송 승인이 필요합니다.')
   }
-  return { version: 'cutline-ai-activity-v1', id, status: 'running', createdAt: now, ...input }
+  return { version: 'editweave-ai-activity-v1', id, status: 'running', createdAt: now, ...input }
 }
 
 export function finishAiActivity(record: AiActivityRecord, update: Pick<AiActivityRecord, 'status'> & Partial<Pick<AiActivityRecord, 'changes' | 'error'>>, now = new Date().toISOString()): AiActivityRecord {
@@ -26,7 +26,7 @@ export function updateAiActivity(log: AiActivityRecord[], id: string, update: (r
 }
 
 export function normalizeAiActivityLog(value: AiActivityRecord[] | undefined): AiActivityRecord[] {
-  return (value ?? []).filter((record) => record?.version === 'cutline-ai-activity-v1'
+  return (value ?? []).filter((record) => record?.version === 'editweave-ai-activity-v1'
     && typeof record.id === 'string'
     && typeof record.label === 'string'
     && Array.isArray(record.input?.dataCategories)

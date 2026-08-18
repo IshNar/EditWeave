@@ -1,6 +1,6 @@
 import type { ClipTransform, TimelineClip, TransformKeyframe, VisualEffectKeyframe, VisualEffects } from '../editor/types'
 
-const STORAGE_KEY = 'cutline.motion-templates.v1'
+const STORAGE_KEY = 'editweave.motion-templates.v1'
 
 export interface MotionTemplate {
   id: string
@@ -48,12 +48,12 @@ export function createMotionTemplate(name: string, source: Omit<MotionTemplate, 
 export function parseMotionTemplate(raw: string): MotionTemplate {
   const value: unknown = JSON.parse(raw)
   const candidate = value && typeof value === 'object' && 'template' in value ? (value as { template: unknown }).template : value
-  if (!isMotionTemplate(candidate)) throw new Error('Cutline 모션 템플릿 형식이 아닙니다.')
+  if (!isMotionTemplate(candidate)) throw new Error('EditWeave 모션 템플릿 형식이 아닙니다.')
   return { ...candidate, id: crypto.randomUUID(), name: candidate.name.trim() || '가져온 모션', createdAt: new Date().toISOString() }
 }
 
 export function serializeMotionTemplate(template: MotionTemplate): string {
-  return JSON.stringify({ format: 'cutline-motion-template', version: 1, template }, null, 2)
+  return JSON.stringify({ format: 'editweave-motion-template', version: 1, template }, null, 2)
 }
 
 export function applyMotionTemplate(template: MotionTemplate, targetDuration: number): Pick<MotionTemplate, 'transform' | 'keyframes' | 'motionPathAutoOrient' | 'motionPathOrientationOffset' | 'motionBlur' | 'visualEffects' | 'visualKeyframes'> {

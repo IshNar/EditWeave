@@ -1,11 +1,11 @@
 import type { SpeedKeyframe, TimelineClip } from '../editor/types'
 
-const STORAGE_KEY = 'cutline.speed-templates.v1'
+const STORAGE_KEY = 'editweave.speed-templates.v1'
 
 export interface SpeedTemplate {
   id: string
   name: string
-  version: 'cutline-speed-template-v1'
+  version: 'editweave-speed-template-v1'
   createdAt: string
   sourceDuration: number
   playbackRate: number
@@ -30,7 +30,7 @@ export function createSpeedTemplate(name: string, clip: TimelineClip): SpeedTemp
   return normalizeTemplate({
     id: crypto.randomUUID(),
     name: name.trim() || '속도 템플릿',
-    version: 'cutline-speed-template-v1',
+    version: 'editweave-speed-template-v1',
     createdAt: new Date().toISOString(),
     sourceDuration: Math.max(0.05, clip.duration),
     playbackRate: clip.playbackRate ?? 1,
@@ -55,7 +55,7 @@ export function serializeSpeedTemplate(template: SpeedTemplate): string {
 
 export function parseSpeedTemplate(raw: string): SpeedTemplate {
   const value: unknown = JSON.parse(raw)
-  if (!isSpeedTemplate(value)) throw new Error('지원되는 Cutline 속도 템플릿이 아닙니다.')
+  if (!isSpeedTemplate(value)) throw new Error('지원되는 EditWeave 속도 템플릿이 아닙니다.')
   return normalizeTemplate({ ...value, id: crypto.randomUUID(), createdAt: new Date().toISOString() })
 }
 
@@ -80,7 +80,7 @@ function normalizeTemplate(template: SpeedTemplate): SpeedTemplate {
 function isSpeedTemplate(value: unknown): value is SpeedTemplate {
   if (!value || typeof value !== 'object') return false
   const candidate = value as Partial<SpeedTemplate>
-  return candidate.version === 'cutline-speed-template-v1'
+  return candidate.version === 'editweave-speed-template-v1'
     && typeof candidate.id === 'string' && typeof candidate.name === 'string' && typeof candidate.createdAt === 'string'
     && typeof candidate.sourceDuration === 'number' && Number.isFinite(candidate.sourceDuration)
     && typeof candidate.playbackRate === 'number' && Number.isFinite(candidate.playbackRate)

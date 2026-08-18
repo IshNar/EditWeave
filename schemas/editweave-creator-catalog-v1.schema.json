@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cutline.local/schemas/cutline-creator-catalog-v1.schema.json",
-  "title": "Cutline Creator Pack Catalog v1",
+  "$id": "https://editweave.local/schemas/editweave-creator-catalog-v1.schema.json",
+  "title": "EditWeave Creator Pack Catalog v1",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema", "generatedAt", "authority", "keyId", "entries", "revocations", "signature"],
   "properties": {
-    "schema": { "const": "cutline-creator-catalog-v1" },
+    "schema": { "const": "editweave-creator-catalog-v1" },
     "generatedAt": { "type": "string", "format": "date-time" },
     "authority": { "type": "string", "minLength": 1, "maxLength": 120 },
     "keyId": { "type": "string", "minLength": 1, "maxLength": 120 },

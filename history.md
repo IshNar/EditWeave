@@ -73,7 +73,7 @@
 - Tauri 앱 셸, 파일 열기·저장 권한, 플랫폼 아이콘을 구성했다.
 - 미디어 코덱·해상도·길이 분석, 영상 썸네일과 오디오 파형을 구현했다.
 - 실제 영상/이미지 미리보기와 재생 헤드 동기화, 클립 변형을 구현했다.
-- 프로젝트 `.cutline.json` 저장·열기, 오프라인 미디어 재연결, 자동 저장을 구현했다.
+- 프로젝트 `.editweave.json` 저장·열기, 오프라인 미디어 재연결, 자동 저장을 구현했다.
 - WebCodecs/Mediabunny 기반 H.264/AAC MP4 합성, 진행률, 취소를 구현했다.
 
 ### 검증
@@ -128,9 +128,9 @@
 
 - `pnpm check` 통과: 테스트 파일 3개, 테스트 6개.
 - `pnpm desktop:build` 통과.
-- 릴리스 실행 파일: `src-tauri/target/release/cutline.exe` (7,952,896 bytes), SHA-256 `7EB1470DB42E340602A9BCAF88B1E0BD008EC551E59C050B413A0299F444E18C`.
-- MSI: `Cutline_0.1.0_x64_en-US.msi` (6,184,960 bytes), SHA-256 `4EBA98D4CCC495720EE8D1A7AB44BCE3FA1C48941ADE87DE017519EC44A6913F`.
-- NSIS: `Cutline_0.1.0_x64-setup.exe` (5,660,251 bytes), SHA-256 `32AEDB9FFF2AA173EB2358802FD55D1A2DA764B6F3FE3CCEF17CB5F7B5721C7D`.
+- 릴리스 실행 파일: `src-tauri/target/release/editweave.exe` (7,952,896 bytes), SHA-256 `7EB1470DB42E340602A9BCAF88B1E0BD008EC551E59C050B413A0299F444E18C`.
+- MSI: `EditWeave_0.1.0_x64_en-US.msi` (6,184,960 bytes), SHA-256 `4EBA98D4CCC495720EE8D1A7AB44BCE3FA1C48941ADE87DE017519EC44A6913F`.
+- NSIS: `EditWeave_0.1.0_x64-setup.exe` (5,660,251 bytes), SHA-256 `32AEDB9FFF2AA173EB2358802FD55D1A2DA764B6F3FE3CCEF17CB5F7B5721C7D`.
 
 ### 출시 판단
 
@@ -195,7 +195,7 @@
 
 ### 구현
 
-- `run.bat`을 추가해 프로젝트 루트에서 빌드된 `cutline.exe`를 더블클릭으로 실행할 수 있게 했다.
+- `run.bat`을 추가해 프로젝트 루트에서 빌드된 `editweave.exe`를 더블클릭으로 실행할 수 있게 했다.
 - Tauri 앱 캐시의 프로젝트/자산별 안전한 상대 경로에 완성된 프록시 MP4를 저장한다.
 - 프로젝트 파일에는 프록시 캐시 경로·생성 시각·크기·해상도만 저장하고 Blob URL과 메모리 파일은 제외한다.
 - 프로젝트 재열기 시 캐시 파일을 복원해 원본이 오프라인이어도 프록시 미리보기를 사용한다. 최종 출력에는 계속 원본 재연결이 필요하다.
@@ -215,7 +215,7 @@
 - 웹 화면에서 960×540 프록시 생성, `세션 전용` 표시, 개별 삭제와 원본 미디어 유지를 확인했다.
 - `pnpm check` 통과: 테스트 파일 9개, 테스트 22개.
 - `pnpm desktop:build`로 최신 Windows x64 EXE·MSI·NSIS를 생성했다.
-- `run.bat` 실행으로 새 `cutline.exe` 프로세스가 생성되는 것을 PID로 확인하고 테스트 프로세스만 종료했다.
+- `run.bat` 실행으로 새 `editweave.exe` 프로세스가 생성되는 것을 PID로 확인하고 테스트 프로세스만 종료했다.
 
 ## 2026-08-08 — V1 Development Candidate 전체 개발 패스
 
@@ -291,7 +291,7 @@
 - ComfyUI는 핵심 편집 엔진이나 필수 설치 조건이 아니라 사용자가 명시적으로 허용할 때만 동작하는 선택적 외부 생성·보정 브리지로 범위를 고정했다.
 - 오디오 믹서에서 네 역할 버스의 게인·뮤트·솔로·안전 리미터와 모든 순차 삽입 효과를 이름 있는 팀 템플릿으로 저장·갱신·삭제·적용할 수 있게 했다.
 - 템플릿에 ADR 큐 기본 길이, 0/1/2/3/5초 카운트다운과 선호 마이크 이름을 포함하고, 적용한 기본값을 다음 ADR 세션의 장치 선택·큐 길이·녹음 시작에 연결했다.
-- 팀 템플릿을 `.cutline-audio.json`으로 공유·가져오기하며, 기존 ADR 필드가 없는 템플릿은 안전한 기본값으로 보완한다. 잘못된 JSON은 믹서를 중단시키지 않고 화면 오류로 표시한다.
+- 팀 템플릿을 `.editweave-audio.json`으로 공유·가져오기하며, 기존 ADR 필드가 없는 템플릿은 안전한 기본값으로 보완한다. 잘못된 JSON은 믹서를 중단시키지 않고 화면 오류로 표시한다.
 - 템플릿의 버스 삽입 인스턴스에는 새 ID를 발급하고 전체 버스 적용은 편집 기록 한 건으로 남겨 Undo로 되돌릴 수 있게 했다.
 - 사용자 요청에 따라 앱 실행, 자동 테스트, 타입 검사와 패키징은 수행하지 않고 정적 소스 연결만 확인했다.
 
@@ -300,7 +300,7 @@
 - 속도 키프레임에 사용자 cubic Bézier 제어점 두 개를 저장하고 인스펙터의 소형 곡선 편집기에서 직접 끌어 구간 가속 형태를 조절하도록 했다.
 - Bézier의 시간축 x를 역산한 속도 보간과 `y·dx` 적분을 공통 소스 시간 계산에 연결해 프로그램 미리보기, 오디오, 최종 출력이 같은 자유 곡선을 사용하도록 했다.
 - 기본 재생 속도·역재생·모든 속도 지점·보간·Bézier 제어점을 사용자 속도 템플릿으로 로컬 저장·적용·삭제할 수 있게 했다.
-- `.cutline-speed.json` 공유와 가져오기를 추가하고, 다른 길이의 대상 클립에서는 지점 시간을 길이 비율로 재배치하며 새 키프레임 ID를 발급한다.
+- `.editweave-speed.json` 공유와 가져오기를 추가하고, 다른 길이의 대상 클립에서는 지점 시간을 길이 비율로 재배치하며 새 키프레임 ID를 발급한다.
 - 템플릿은 최대 120개 지점과 5%~1600% 범위를 정규화하고 잘못된 버전·숫자·보간 형식은 적용 전에 거부한다.
 - 사용자 요청에 따라 실행·타입 검사·자동 테스트·패키징은 수행하지 않았다.
 
@@ -372,18 +372,18 @@
 - 최종 오디오를 출력 샘플 기준으로 다시 매핑해 느린 재생·역재생·가변 속도에서 빈 샘플 없이 영상과 같은 소스 시간을 조회하도록 바꿨다.
 - 일반·리플·롤·슬립·슬라이드 트림, 범위 삭제, 덮어쓰기, 일반 분할과 멀티캠 컷이 속도 곡선의 경계 속도와 소스 오프셋을 보존하게 했다.
 - 쇼츠 파생, 얼굴 모션 추적, 무음 초벌 제안, 중첩 시퀀스 펼치기에도 가변 속도 시간 역산을 연결했다.
-- FCPXML에는 속도 시간 맵을 기록하고 CMX 3600 EDL에는 읽을 수 있는 Cutline 속도 램프 주석을 남긴다.
+- FCPXML에는 속도 시간 맵을 기록하고 CMX 3600 EDL에는 읽을 수 있는 EditWeave 속도 램프 주석을 남긴다.
 - 사용자 요청에 따라 앱 실행, 자동 테스트, 타입 검사와 패키징은 수행하지 않았으며 정적 소스 연결만 점검했다.
 
 ## 2026-08-09 — Top 3 벤치마크·중첩 시퀀스·영속 렌더 큐
 
 - 공식 기능표를 기준으로 Premiere Pro, DaVinci Resolve, CapCut Desktop의 미디어·편집·합성·색상·오디오·자막·AI·쇼츠·출력·협업 기능 매트릭스를 `docs/09-top3-benchmark-and-differentiation.md`에 추가했다.
-- Cutline의 차별성을 롱폼과 파생 결과물을 연결하는 Creator Source Graph, 승인형 대본 편집, 납품 사전 검사, 로컬 우선 AI, 복구 중심 렌더로 정의했다.
+- EditWeave의 차별성을 롱폼과 파생 결과물을 연결하는 Creator Source Graph, 승인형 대본 편집, 납품 사전 검사, 로컬 우선 AI, 복구 중심 렌더로 정의했다.
 - ComfyUI는 핵심 편집 기능이 아니라 설치를 요구하지 않는 선택적 외부 생성·보정 연동으로 범위를 축소했다.
 - 재생 헤드에 겹친 잠금 해제 클립들을 새 중첩 시퀀스로 묶고, 상단 시퀀스 선택기에서 내부를 편집하며 프로그램 미리보기와 최종 출력에서 재귀적으로 펼치는 합성 경로를 구현했다.
 - 렌더 작업을 로컬에 보존하고 실행 중 일시정지·재개·취소, 창을 닫은 백그라운드 진행, 실패·취소·비정상 종료 작업의 재시도와 개별 정리를 추가했다.
 - 사용자 요청에 따라 앱 실행, 자동 테스트, 타입 검사와 패키징은 수행하지 않았다.
-## 2026-08-09 — Top 3 벤치마크 구현 패스와 Cutline 차별화
+## 2026-08-09 — Top 3 벤치마크 구현 패스와 EditWeave 차별화
 
 ### 벤치마크와 범위
 
@@ -438,7 +438,7 @@
 - 중첩 클립이 부모 또는 자식 시퀀스 경계와 맞닿을 때 디졸브·딥 전환 종류와 환산 길이를 펼친 합성 클립에 보존하도록 했다.
 - 활성 시퀀스의 중첩 그래프를 따라 누락 참조, 자신으로 돌아오는 순환 경로, 16단계 초과 중첩을 찾고 Delivery Guard의 출력 차단 사유와 전체 경로로 표시한다.
 - 클립의 기본 변형·변형 키프레임·시각 효과·시각 키프레임을 사용자 모션으로 로컬 저장하고, 다른 길이의 클립에 적용할 때 키프레임 시간을 비례 재배치한다.
-- 선택 모션 템플릿을 사람이 읽을 수 있는 `.cutline-motion.json`으로 공유하거나 다시 가져오고, 가져온 템플릿은 새 ID로 저장해 기존 항목을 덮어쓰지 않도록 했다.
+- 선택 모션 템플릿을 사람이 읽을 수 있는 `.editweave-motion.json`으로 공유하거나 다시 가져오고, 가져온 템플릿은 새 ID로 저장해 기존 항목을 덮어쓰지 않도록 했다.
 - 미디어 정보에 `HH:MM:SS:FF` 소스 시작 타임코드를 입력·저장하고, 선택 클립을 기준으로 다른 잠금 해제 클립을 같은 절대 소스 시각에 정렬하는 TC 동기화를 추가했다.
 - 전체 파형 상관 동기화 외에 파형의 중앙값·MAD 대비 가장 뚜렷한 상승 피크를 찾아 맞추는 클랩 동기화를 추가했다. 세 동기화 방식 모두 클립 속도 램프·역재생의 공통 소스 시간 역매핑을 사용한다.
 - 내보내기 창에서 현재 시퀀스 또는 예약 당시의 쇼츠 시퀀스 묶음을 실제 `queued` 작업으로 추가하고, 렌더 작업 창에서 현재 프로젝트의 대기 작업을 순서대로 시작·중지하도록 했다.
@@ -490,7 +490,7 @@
 - 미디어 상세 정보와 검색 문맥에 HDR 정적 메타데이터를 표시하고 Delivery Guard의 SDR 납품 경고에 원본 MaxCLL·MaxFALL을 함께 제시한다.
 - Canvas에서 이미 8-bit SDR로 변환된 픽셀을 단순히 10-bit PQ/HLG로 태그하는 경로는 구현하지 않았다. 네이티브 HDR은 부동소수점 합성·HDR 모니터링·10-bit 인코더 입력을 함께 갖춘 뒤에만 완료로 판정한다.
 - 상단 도구에 `AI 데이터 설정`을 추가해 전사·자막, 장면 감지·초벌 제안, 배경 제거·추적, 쇼츠 리프레임별 입력 데이터와 로컬 처리·프로젝트 보관 범위를 표시한다.
-- 선택적 ComfyUI는 Cutline 밖의 별도 프로세스로 분류하고 기본 전송 동의를 꺼 두었다. 전역 설정과 실제 워크플로 창의 동의 체크가 모두 같은 영속 설정을 사용하며, 동의가 없으면 실행 함수에서도 한 번 더 차단한다.
+- 선택적 ComfyUI는 EditWeave 밖의 별도 프로세스로 분류하고 기본 전송 동의를 꺼 두었다. 전역 설정과 실제 워크플로 창의 동의 체크가 모두 같은 영속 설정을 사용하며, 동의가 없으면 실행 함수에서도 한 번 더 차단한다.
 - ComfyUI 주소가 localhost여도 워크플로 내부 노드가 외부 API를 호출할 수 있음을 고지하고, 선택 이미지·워크플로 전송과 마지막 결과 이미지의 프로젝트 보관 범위를 명시했다.
 - 전사 문장의 RMS와 zero-crossing 두 값으로 화자 1/2를 나누던 임계값 휴리스틱을 제거했다.
 - 각 전사 구간에서 Hann window 음성 프레임을 최대 96개 표본화하고 12개 주파수대 Goertzel 에너지, log RMS, zero-crossing, 70~320Hz 자기상관 피치와 주기성의 평균·표준편차를 정규화한 `acoustic-v1` 임베딩을 계산한다.
@@ -500,7 +500,7 @@
 - AI 패널에 현재 프로젝트 피드백 건수와 `학습 초기화`를 추가했다. 프로필은 자동 저장·프로젝트 파일 열기·새 프로젝트 초기화 경로에 포함하며 외부 서버로 전송하지 않는다.
 - 대본 문장의 질문, 수치·목록, 핵심어, 느낌표·인용 강조와 길이·초반 위치를 조합해 설명 가능한 하이라이트 후보를 생성하고 카드에 개인화 후 점수를 표시한다.
 - 하이라이트의 `적용`은 타임라인을 삭제하지 않고 시작 시간에 노란 챕터 마커를 추가한다. `유지`와 챕터 적용 결과는 다른 초벌 유형과 동일하게 프로젝트별 피드백에 반영한다.
-- 검토 코멘트를 프로젝트 ID·이름·시퀀스 ID·내보낸 시각과 함께 `.cutline-review.json`으로 저장하고 다시 병합하는 오프라인 검토 패키지를 추가했다.
+- 검토 코멘트를 프로젝트 ID·이름·시퀀스 ID·내보낸 시각과 함께 `.editweave-review.json`으로 저장하고 다시 병합하는 오프라인 검토 패키지를 추가했다.
 - 가져온 코멘트는 동일 ID의 내용·상태·시간·작성자 변경을 갱신하고, ID가 달라도 시간·작성자·내용·상태가 같은 항목은 중복 추가하지 않는다. 다른 프로젝트 패키지는 사용자 확인 뒤 현재 타임라인 시간 기준으로 병합한다.
 - 기존 CSV는 읽기 쉬운 전달 형식으로 유지하고, 재병합 가능한 검토 패키지는 별도 버튼으로 분리했다.
 - 업데이트 확인 코드가 운영 도메인에서 HTTP 매니페스트·다운로드 URL을 거부하고 HTTPS만 허용하도록 보강했다. 개발용 localhost는 예외로 유지하고 SHA-256 값이 제공되면 64자리 16진수 형식을 검사한다.
@@ -559,8 +559,8 @@
 
 ## 2026-08-09 — 업로드 없는 LAN 검토 링크
 
-- 기존 CSV와 `.cutline-review.json` 교환에 더해, 데스크톱 앱 안에서 임의 포트로 실행되는 검토 HTTP 서버와 128-bit 세션 토큰을 추가했다. 사용자가 선택한 완성 MP4만 동일 네트워크에 제공하며 원격 서버나 ComfyUI로 영상을 전송하지 않는다.
-- 검토 브라우저는 MP4 byte range를 지원해 탐색 가능한 영상을 재생하고, 현재 재생 시점에 작성자·코멘트를 추가하며 텍스트 수정과 열림/해결 상태를 저장한다. 별도 Cutline 설치나 계정은 필요하지 않다.
+- 기존 CSV와 `.editweave-review.json` 교환에 더해, 데스크톱 앱 안에서 임의 포트로 실행되는 검토 HTTP 서버와 128-bit 세션 토큰을 추가했다. 사용자가 선택한 완성 MP4만 동일 네트워크에 제공하며 원격 서버나 ComfyUI로 영상을 전송하지 않는다.
+- 검토 브라우저는 MP4 byte range를 지원해 탐색 가능한 영상을 재생하고, 현재 재생 시점에 작성자·코멘트를 추가하며 텍스트 수정과 열림/해결 상태를 저장한다. 별도 EditWeave 설치나 계정은 필요하지 않다.
 - 편집 앱은 3초마다 현재 시퀀스 코멘트와 세션을 양방향 병합한다. 코멘트 ID와 `updatedAt` ISO 시각으로 최신 변경을 선택하고, 편집자 삭제 ID는 서버 확인 전까지 tombstone으로 재전송해 진행 중 동기화와 겹쳐도 삭제 항목이 부활하지 않도록 했다.
 - 서버 입력은 토큰 형식, MP4 존재·최소 크기, 요청 본문 4.2MB, 세션 16개, 코멘트 10,000개와 필드 길이를 제한한다. 검토 페이지는 코멘트를 DOM 텍스트와 input value로만 표시하고 영상 외 로컬 경로는 제공하지 않는다.
 - 현재 링크는 편집 앱이 실행 중인 동일 LAN 전용이다. TLS·공용 인터넷 릴레이·영구 검토 이력과 팀 미디어 잠금은 운영 인프라가 필요한 다음 단계로 명시했다.
@@ -584,7 +584,7 @@
 
 ## 2026-08-09 — 권한 없는 선언형 Creator Pack
 
-- 사용자 모션 템플릿, cubic Bézier 속도 템플릿, 역할 버스·삽입 체인·ADR 기본값이 포함된 팀 오디오 템플릿, 사용자 출력 프리셋을 하나의 `cutline-creator-pack-v1` JSON으로 내보내고 설치하는 확장 계층과 전용 UI를 추가했다.
+- 사용자 모션 템플릿, cubic Bézier 속도 템플릿, 역할 버스·삽입 체인·ADR 기본값이 포함된 팀 오디오 템플릿, 사용자 출력 프리셋을 하나의 `editweave-creator-pack-v1` JSON으로 내보내고 설치하는 확장 계층과 전용 UI를 추가했다.
 - Pack manifest는 실행 코드, 네트워크 접근, 파일시스템 접근을 모두 명시적 `false`로 요구한다. 형식이 다르거나 권한을 요구하면 설치하지 않으며 파일 크기 2MB, 모션/속도/출력 각 100개, 오디오 50개와 각 기존 템플릿 스키마의 필드·범위를 다시 검증한다.
 - 가져온 모션·속도·오디오·출력 항목은 새 ID로 인스턴스화한다. 이름과 ID/생성시각을 제외한 설정 지문이 동일하면 중복 추가하지 않으며, 설치 이벤트로 현재 열린 인스펙터·오디오 믹서·내보내기의 목록을 즉시 다시 읽는다.
 - 사용자 출력 프리셋 자체의 로컬 저장/읽기에도 해상도·코덱·HDR 모드·fps·비트레이트·하드웨어 선호 검증과 HDR→HEVC 강제를 적용해 Pack 이외의 손상된 저장 데이터도 걸러낸다.
@@ -601,7 +601,7 @@
 
 ## 2026-08-09 — 공유 프로젝트 파일 lock과 heartbeat
 
-- 데스크톱 프로젝트 경로 옆에 `.<파일명>.cutline-lock`을 두는 네이티브 잠금 계층을 추가했다. 새 잠금은 `create_new`로 원자 생성하고 instance UUID, OS 사용자·장비 이름, process ID, 획득 시각과 heartbeat 시각을 JSON으로 기록한다.
+- 데스크톱 프로젝트 경로 옆에 `.<파일명>.editweave-lock`을 두는 네이티브 잠금 계층을 추가했다. 새 잠금은 `create_new`로 원자 생성하고 instance UUID, OS 사용자·장비 이름, process ID, 획득 시각과 heartbeat 시각을 JSON으로 기록한다.
 - 앱은 잠긴 프로젝트를 열거나 첫 저장 경로로 사용할 때 소유자와 활성/만료 상태를 표시한다. 사용자 확인 없이는 인수하지 않으며, 확인한 경우에만 기존 잠금을 교체한다. 잠금 파일이 손상됐어도 자동 삭제하지 않고 명시적 인수를 요구한다.
 - 소유 앱은 15초마다 heartbeat를 갱신하고 45초가 지난 잠금을 만료로 판정한다. 다른 장비가 강제 인수하면 이전 앱의 다음 heartbeat가 instance ID 불일치를 감지해 현재 프로젝트 경로와 잠금 상태를 해제하고 다른 파일 저장을 안내한다.
 - 프로젝트를 바꾸거나 새 프로젝트를 만들거나 앱을 닫을 때 자신이 소유한 잠금만 삭제한다. 동일 경로의 일반 저장은 파일 선택창을 다시 열지 않고 잠금을 갱신한 뒤 기록하며, 브라우저 파일 열기는 기존 데스크톱 잠금을 먼저 해제한다.
@@ -635,25 +635,25 @@
 
 ## 2026-08-09 — Ed25519 서명 업데이트 매니페스트
 
-- 운영 업데이트 확인은 `cutline-update-v1` schema와 고정 순서 canonical payload를 사용하고, 앱 빌드에 포함된 32-byte Ed25519 공개 키로 Base64 서명을 검증한 뒤에만 새 버전과 다운로드 URL을 표시하도록 변경했다. localhost 개발만 공개 키·서명 없는 매니페스트를 허용한다.
+- 운영 업데이트 확인은 `editweave-update-v1` schema와 고정 순서 canonical payload를 사용하고, 앱 빌드에 포함된 32-byte Ed25519 공개 키로 Base64 서명을 검증한 뒤에만 새 버전과 다운로드 URL을 표시하도록 변경했다. localhost 개발만 공개 키·서명 없는 매니페스트를 허용한다.
 - Windows/macOS 데스크톱은 `ed25519-dalek` 기반 Tauri 명령으로 서명을 우선 확인해 WebView의 Ed25519 지원 여부에 의존하지 않는다. 일반 브라우저 개발 화면은 같은 payload의 WebCrypto 검증을 사용한다.
 - 매니페스트 schema·SemVer·channel·날짜·최소 지원 버전·안내 길이·SHA-256·keyId를 검증하고, 64KB 초과 응답·HTTP 운영 URL·리다이렉트·URL 자격 증명·운영 매니페스트의 localhost 다운로드를 거부한다. fetch에는 자격 증명과 referrer를 보내지 않는다.
 - Node 내장 crypto만 사용하는 `release/sign-update-manifest.mjs`를 추가했다. 저장소 밖의 Ed25519 PEM 개인 키로 canonical payload를 서명하고, 공개 키 지문의 keyId와 앱 빌드용 Base64 raw 공개 키를 출력한다. 개인 키는 앱·매니페스트·소스에 기록하지 않는다.
 - `.env.example`, 매니페스트 예시와 릴리스 절차에 공개 키·keyId, 키 생성·서명·교체 순서를 반영했다. 설치 파일 자동 교체는 별도 Tauri updater `.sig`, Windows/macOS 코드 서명·공증과 운영 서버가 준비되기 전까지 활성화하지 않는다.
-- 릴리스 빌드는 Cargo 환경의 `CUTLINE_UPDATE_PUBLIC_KEY`를 Rust 바이너리에 고정한다. 네이티브 검증·다운로드 명령은 렌더러가 보낸 공개 키가 고정 키와 다르면 거부하고, release 바이너리에 키가 없으면 실패 폐쇄한다. debug 빌드만 전달 키를 허용한다.
+- 릴리스 빌드는 Cargo 환경의 `EDITWEAVE_UPDATE_PUBLIC_KEY`를 Rust 바이너리에 고정한다. 네이티브 검증·다운로드 명령은 렌더러가 보낸 공개 키가 고정 키와 다르면 거부하고, release 바이너리에 키가 없으면 실패 폐쇄한다. debug 빌드만 전달 키를 허용한다.
 - 사용자가 저장 경로를 고르면 Rust가 서명 payload를 다시 검증하고 그 안의 URL·SHA-256만 사용해 설치 파일을 PID별 `.part`로 스트리밍한다. 최대 2GB, 연결 20초·전체 30분, 5회 안전 리다이렉트, 빈 파일과 쓰기 실패를 제한하며 해시 불일치 시 임시 파일을 제거한다.
 - 검증 성공 파일은 최종 경로로 옮긴 뒤 프로세스 내부에 30분·1회용 실행 토큰으로 등록한다. 사용자가 다시 실행을 승인하면 토큰을 소비하고 같은 파일의 SHA-256을 재계산한 뒤 Windows EXE/MSI 또는 macOS DMG/PKG만 연다. 네이티브 실행 명령은 임의 경로·해시를 받지 않는다.
 - 서명 payload에 `windows-x86_64`·`windows-aarch64`·`macos-x86_64`·`macos-aarch64`·`macos-universal` platform을 포함하고 프런트와 Rust 양쪽에서 현재 OS·CPU와 일치하는지 검사한다. 플랫폼도 Ed25519 canonical payload에 포함되어 다른 대상 설치 파일로 바꿀 수 없다.
-- Windows 다운로드는 숨김 PowerShell의 `Get-AuthenticodeSignature` 상태가 `Valid`이고 인증서 Subject가 빌드 시 `CUTLINE_UPDATE_SIGNER_SUBJECT`와 일치해야 등록한다. macOS DMG는 `codesign --verify --deep --strict`와 Gatekeeper open assessment, PKG는 `pkgutil --check-signature`와 Gatekeeper install assessment를 통과하고 `CUTLINE_UPDATE_APPLE_TEAM_ID`가 서명 정보에 있어야 한다.
+- Windows 다운로드는 숨김 PowerShell의 `Get-AuthenticodeSignature` 상태가 `Valid`이고 인증서 Subject가 빌드 시 `EDITWEAVE_UPDATE_SIGNER_SUBJECT`와 일치해야 등록한다. macOS DMG는 `codesign --verify --deep --strict`와 Gatekeeper open assessment, PKG는 `pkgutil --check-signature`와 Gatekeeper install assessment를 통과하고 `EDITWEAVE_UPDATE_APPLE_TEAM_ID`가 서명 정보에 있어야 한다.
 - OS 서명·게시자 판정은 다운로드 직후와 실행 직전 두 번 수행한다. 첫 판정에 실패하면 최종 다운로드 파일을 제거하고 토큰을 발급하지 않으며, release 빌드에 예상 Subject 또는 Team ID가 없으면 실패 폐쇄한다.
-- 검증 완료 설치 파일의 canonical payload·서명·경로·이전/목표 버전과 실행 세션을 `cutline-update-attempt-v1`으로 최대 7일 보존한다. 실행을 승인하기 전에 상태를 기록하고 명령 실패 시 ready 상태로 되돌리므로 설치 프로그램이 현재 앱을 빠르게 종료해도 시도 기록이 남는다.
+- 검증 완료 설치 파일의 canonical payload·서명·경로·이전/목표 버전과 실행 세션을 `editweave-update-attempt-v1`으로 최대 7일 보존한다. 실행을 승인하기 전에 상태를 기록하고 명령 실패 시 ready 상태로 되돌리므로 설치 프로그램이 현재 앱을 빠르게 종료해도 시도 기록이 남는다.
 - 새 앱 프로세스는 실제 번들 버전을 읽어 목표 버전 이상이면 적용 성공으로 기록을 제거한다. 다른 세션에서 10분 유예 뒤에도 이전 버전이면 적용되지 않은 것으로 알리고 ready 상태로 되돌려 같은 경고를 매 시작마다 반복하지 않는다.
 - 다음 업데이트 확인에서 서버의 현재 서명 payload와 저장 기록이 정확히 일치하면 기존 파일 재사용을 제안한다. Rust `prepare_existing_update_installer`가 빌드 고정 공개 키의 Ed25519 서명, OS/CPU, 파일 SHA-256과 Authenticode/Developer ID를 다시 확인한 뒤에만 새 1회 실행 토큰을 반환한다. 로컬 저장소의 경로·상태는 신뢰 경계로 사용하지 않는다.
 - 사용자 요청에 따라 서명 도구 실행, 네트워크 확인, 자동 테스트, 타입 검사와 패키징은 수행하지 않고 정적 소스 연결과 문서만 갱신했다.
 
 ## 2026-08-09 — 운영형 충돌 수집 서버
 
-- `services/crash-collector/server.mjs`에 외부 런타임 의존성이 없는 Node 수집 서비스를 추가했다. `POST /api/cutline/crashes`는 `cutline-crash-v1`의 허용 필드, UUID, 발생 시각, 오류 종류와 문자열 상한을 엄격히 검사하고 `/healthz`를 제공한다.
+- `services/crash-collector/server.mjs`에 외부 런타임 의존성이 없는 Node 수집 서비스를 추가했다. `POST /api/editweave/crashes`는 `editweave-crash-v1`의 허용 필드, UUID, 발생 시각, 오류 종류와 문자열 상한을 엄격히 검사하고 `/healthz`를 제공한다.
 - 기본 Tauri origin 허용 목록, 선택형 신뢰 프록시, IP별 분당 속도 제한과 32KB 요청 상한을 적용했다. IP는 속도 제한용 메모리에만 두고 JSONL·서버 로그에는 저장하지 않으며 쿠키와 요청 헤더도 영속화하지 않는다.
 - 리포트를 날짜별 JSONL에 단일 쓰기 큐로 직렬 append하고, 프로세스 재시작 시 보존 파일의 최근 ID를 복원해 같은 ID를 중복 저장하지 않는다. 기본 30일·512MB 한도를 초과하면 가장 오래된 날짜 파일을 정리하고 현재 파일만으로 상한을 넘으면 507로 실패 폐쇄한다.
 - 클라이언트는 설치된 Tauri 앱 버전을 읽고 `schema`, runtime, 오류 이름을 전송한다. 자격 증명·referrer·redirect를 제외한 12초 제한 요청만 사용하며 서버 성공 응답 뒤에만 로컬 큐에서 제거한다.
@@ -664,7 +664,7 @@
 ## 2026-08-09 — 공개 키 검증형 업데이트 배포 서버
 
 - `services/update-server/server.mjs`에 stable/beta와 Windows x64/ARM64, macOS x64/ARM64/universal 플랫폼별 서명 매니페스트를 제공하는 무의존성 Node 서비스를 추가했다.
-- 서버 시작과 SIGHUP reload는 빌드에 설정된 32-byte Ed25519 공개 키와 key ID로 앱과 같은 고정 순서 canonical payload를 검증한다. 매니페스트 디렉터리의 channel/platform 이름, 64KB 상한, HTTPS public origin, `/cutline/artifacts` 경로와 OS별 설치 확장자도 함께 검사한다.
+- 서버 시작과 SIGHUP reload는 빌드에 설정된 32-byte Ed25519 공개 키와 key ID로 앱과 같은 고정 순서 canonical payload를 검증한다. 매니페스트 디렉터리의 channel/platform 이름, 64KB 상한, HTTPS public origin, `/editweave/artifacts` 경로와 OS별 설치 확장자도 함께 검사한다.
 - 실제 EXE/MSI/DMG/PKG를 스트리밍 SHA-256으로 읽어 매니페스트와 일치하고 2GB 이하인 catalog만 활성화한다. 개인 키·코드 서명 인증서는 서버에 두지 않으며 검증 실패 reload는 제공 중인 이전 catalog를 유지한다.
 - 매니페스트는 no-store, 설치 파일은 압축 없는 immutable 응답으로 제공하고 GET·HEAD·단일 byte range, SHA-256 ETag/header, 전체/클라이언트별 동시 다운로드 상한을 지원한다. 시작 시 확인한 파일 크기·수정 시각이 요청 시 달라지면 503으로 실패 폐쇄한다.
 - `release/create-update-manifest.mjs`를 추가해 설치 파일·버전·platform·channel·운영 origin에서 SHA-256과 플랫폼별 무서명 JSON을 만들고 기존 파일은 덮어쓰지 않도록 했다. 기존 `sign-update-manifest.mjs`로 저장소 밖 개인 키 서명을 이어간다.
@@ -748,7 +748,7 @@
 
 ## 2026-08-09 — 정·역방향 공통 pitch-preserving time stretch
 
-- `AudioAdjustment.preservePitch`와 인스펙터의 `속도 변경 시 음정 유지`를 추가하고 기본값을 켰다. 이전 `.cutline.json`의 audio adjustment에 필드가 없으면 열 때 `true`로 정규화하고, 사용자가 끄면 기존 source-time 선형 재표본화를 유지한다.
+- `AudioAdjustment.preservePitch`와 인스펙터의 `속도 변경 시 음정 유지`를 추가하고 기본값을 켰다. 이전 `.editweave.json`의 audio adjustment에 필드가 없으면 열 때 `true`로 정규화하고, 사용자가 끄면 기존 source-time 선형 재표본화를 유지한다.
 - `src/media/audioPcm.ts`에 40ms Hann grain, 10ms hop의 granular overlap-add 처리기를 구현했다. 각 grain은 공통 `clipSourceTime`의 기대 중심에서 ±6ms 후보를 1ms 간격으로 비교하고, 이미 합성된 겹침 파형과 normalized cross-correlation이 가장 높은 위치를 선택해 대사·음악의 위상 겹침을 줄인다.
 - grain 중심은 clip start 기준 전역 hop 격자에 고정된다. 각 요청은 앞 50ms 합성을 다시 수행해 correlation state를 안정화한 뒤 해당 history를 버리므로 프로그램의 250ms rolling buffer와 최종 출력의 2/10초 chunk가 같은 위치에서 독립 렌더되어도 경계 선택이 재현된다. 최대 속도에 비례한 source padding을 추가해 16배속 grain history도 범위 디코딩 안에 포함한다.
 - 정방향 speed ramp도 pitch 유지가 켜져 있으면 HTMLMediaElement가 아니라 역재생과 같은 Mediabunny 부분 PCM scheduler를 사용한다. 미리보기와 출력은 같은 time-stretch 배열을 gate·RBJ EQ·Dynamics·normalization·fade·pan·Aux·역할 버스 전에 전달한다. 정상 1배속은 원본 HTML media/direct PCM 경로를 유지한다.
@@ -756,9 +756,9 @@
 
 ## 2026-08-09 — 동일 프로젝트 클립 단위 3-way 공동 작업 병합
 
-- 프로젝트 버전 기록에서 공통 자동 저장 체크포인트를 선택하고 다른 편집자의 `.cutline.json`을 가져오는 공동 작업 병합 경로를 추가했다. 공통 기준·현재·상대 프로젝트 ID가 다르면 적용 전에 거부한다.
+- 프로젝트 버전 기록에서 공통 자동 저장 체크포인트를 선택하고 다른 편집자의 `.editweave.json`을 가져오는 공동 작업 병합 경로를 추가했다. 공통 기준·현재·상대 프로젝트 ID가 다르면 적용 전에 거부한다.
 - 시퀀스·트랙·클립과 대본·제안·마커·오디오 버스, 미디어·ADR 큐·사용자 교정 사전을 stable ID 기준으로 3-way 비교한다. 한쪽만 바꾼 값, 서로 다른 ID의 추가/삭제, 서로 다른 클립 수정은 자동 반영하고 같은 ID를 양쪽에서 다르게 바꾼 경우 현재 편집본을 유지한다.
-- 같은 클립·트랙·시퀀스 충돌이 있으면 상대 시퀀스와 source/nested 시퀀스, ADR 큐/테이크/컴프 및 clip group/link group 참조를 새 ID로 복제해 `병합 충돌 (상대)` 분기에 보존한다. 같은 클립 충돌 위치에는 열림 상태의 `Cutline 병합` 검토 마커를 추가해 수동 비교 지점을 남기고 Delivery Guard가 미해결 개수를 납품 경고로 표시한다.
+- 같은 클립·트랙·시퀀스 충돌이 있으면 상대 시퀀스와 source/nested 시퀀스, ADR 큐/테이크/컴프 및 clip group/link group 참조를 새 ID로 복제해 `병합 충돌 (상대)` 분기에 보존한다. 같은 클립 충돌 위치에는 열림 상태의 `EditWeave 병합` 검토 마커를 추가해 수동 비교 지점을 남기고 Delivery Guard가 미해결 개수를 납품 경고로 표시한다.
 - 적용 전 자동 반영 클립 수·충돌 수·생성 분기 수와 “선택한 체크포인트가 실제 공통 기준인지”를 확인한다. 취소하면 현재 프로젝트를 변경하지 않는다. 세 문서의 시퀀스/트랙/클립/대본/제안/마커/미디어/ADR ID 중복과 고아 track 참조를 먼저 검사하고 이상하면 적용 전 거부한다. 활성 시퀀스의 legacy `sequence` 필드가 `sequence-main`/30fps로 고정되던 저장 불일치도 실제 활성 ID·규격으로 수정했다.
 - `ProjectMergeSession`과 충돌 결정 레코드를 프로젝트·자동 저장에 최대 20건 보존한다. 기준/상대 시각, 상대 프로젝트, 원본/분기 entity ID, 마커, 현재 클립·트랙 보존 사본, 상태, 현재/상대 결정과 해결 시각을 저장하며 이전 프로젝트는 빈 목록으로 호환한다.
 - 버전 기록에 미해결 충돌 목록과 현재 위치·상대 분기 바로가기, `현재 유지`, `상대 클립 적용`, `상대 삭제 적용`을 추가했다. 상대 클립은 충돌 분기의 nested/ADR/group/link 참조를 보존하고 원본 clip ID로 현재 시퀀스에 복귀하며, 같은 ID 트랙의 종류가 다르면 별도 병합 트랙을 만든다. 모든 결정을 마친 상대 분기는 `병합 기록 (해결됨)`으로 남기고 해결된 세션의 결정 통계를 다시 볼 수 있으며, 저장된 현재 클립 사본과 상대 분기를 사용해 결정을 다시 전환할 수 있다.
@@ -820,7 +820,7 @@
 - 기존 미디어 추가는 선택된 트랙의 종류가 맞으면 그곳, 아니면 첫 트랙을 암묵적으로 사용해 인스펙터 선택과 소스 목적지가 섞였다. `TimelineTrack.sourceTarget`과 전용 `trackTargeting.ts`를 추가해 비디오·오디오·자막마다 최대 한 개의 명시적 소스 목적지를 시퀀스에 저장한다.
 - 트랙 머리글에 순서 기반 `V1/A1/T1` 대상 버튼을 추가했다. 켜면 같은 종류의 이전 대상이 꺼지고, 다시 누르면 해당 종류를 전부 해제한다. 미디어 추가, 조정 레이어, 모션 텍스트, 중첩 결과는 선택 트랙이 아니라 이 대상으로만 이동하며 대상이 없거나 잠겨 있으면 잘못된 fallback 대신 구체적인 안내를 표시한다.
 - 새 트랙을 만들면 그 종류의 새 대상이 되고, 활성 대상 트랙을 삭제하면 같은 종류의 잠금 해제 트랙, 없으면 남은 첫 트랙으로 대상을 이전한다. 단순 트랙 선택과 클립 선택은 목적지를 바꾸지 않는다.
-- 이전 `.cutline.json`처럼 `sourceTarget`이 전혀 없는 종류는 첫 잠금 해제 트랙을 기본 대상으로 한 번 정규화한다. 하나라도 명시적 boolean이 있는 종류는 사용자의 전체 해제 상태를 보존하고, 여러 `true`가 들어온 손상/구형 데이터는 첫 대상만 유지한다. 프로젝트 루트와 모든 시퀀스, 자동 저장·복원·복제에서 같은 정규화를 사용한다.
+- 이전 `.editweave.json`처럼 `sourceTarget`이 전혀 없는 종류는 첫 잠금 해제 트랙을 기본 대상으로 한 번 정규화한다. 하나라도 명시적 boolean이 있는 종류는 사용자의 전체 해제 상태를 보존하고, 여러 `true`가 들어온 손상/구형 데이터는 첫 대상만 유지한다. 프로젝트 루트와 모든 시퀀스, 자동 저장·복원·복제에서 같은 정규화를 사용한다.
 - 대상 버튼과 기존 자동화·가시성·음소거·솔로·잠금·삭제 버튼이 함께 표시되도록 트랙 머리글 폭과 최대 제어 열을 조정했다.
 - 사용자 요청에 따라 앱 실행·자동 테스트·타입 검사·빌드는 수행하지 않았다. 종류별 라우팅, 전체 해제, 잠금, 새 트랙/삭제 복구, 시퀀스 저장·전환·재열기는 사용자 검증 전이다.
 
@@ -874,7 +874,7 @@
 - TypeScript 7과 React 19 타입 정의에서 드러난 76개 오류를 수정했다. 오디오 조정 분할 시 필수 기본값 보존, `captureActiveSequence` hook 선언 순서, Hugging Face 진행 이벤트 union narrowing, React ref 초기값, 속도·쇼츠 keyframe literal, 색상 노드 tone-map 속성, CSS blend mode, ArrayBuffer 소유권, Map iterator 호환성, WebCodecs HDR 색공간·visible rectangle 변환을 정리했다.
 - Rust의 HDR MP4 metadata 복사 `Read::by_ref` 모호성과 LAN 검토 HTTP request header의 immutable/mutable borrow 충돌을 수정했다.
 - `pnpm check`가 TypeScript 검사, Vitest 9개 파일·22개 테스트, Vite production build와 Rust `cargo check`를 모두 통과했다. 실제 `flower.mp4` H.264/AAC와 `t-rex-roar.mp3` 스트림 metadata를 Mediabunny로 읽는 픽스처 테스트가 포함된다.
-- `pnpm desktop:build`로 최신 Windows x64 `cutline.exe`, MSI와 NSIS를 재생성했다. 새 EXE를 8초간 기동해 즉시 종료나 crash가 없음을 확인한 뒤 테스트 프로세스만 종료했다.
+- `pnpm desktop:build`로 최신 Windows x64 `editweave.exe`, MSI와 NSIS를 재생성했다. 새 EXE를 8초간 기동해 즉시 종료나 crash가 없음을 확인한 뒤 테스트 프로세스만 종료했다.
 - 이 검증은 자동 컴파일·단위 테스트·기본 기동 범위다. 실제 GUI 가져오기/편집/출력, 장시간 VFR/HDR·HEVC Main10, 설치·제거·업데이트, 코드 서명, macOS와 운영 서버는 계속 출시 게이트로 남는다.
 
 ## 2026-08-09 — 전체 출시 기준 런타임·회귀·설치 검증 확대
@@ -883,6 +883,6 @@
 - 빈 시퀀스를 생성해 5.06초 H.264/AAC MP4를 타임라인에 배치하고 720×1280 H.264 SDR 30fps로 실제 합성·인코딩했다. 약 21초 뒤 영속 렌더 큐에서 시퀀스 3 작업의 100% 완료를 확인했다.
 - 소스 트랙 대상, 리플 삽입·삭제의 마커/대본 단어/제안 동기화, 소스 길이·역재생 기반 트림/슬립, 오디오 DSP·역할 버스·Aux, Delivery Guard, 프로젝트 JSON 왕복·원본 재연결, 시퀀스 ID 안전 복제·삭제 보호 회귀를 추가했다. `pnpm check`가 Vitest 12개 파일·41개 테스트, TypeScript, production build와 Rust `cargo check`를 모두 통과했다.
 - 별도 장시간 데이터 성능 측정에서 10분/1,200클립 2.14ms, 30분/3,600클립 3.05ms, 60분/7,200클립 4.46ms에 1.25초 리플 삭제와 JSON 직렬화를 완료했다. 이 수치는 편집 데이터 연산 기준이며 실제 장시간 미디어 디코딩·재생의 A/V sync와 GPU·메모리 검증은 남아 있다.
-- 최신 Windows x64 EXE/MSI/NSIS를 다시 빌드했다. release EXE와 NSIS 설치본 EXE가 각각 8초 기동을 통과했고, NSIS를 작업 폴더 아래 격리 경로에 무인 설치·제거해 양쪽 종료 코드 0, 설치 파일과 HKCU 제거 항목 정리를 확인했다. MSI 데이터베이스는 Cutline 0.1.0, Cutline Studio, ProductCode와 UpgradeCode, ALLUSERS=1을 확인했다.
+- 최신 Windows x64 EXE/MSI/NSIS를 다시 빌드했다. release EXE와 NSIS 설치본 EXE가 각각 8초 기동을 통과했고, NSIS를 작업 폴더 아래 격리 경로에 무인 설치·제거해 양쪽 종료 코드 0, 설치 파일과 HKCU 제거 항목 정리를 확인했다. MSI 데이터베이스는 EditWeave 0.1.0, EditWeave Studio, ProductCode와 UpgradeCode, ALLUSERS=1을 확인했다.
 - 최종 SHA-256은 EXE `04BB214FB7FB137350A23022583A19ACCA33E8485B86CBF6531EB7C7A8B71E03`, MSI `ADB99C6DAA7F974F0F9776834BBCBADDEA24A1F635EF7A4D83477C310E92F39A`, NSIS `214FD64BEEDE0377C6F482CDBBAF0839AAE0F389E10B55915C41FD35C0DE82A7`이다. 세 산출물 모두 Authenticode `NotSigned`이므로 코드 서명 전에는 상용 출시 완료로 판정하지 않는다.
 - GitHub Desktop build workflow를 상용 게이트로 강화했다. Windows는 Base64 PFX를 임시 사용자 인증서 저장소에 가져와 허용 Subject를 확인하고 Tauri 임시 config로 SHA-256 Authenticode/timestamp 서명한 뒤 EXE·MSI·NSIS 세 파일의 `Valid`와 Signer Subject를 재검사한다. macOS는 Developer ID 인증서·공증 자격 증명을 필수화하고 `codesign --strict`, Gatekeeper `spctl`, stapled ticket을 검증한다. 양쪽 모두 `pnpm check`가 먼저 통과해야 하며 인증서가 없으면 무서명 artifact를 성공으로 업로드하지 않는다.

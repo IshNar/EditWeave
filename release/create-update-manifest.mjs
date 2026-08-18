@@ -31,14 +31,14 @@ if (!installerArgument || !version || !platform || !channel || !originArgument) 
   const output = resolve(outputDirectory, `${platform}.json`)
   await mkdir(outputDirectory, { recursive: true })
   const manifest = {
-    schema: 'cutline-update-v1',
+    schema: 'editweave-update-v1',
     version,
     platform,
     channel,
     publishedAt: new Date().toISOString(),
     ...(minimumSupportedVersion ? { minimumSupportedVersion } : {}),
     ...(notesArgument ? { notes: notesArgument } : {}),
-    downloadUrl: `${origin.origin}/cutline/artifacts/${encodeURIComponent(fileName)}`,
+    downloadUrl: `${origin.origin}/editweave/artifacts/${encodeURIComponent(fileName)}`,
     sha256: hash.digest('hex'),
   }
   await writeFile(output, `${JSON.stringify(manifest, null, 2)}\n`, { encoding: 'utf8', flag: 'wx' })

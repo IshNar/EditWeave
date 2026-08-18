@@ -1,21 +1,21 @@
 # Creator Pack Server
 
-서명된 `cutline-creator-catalog-v1`과 카탈로그에 고정된 Creator Pack artifact만 제공하는 정적 배포 서버다. 개인 키는 서버에 두지 않는다.
+서명된 `editweave-creator-catalog-v1`과 카탈로그에 고정된 Creator Pack artifact만 제공하는 정적 배포 서버다. 개인 키는 서버에 두지 않는다.
 
 ## 배포 준비
 
 1. 앱에서 내보낸 Pack을 제작자의 오프라인 Ed25519 키로 서명한다. 개인 키는 서버나 저장소에 복사하지 않는다.
 
 ```powershell
-node release/sign-creator-pack.mjs .\My-Pack.cutline-pack.json X:\secure\publisher-private.pem studio-main .\my-pack-1.0.0.cutline-pack.json
+node release/sign-creator-pack.mjs .\My-Pack.editweave-pack.json X:\secure\publisher-private.pem studio-main .\my-pack-1.0.0.editweave-pack.json
 ```
 
-2. 서명된 `.cutline-pack.json` 파일을 `release/creator-pack-channel/packs/`에 복사한다. 파일명에는 Pack 버전을 포함한다.
+2. 서명된 `.editweave-pack.json` 파일을 `release/creator-pack-channel/packs/`에 복사한다. 파일명에는 Pack 버전을 포함한다.
 3. 회수할 Pack이 있다면 JSON 배열 형식의 revocations 파일을 준비한다.
 4. 카탈로그를 생성한다.
 
 ```powershell
-node release/create-creator-pack-catalog.mjs release/creator-pack-channel/packs https://packs.example.com "Cutline Creator Catalog" release/creator-pack-channel/revocations.json release/creator-pack-channel/catalog.unsigned.json
+node release/create-creator-pack-catalog.mjs release/creator-pack-channel/packs https://packs.example.com "EditWeave Creator Catalog" release/creator-pack-channel/revocations.json release/creator-pack-channel/catalog.unsigned.json
 ```
 
 5. 네트워크에서 분리된 카탈로그 서명 환경에서 별도의 Ed25519 개인 키로 서명한다.
@@ -24,7 +24,7 @@ node release/create-creator-pack-catalog.mjs release/creator-pack-channel/packs 
 node release/sign-creator-pack-catalog.mjs release/creator-pack-channel/catalog.unsigned.json X:\secure\creator-catalog-private.pem release/creator-pack-channel/catalog.json
 ```
 
-출력된 공개키와 keyId를 앱 빌드의 `VITE_CUTLINE_CREATOR_CATALOG_PUBLIC_KEY`, `VITE_CUTLINE_CREATOR_CATALOG_KEY_ID`와 서버 환경 변수에 동일하게 설정한다. 앱 URL은 `VITE_CUTLINE_CREATOR_CATALOG_URL=https://packs.example.com/cutline/catalog.json`이다.
+출력된 공개키와 keyId를 앱 빌드의 `VITE_EDITWEAVE_CREATOR_CATALOG_PUBLIC_KEY`, `VITE_EDITWEAVE_CREATOR_CATALOG_KEY_ID`와 서버 환경 변수에 동일하게 설정한다. 앱 URL은 `VITE_EDITWEAVE_CREATOR_CATALOG_URL=https://packs.example.com/editweave/catalog.json`이다.
 
 ## 서버 검증
 
@@ -37,7 +37,7 @@ node release/sign-creator-pack-catalog.mjs release/creator-pack-channel/catalog.
 - Pack 내부 SHA-256과 제작자 Ed25519 서명
 - Pack ID·이름·버전·제작자·API 범위·카테고리·제작자 키 지문 일치
 
-제공 경로는 `GET /healthz`, `GET|HEAD /cutline/catalog.json`, `GET|HEAD /cutline/packs/<file>`이다. Pack은 immutable cache와 단일 byte range를 지원한다. 실행 중 파일 크기나 수정 시각이 바뀌면 503을 반환하고 reload를 요구한다.
+제공 경로는 `GET /healthz`, `GET|HEAD /editweave/catalog.json`, `GET|HEAD /editweave/packs/<file>`이다. Pack은 immutable cache와 단일 byte range를 지원한다. 실행 중 파일 크기나 수정 시각이 바뀌면 503을 반환하고 reload를 요구한다.
 
 ## 실행
 

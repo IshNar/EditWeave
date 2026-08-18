@@ -29,14 +29,14 @@ await Promise.all([
 if (process.platform !== 'win32') await Promise.all([chmod(ffmpegTarget, 0o755), chmod(ffprobeTarget, 0o755)])
 
 const manifest = {
-  schema: 'cutline-codec-toolchain-v1',
+  schema: 'editweave-codec-toolchain-v1',
   platform: process.platform,
   arch: process.arch,
   ffmpeg: basename(ffmpegTarget),
   ffprobe: basename(ffprobeTarget),
 }
 await writeFile(resolve(binaryDirectory, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`, 'utf8')
-console.log(`Cutline codec toolchain prepared: ${ffmpegTarget}, ${ffprobeTarget}`)
+console.log(`EditWeave codec toolchain prepared: ${ffmpegTarget}, ${ffprobeTarget}`)
 
 async function copyLicense(packageName, targetName) {
   const packageJsonPath = fileURLToPath(import.meta.resolve(`${packageName}/package.json`))

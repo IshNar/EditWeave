@@ -1,3 +1,3 @@
 fn main() {
-    cutline_lib::run();
+    editweave_lib::run();
 }

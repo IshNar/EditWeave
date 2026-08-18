@@ -25,7 +25,7 @@ import {
 
 export function CreatorPackDialog({ open, onClose, onNotice }: { open: boolean; onClose: () => void; onNotice: (message: string) => void }) {
   const [name, setName] = useState('내 채널 Creator Pack')
-  const [publisher, setPublisher] = useState('Cutline 사용자')
+  const [publisher, setPublisher] = useState('EditWeave 사용자')
   const [pending, setPending] = useState<CreatorPack | undefined>()
   const [installed, setInstalled] = useState(() => readInstalledCreatorPacks())
   const [catalog, setCatalog] = useState<CreatorPackCatalog | undefined>()
@@ -49,7 +49,7 @@ export function CreatorPackDialog({ open, onClose, onNotice }: { open: boolean; 
       const url = URL.createObjectURL(new Blob([await serializeCreatorPack(pack)], { type: 'application/json' }))
       const anchor = document.createElement('a')
       anchor.href = url
-      anchor.download = `${pack.name.replace(/[\\/:*?"<>|]/g, '-')}.cutline-pack.json`
+      anchor.download = `${pack.name.replace(/[\\/:*?"<>|]/g, '-')}.editweave-pack.json`
       anchor.click()
       window.setTimeout(() => URL.revokeObjectURL(url), 0)
       onNotice(`Creator Pack을 내보냈습니다: 모션 ${pack.contents.motionTemplates.length} · 속도 ${pack.contents.speedTemplates.length} · 오디오 ${pack.contents.audioTemplates.length} · 타이틀 ${pack.contents.titleStyleTemplates.length} · 전환 ${pack.contents.transitionPresets.length} · 출력 ${pack.contents.exportPresets.length}`)
@@ -159,7 +159,7 @@ export function CreatorPackDialog({ open, onClose, onNotice }: { open: boolean; 
       {revokedInstalled.map(({ installed: pack, revocation }) => <article className="pack-revoked" key={`${pack.id}-${revocation.publishedAt}`}><ShieldAlert size={20} /><div><strong>{pack.name} v{pack.version} 회수 경고</strong><p>{revocation.reason}</p><span>{revocation.publishedAt}</span></div><button className="danger" onClick={() => uninstall(pack.id)}>안전 제거</button></article>)}
       {catalogResults.map(({ entry, status, installedVersion }) => <article className={status === 'revoked' ? 'pack-revoked' : undefined} key={`${entry.packId}-${entry.version}`}><PackageCheck size={20} /><div><strong>{entry.name} <small>v{entry.version}</small></strong><p>{entry.publisher} · {entry.categories.join(' · ')}</p><span>{status === 'revoked' ? '카탈로그에서 회수됨' : status === 'update' ? `v${installedVersion}에서 업데이트 가능` : status === 'installed' ? '설치됨' : status === 'older' ? `설치된 v${installedVersion}보다 낮음` : '설치 가능'} · 키 {entry.publisherKeyFingerprint.slice(0, 12)}…</span>{entry.description && <small>{entry.description}</small>}</div><button disabled={status === 'installed' || status === 'older' || status === 'revoked' || Boolean(catalogBusy)} onClick={() => void downloadCatalogPack(entry)}>{catalogBusy === `${entry.packId}@${entry.version}` ? '검증 중…' : status === 'revoked' ? '회수됨' : status === 'update' ? '업데이트 검증' : status === 'available' ? '다운로드 검증' : status === 'installed' ? '설치됨' : '낮은 버전'}</button></article>)}
     </section>
-    <section className="pack-import"><h3>Pack 설치</h3><input ref={inputRef} hidden type="file" accept=".json,.cutline-pack.json,application/json" onChange={(event) => { void read(event.target.files?.[0]); event.target.value = '' }} /><button className="pack-pick" onClick={() => inputRef.current?.click()}><Upload size={14} /> Creator Pack 선택</button>
+    <section className="pack-import"><h3>Pack 설치</h3><input ref={inputRef} hidden type="file" accept=".json,.editweave-pack.json,application/json" onChange={(event) => { void read(event.target.files?.[0]); event.target.value = '' }} /><button className="pack-pick" onClick={() => inputRef.current?.click()}><Upload size={14} /> Creator Pack 선택</button>
       {pending && <article><PackageCheck size={20} /><div><strong>{pending.name} <small>v{pending.version}</small></strong><p>{pending.publisher} · API {pending.compatibility.minimumApiVersion}+ · {trustLabel}</p><span>{decisionLabel} · 모션 {counts?.[0]} · 속도 {counts?.[1]} · 오디오 {counts?.[2]} · 타이틀 {counts?.[3]} · 전환 {counts?.[4]} · 출력 {counts?.[5]}</span>{pending.verification?.keyFingerprint && <small>키 지문 {pending.verification.keyFingerprint.slice(0, 16)}…</small>}</div>
         <div className="pack-actions">{trust?.status === 'untrusted' && <button disabled={installBlocked} onClick={() => install(true)}>{installBlocked ? '안전 정책으로 차단' : '제작자 신뢰 후 설치'}</button>}
           {trust?.status !== 'untrusted' && <button disabled={installBlocked} onClick={() => install(false)}>{installBlocked ? '안전 정책으로 차단' : decision?.status === 'upgrade' ? '안전 업데이트' : '검토한 설정 설치'}</button>}

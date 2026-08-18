@@ -177,7 +177,7 @@ async function renderAndCompare(referenceFile: File, definition: DesktopRenderCa
   const programClips = secondClip ? [firstClip, secondClip] : [firstClip]
   const audioClip: TimelineClip = { ...structuredClone(clip), id: 'e2e-audio', trackId: 'e2e-audio-track', name: 'E2E 기준 오디오', kind: 'audio', audioDisabled: false, transitionIn: undefined, keyframes: undefined, colorAdjustment: defaultColorAdjustment() }
   const overlay: TimelineClip | undefined = definition.decorated ? { ...structuredClone(clip), id: 'e2e-overlay', trackId: 'e2e-overlay-track', name: 'E2E 오버레이', audioDisabled: true, color: '#ffb866', transform: { ...defaultTransform, positionX: width * 0.22, positionY: -height * 0.18, scale: 32, opacity: 58 }, keyframes: undefined, colorAdjustment: { ...defaultColorAdjustment(), exposure: -0.08, saturation: -12 } } : undefined
-  const caption: TimelineClip | undefined = definition.decorated ? { id: 'e2e-caption', trackId: 'e2e-caption-track', name: 'CUTLINE E2E · 미리보기와 출력 일치', kind: 'caption', color: '#ffd45c', start: 0.25, duration: Math.max(0.5, duration - 0.5), sourceOffset: 0, transform: defaultTransform, captionStyle: { preset: 'default', fontSize: 34, textColor: '#ffffff', backgroundColor: 'rgba(5,5,8,.74)', position: 'bottom', highlightColor: '#ffd45c', fontFamily: 'sans', fontWeight: 800, strokeColor: '#000000', strokeWidth: 0, textAlign: 'center', positionX: 50, positionY: 82, lineHeight: 120, letterSpacing: 0, maxWidth: 84, backgroundEnabled: true, backgroundPaddingX: 18, backgroundPaddingY: 10, backgroundRadius: 10, shadowColor: 'rgba(0,0,0,.65)', shadowBlur: 3, shadowX: 0, shadowY: 1, rotation: 0, safeArea: 'title', uppercase: false, animation: 'none', animationOut: 'none', animationDuration: 0.2 } } : undefined
+  const caption: TimelineClip | undefined = definition.decorated ? { id: 'e2e-caption', trackId: 'e2e-caption-track', name: 'EDITWEAVE E2E · 미리보기와 출력 일치', kind: 'caption', color: '#ffd45c', start: 0.25, duration: Math.max(0.5, duration - 0.5), sourceOffset: 0, transform: defaultTransform, captionStyle: { preset: 'default', fontSize: 34, textColor: '#ffffff', backgroundColor: 'rgba(5,5,8,.74)', position: 'bottom', highlightColor: '#ffd45c', fontFamily: 'sans', fontWeight: 800, strokeColor: '#000000', strokeWidth: 0, textAlign: 'center', positionX: 50, positionY: 82, lineHeight: 120, letterSpacing: 0, maxWidth: 84, backgroundEnabled: true, backgroundPaddingX: 18, backgroundPaddingY: 10, backgroundRadius: 10, shadowColor: 'rgba(0,0,0,.65)', shadowBlur: 3, shadowX: 0, shadowY: 1, rotation: 0, safeArea: 'title', uppercase: false, animation: 'none', animationOut: 'none', animationDuration: 0.2 } } : undefined
   const tracks: TimelineTrack[] = [
     { id: 'e2e-video', name: 'V1 · E2E', kind: 'video', locked: false, muted: false, visible: true, volume: 100, pan: 0, clips: programClips },
     ...(overlay ? [{ id: 'e2e-overlay-track', name: 'V2 · Overlay', kind: 'video' as const, locked: false, muted: false, visible: true, volume: 100, pan: 0, compositePriority: 100, clips: [overlay] }] : []),
@@ -187,9 +187,9 @@ async function renderAndCompare(referenceFile: File, definition: DesktopRenderCa
   try {
     if (definition.scenario === 'surround-5.1-wav') {
       const referenceAudio = await decodeAudioChannels(referenceFile, duration, sampleRate)
-      const rendered = await exportAudioStem({ projectName: `Cutline Desktop Render Conformance · ${definition.id}`, stemName: 'Full Mix 5.1', roles: ['dialogue', 'music', 'effects', 'ambient'], sampleRate, channels: 6, assets: [asset], tracks, rangeStart: 0, rangeEnd: duration })
+      const rendered = await exportAudioStem({ projectName: `EditWeave Desktop Render Conformance · ${definition.id}`, stemName: 'Full Mix 5.1', roles: ['dialogue', 'music', 'effects', 'ambient'], sampleRate, channels: 6, assets: [asset], tracks, rangeStart: 0, rangeEnd: duration })
       if (!rendered.buffer) throw new Error('5.1 WAV 출력 버퍼가 생성되지 않았습니다.')
-      const candidateAudio = await decodeAudioChannels(new File([rendered.buffer], 'cutline-5.1-conformance.wav', { type: rendered.mimeType }), duration, sampleRate)
+      const candidateAudio = await decodeAudioChannels(new File([rendered.buffer], 'editweave-5.1-conformance.wav', { type: rendered.mimeType }), duration, sampleRate)
       const audioProfile = { channels: candidateAudio.length, channelRms: candidateAudio.map(rootMeanSquare) }
       const centerPcm = candidateAudio[2]
       const referencePcm = referenceAudio[0]
@@ -208,11 +208,11 @@ async function renderAndCompare(referenceFile: File, definition: DesktopRenderCa
     const ratio = width < height ? '9:16' as const : '16:9' as const
     const heapBefore = usedJsHeapSize()
     const renderStarted = performance.now()
-    const rendered = await exportSequence({ projectName: `Cutline Desktop Render Conformance · ${definition.id}`, preset: { ratio, width, height, label: `E2E ${width}×${height}` }, height: Math.min(width, height), fps, codec: definition.codec ?? 'avc', colorMode: definition.colorMode ?? 'sdr', bitrateMbps: definition.bitrateMbps ?? 4, hardwareAcceleration: 'no-preference', includeAudio: true, audioSampleRate: sampleRate, audioBitrateKbps: definition.audioBitrateKbps ?? 128, audioChannels: definition.audioChannels ?? 1, assets: [asset], tracks })
+    const rendered = await exportSequence({ projectName: `EditWeave Desktop Render Conformance · ${definition.id}`, preset: { ratio, width, height, label: `E2E ${width}×${height}` }, height: Math.min(width, height), fps, codec: definition.codec ?? 'avc', colorMode: definition.colorMode ?? 'sdr', bitrateMbps: definition.bitrateMbps ?? 4, hardwareAcceleration: 'no-preference', includeAudio: true, audioSampleRate: sampleRate, audioBitrateKbps: definition.audioBitrateKbps ?? 128, audioChannels: definition.audioChannels ?? 1, assets: [asset], tracks })
     const elapsedMilliseconds = performance.now() - renderStarted
     if (rendered.actualCodec !== (definition.codec ?? 'avc')) throw new Error(`요청 코덱 ${(definition.codec ?? 'avc').toUpperCase()} 대신 ${rendered.actualCodec.toUpperCase()}가 생성됐습니다.`)
     if (!rendered.buffer) throw new Error('E2E 출력 버퍼가 생성되지 않았습니다.')
-    const candidateFile = new File([rendered.buffer], 'cutline-render-conformance.mp4', { type: rendered.mimeType })
+    const candidateFile = new File([rendered.buffer], 'editweave-render-conformance.mp4', { type: rendered.mimeType })
     const candidate = await decodeMedia(candidateFile, duration, fps, sampleRate, width, height, undefined, undefined, definition.comparisonFrames, definition.audioEdgeSeconds)
     const heapAfter = usedJsHeapSize()
     const outputBytes = rendered.buffer.byteLength

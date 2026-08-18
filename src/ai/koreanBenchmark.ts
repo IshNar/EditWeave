@@ -15,7 +15,7 @@ export interface KoreanRoughCutBenchmarkCase {
 }
 
 export interface KoreanRoughCutBenchmark {
-  version: 'cutline-korean-rough-cut-v1'
+  version: 'editweave-korean-rough-cut-v1'
   provenance: 'synthetic' | 'licensed-real'
   cases: KoreanRoughCutBenchmarkCase[]
 }
@@ -43,7 +43,7 @@ const cleanupTypes: EditSuggestionType[] = ['filler', 'repetition', 'silence']
 export function parseKoreanRoughCutBenchmark(value: unknown): KoreanRoughCutBenchmark {
   if (!value || typeof value !== 'object') throw new Error('한국어 기준셋이 객체가 아닙니다.')
   const candidate = value as Partial<KoreanRoughCutBenchmark>
-  if (candidate.version !== 'cutline-korean-rough-cut-v1' || !['synthetic', 'licensed-real'].includes(candidate.provenance ?? '') || !Array.isArray(candidate.cases)) throw new Error('지원되는 한국어 기준셋 형식이 아닙니다.')
+  if (candidate.version !== 'editweave-korean-rough-cut-v1' || !['synthetic', 'licensed-real'].includes(candidate.provenance ?? '') || !Array.isArray(candidate.cases)) throw new Error('지원되는 한국어 기준셋 형식이 아닙니다.')
   for (const item of candidate.cases) {
     if (!item?.id || !Array.isArray(item.transcript) || !Array.isArray(item.expected)) throw new Error('한국어 기준셋 사례가 손상됐습니다.')
     if (item.transcript.some((segment) => !segment.id || !Number.isFinite(segment.start) || !Number.isFinite(segment.end) || segment.end <= segment.start || typeof segment.text !== 'string')) throw new Error(`한국어 기준셋 “${item.id}”의 대본이 손상됐습니다.`)

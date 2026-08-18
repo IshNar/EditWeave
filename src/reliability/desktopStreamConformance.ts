@@ -24,7 +24,7 @@ export interface DesktopStreamConformanceConfig {
 }
 
 export interface DesktopStreamConformanceReport {
-  schema: 'cutline-desktop-stream-conformance-v1'
+  schema: 'editweave-desktop-stream-conformance-v1'
   status: 'running' | 'passed' | 'failed'
   startedAt: string
   completedAt?: string
@@ -57,7 +57,7 @@ export async function runDesktopStreamConformance(config: DesktopStreamConforman
   const totalSegments = Math.ceil(config.durationSeconds / SEGMENT_SECONDS)
   const heapStartBytes = usedJsHeapSize()
   let heapPeakBytes = heapStartBytes
-  let report: DesktopStreamConformanceReport = { schema: 'cutline-desktop-stream-conformance-v1', status: 'running', startedAt, durationSeconds: config.durationSeconds, expectedFrames: config.durationSeconds * FPS, completedSegments: 0, totalSegments, progress: 0, stage: '10분 기준 미디어 로드', outputPath: config.outputPath, heapStartBytes, heapPeakBytes }
+  let report: DesktopStreamConformanceReport = { schema: 'editweave-desktop-stream-conformance-v1', status: 'running', startedAt, durationSeconds: config.durationSeconds, expectedFrames: config.durationSeconds * FPS, completedSegments: 0, totalSegments, progress: 0, stage: '10분 기준 미디어 로드', outputPath: config.outputPath, heapStartBytes, heapPeakBytes }
   const publish = async (next: DesktopStreamConformanceReport) => {
     report = next
     onReport?.(next)
@@ -125,7 +125,7 @@ export async function runDesktopStreamConformance(config: DesktopStreamConforman
         hdrReader = await openHdrRawSource(decodedPath, { width: 160, height: 90, fps: FPS, rangeStart, frames })
       }
       try {
-        await exportSequence({ projectName: 'Cutline Tauri Stream Conformance', preset: { ratio: '16:9', width: 160, height: 90, label: 'Tauri Stream 160×90' }, height: 90, fps: FPS, codec: hdrColorMode ? 'hevc' : 'avc', colorMode: hdrColorMode ?? 'sdr', bitrateMbps: 4, hardwareAcceleration: 'prefer-software', includeAudio: false, audioSampleRate: 48_000, audioBitrateKbps: 128, audioChannels: 1, assets, tracks, rangeStart, rangeEnd, ...(rawPath ? { hdrRawOutputStream: destination.writable } : { outputStream: destination.writable }), hdrRawFrameProvider: hdrReader ? async (_asset, sourceTime) => hdrReader!.frameAt(sourceTime) : undefined, onHdrRawFallbackFrame: () => { report = { ...report, hdrRawFallbackFrames: (report.hdrRawFallbackFrames ?? 0) + 1 } }, onHdrInputSample: (sample) => { if (!report.hdrInputSample) report = { ...report, hdrInputSample: sample } }, onProgress: (progress, stage) => { report = { ...report, progress: (index + progress) / totalSegments * 0.94, stage: `체크포인트 ${index + 1}/${totalSegments} · ${stage}` }; onReport?.(report) } })
+        await exportSequence({ projectName: 'EditWeave Tauri Stream Conformance', preset: { ratio: '16:9', width: 160, height: 90, label: 'Tauri Stream 160×90' }, height: 90, fps: FPS, codec: hdrColorMode ? 'hevc' : 'avc', colorMode: hdrColorMode ?? 'sdr', bitrateMbps: 4, hardwareAcceleration: 'prefer-software', includeAudio: false, audioSampleRate: 48_000, audioBitrateKbps: 128, audioChannels: 1, assets, tracks, rangeStart, rangeEnd, ...(rawPath ? { hdrRawOutputStream: destination.writable } : { outputStream: destination.writable }), hdrRawFrameProvider: hdrReader ? async (_asset, sourceTime) => hdrReader!.frameAt(sourceTime) : undefined, onHdrRawFallbackFrame: () => { report = { ...report, hdrRawFallbackFrames: (report.hdrRawFallbackFrames ?? 0) + 1 } }, onHdrInputSample: (sample) => { if (!report.hdrInputSample) report = { ...report, hdrInputSample: sample } }, onProgress: (progress, stage) => { report = { ...report, progress: (index + progress) / totalSegments * 0.94, stage: `체크포인트 ${index + 1}/${totalSegments} · ${stage}` }; onReport?.(report) } })
       } finally {
         await hdrReader?.close().catch(() => undefined)
       }
@@ -137,8 +137,8 @@ export async function runDesktopStreamConformance(config: DesktopStreamConforman
     await publish({ ...report, progress: 0.94, stage: '연속 오디오 마스터 합성', heapPeakBytes })
     const audioTarget = await prepareRenderedVideoTargetAtPath(continuousAudioPath)
     const audioProgress = (progress: number, stage: string) => { report = { ...report, progress: 0.94 + progress * 0.04, stage: `연속 오디오 · ${stage}` }; onReport?.(report) }
-    if (surround) await exportAudioStem({ projectName: 'Cutline Tauri Stream Conformance', stemName: 'Continuous-5.1-Mix', roles: audioRoles, assets, tracks, sampleRate: 48_000, channels: 6, rangeStart: 0, rangeEnd: config.durationSeconds, outputStream: audioTarget.writable, onProgress: audioProgress })
-    else await exportAudioMaster({ projectName: 'Cutline Tauri Stream Conformance', assets, tracks, sampleRate: 48_000, bitrateKbps: 128, channels: 1, rangeStart: 0, rangeEnd: config.durationSeconds, outputStream: audioTarget.writable, onProgress: audioProgress })
+    if (surround) await exportAudioStem({ projectName: 'EditWeave Tauri Stream Conformance', stemName: 'Continuous-5.1-Mix', roles: audioRoles, assets, tracks, sampleRate: 48_000, channels: 6, rangeStart: 0, rangeEnd: config.durationSeconds, outputStream: audioTarget.writable, onProgress: audioProgress })
+    else await exportAudioMaster({ projectName: 'EditWeave Tauri Stream Conformance', assets, tracks, sampleRate: 48_000, bitrateKbps: 128, channels: 1, rangeStart: 0, rangeEnd: config.durationSeconds, outputStream: audioTarget.writable, onProgress: audioProgress })
     const audioHeap = usedJsHeapSize()
     if (audioHeap !== undefined) heapPeakBytes = Math.max(heapPeakBytes ?? audioHeap, audioHeap)
     await publish({ ...report, progress: 0.98, stage: '체크포인트·연속 오디오 무손실 결합', heapPeakBytes })

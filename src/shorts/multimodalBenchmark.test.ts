@@ -14,6 +14,6 @@ describe('multimodal shorts benchmark', () => {
   })
 
   it('rejects malformed benchmark ranges', () => {
-    expect(() => parseMultimodalShortsBenchmark({ version: 'cutline-shorts-multimodal-v1', provenance: 'synthetic', cases: [{ id: 'bad', duration: 10, transcript: [], suggestions: [], markers: [], waveform: [], faceTrack: [], expectedHookRange: { start: 2, end: 1 } }] })).toThrow(/정답 범위/)
+    expect(() => parseMultimodalShortsBenchmark({ version: 'editweave-shorts-multimodal-v1', provenance: 'synthetic', cases: [{ id: 'bad', duration: 10, transcript: [], suggestions: [], markers: [], waveform: [], faceTrack: [], expectedHookRange: { start: 2, end: 1 } }] })).toThrow(/정답 범위/)
   })
 })

@@ -5,25 +5,25 @@ import { basename, extname, resolve } from 'node:path'
 import { createServer } from 'node:http'
 
 const SERVICE_VERSION = '1.0.0'
-const SCHEMA = 'cutline-update-v1'
+const SCHEMA = 'editweave-update-v1'
 const PLATFORMS = new Set(['windows-x86_64', 'windows-aarch64', 'macos-x86_64', 'macos-aarch64', 'macos-universal'])
 const CHANNELS = new Set(['stable', 'beta'])
-const HOST = process.env.CUTLINE_UPDATE_HOST?.trim() || '127.0.0.1'
-const PORT = integerSetting('CUTLINE_UPDATE_PORT', 8790, 1, 65_535)
-const CHANNEL_DIR = resolve(process.env.CUTLINE_UPDATE_CHANNEL_DIR?.trim() || 'release/update-channel')
-const PUBLIC_ORIGIN = strictOrigin(process.env.CUTLINE_UPDATE_PUBLIC_ORIGIN)
-const EXPECTED_KEY_ID = requiredSetting('CUTLINE_UPDATE_KEY_ID', 80)
-if (!/^[a-zA-Z0-9._-]{4,80}$/.test(EXPECTED_KEY_ID)) throw new Error('CUTLINE_UPDATE_KEY_ID format is invalid')
-const PUBLIC_KEY_BYTES = decodeBase64(requiredSetting('CUTLINE_UPDATE_PUBLIC_KEY', 100), 'CUTLINE_UPDATE_PUBLIC_KEY')
+const HOST = process.env.EDITWEAVE_UPDATE_HOST?.trim() || '127.0.0.1'
+const PORT = integerSetting('EDITWEAVE_UPDATE_PORT', 8790, 1, 65_535)
+const CHANNEL_DIR = resolve(process.env.EDITWEAVE_UPDATE_CHANNEL_DIR?.trim() || 'release/update-channel')
+const PUBLIC_ORIGIN = strictOrigin(process.env.EDITWEAVE_UPDATE_PUBLIC_ORIGIN)
+const EXPECTED_KEY_ID = requiredSetting('EDITWEAVE_UPDATE_KEY_ID', 80)
+if (!/^[a-zA-Z0-9._-]{4,80}$/.test(EXPECTED_KEY_ID)) throw new Error('EDITWEAVE_UPDATE_KEY_ID format is invalid')
+const PUBLIC_KEY_BYTES = decodeBase64(requiredSetting('EDITWEAVE_UPDATE_PUBLIC_KEY', 100), 'EDITWEAVE_UPDATE_PUBLIC_KEY')
 const PUBLIC_KEY = ed25519PublicKey(PUBLIC_KEY_BYTES)
-const TRUST_PROXY = process.env.CUTLINE_UPDATE_TRUST_PROXY === '1'
-const ALLOWED_ORIGINS = new Set(csvSetting('CUTLINE_UPDATE_ALLOWED_ORIGINS', [
+const TRUST_PROXY = process.env.EDITWEAVE_UPDATE_TRUST_PROXY === '1'
+const ALLOWED_ORIGINS = new Set(csvSetting('EDITWEAVE_UPDATE_ALLOWED_ORIGINS', [
   'tauri://localhost',
   'http://tauri.localhost',
   'https://tauri.localhost',
 ]))
-const MAX_ACTIVE_DOWNLOADS = integerSetting('CUTLINE_UPDATE_MAX_ACTIVE_DOWNLOADS', 100, 1, 10_000)
-const MAX_DOWNLOADS_PER_IP = integerSetting('CUTLINE_UPDATE_MAX_DOWNLOADS_PER_IP', 4, 1, 100)
+const MAX_ACTIVE_DOWNLOADS = integerSetting('EDITWEAVE_UPDATE_MAX_ACTIVE_DOWNLOADS', 100, 1, 10_000)
+const MAX_DOWNLOADS_PER_IP = integerSetting('EDITWEAVE_UPDATE_MAX_DOWNLOADS_PER_IP', 4, 1, 100)
 const MAX_INSTALLER_BYTES = 2 * 1024 * 1024 * 1024
 
 let catalog = await loadCatalog()
@@ -50,7 +50,7 @@ const server = createServer(async (request, response) => {
 
   let pathname
   try {
-    pathname = new URL(request.url || '/', 'http://cutline.local').pathname
+    pathname = new URL(request.url || '/', 'http://editweave.local').pathname
   } catch {
     sendJson(response, 400, { error: 'invalid_url' })
     return
@@ -59,7 +59,7 @@ const server = createServer(async (request, response) => {
   if (request.method === 'GET' && pathname === '/healthz') {
     sendJson(response, shuttingDown ? 503 : 200, {
       status: shuttingDown ? 'stopping' : 'ok',
-      service: 'cutline-update-server',
+      service: 'editweave-update-server',
       version: SERVICE_VERSION,
       manifests: catalog.manifests.size,
       artifacts: catalog.artifacts.size,
@@ -144,14 +144,14 @@ async function loadCatalog() {
       const signature = decodeBase64(manifest.signature, `signature in ${file}`)
       if (signature.length !== 64 || !verify(null, Buffer.from(payload), PUBLIC_KEY, signature)) throw new Error(`Invalid Ed25519 signature: ${file}`)
       const download = new URL(manifest.downloadUrl)
-      if (download.origin !== PUBLIC_ORIGIN || download.search || download.hash || !download.pathname.startsWith('/cutline/artifacts/')) {
-        throw new Error(`downloadUrl must use ${PUBLIC_ORIGIN}/cutline/artifacts/: ${file}`)
+      if (download.origin !== PUBLIC_ORIGIN || download.search || download.hash || !download.pathname.startsWith('/editweave/artifacts/')) {
+        throw new Error(`downloadUrl must use ${PUBLIC_ORIGIN}/editweave/artifacts/: ${file}`)
       }
       const encodedName = download.pathname.split('/').pop() || ''
       let artifactName
       try { artifactName = decodeURIComponent(encodedName) } catch { throw new Error(`Invalid artifact URL encoding: ${file}`) }
       if (artifactName !== basename(artifactName) || !/^[A-Za-z0-9._+-]{1,180}$/.test(artifactName)) throw new Error(`Unsafe artifact file name: ${file}`)
-      if (download.pathname !== `/cutline/artifacts/${encodeURIComponent(artifactName)}`) throw new Error(`Artifact URL must contain one canonical file name: ${file}`)
+      if (download.pathname !== `/editweave/artifacts/${encodeURIComponent(artifactName)}`) throw new Error(`Artifact URL must contain one canonical file name: ${file}`)
       if (!artifactName.includes(manifest.version)) throw new Error(`Immutable artifact file name must include version ${manifest.version}: ${file}`)
       assertInstallerExtension(platform, artifactName)
       const artifactFile = resolve(CHANNEL_DIR, 'artifacts', artifactName)
@@ -164,7 +164,7 @@ async function loadCatalog() {
         const actualHash = await sha256File(artifactFile)
         if (actualHash !== manifest.sha256) throw new Error(`Installer SHA-256 does not match manifest: ${artifactFile}`)
       }
-      const manifestPath = `/cutline/manifests/${channel}/${platform}.json`
+      const manifestPath = `/editweave/manifests/${channel}/${platform}.json`
       if (manifests.has(manifestPath)) throw new Error(`Duplicate manifest route: ${manifestPath}`)
       const manifestBody = Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`)
       manifests.set(manifestPath, {
@@ -334,14 +334,14 @@ function installerContentType(name) {
 }
 
 function strictOrigin(value) {
-  const raw = requiredValue(value, 'CUTLINE_UPDATE_PUBLIC_ORIGIN', 240)
+  const raw = requiredValue(value, 'EDITWEAVE_UPDATE_PUBLIC_ORIGIN', 240)
   const url = new URL(raw)
-  if (url.protocol !== 'https:' || url.username || url.password || url.pathname !== '/' || url.search || url.hash) throw new Error('CUTLINE_UPDATE_PUBLIC_ORIGIN must be a credential-free HTTPS origin')
+  if (url.protocol !== 'https:' || url.username || url.password || url.pathname !== '/' || url.search || url.hash) throw new Error('EDITWEAVE_UPDATE_PUBLIC_ORIGIN must be a credential-free HTTPS origin')
   return url.origin
 }
 
 function ed25519PublicKey(raw) {
-  if (raw.length !== 32) throw new Error('CUTLINE_UPDATE_PUBLIC_KEY must decode to 32 bytes')
+  if (raw.length !== 32) throw new Error('EDITWEAVE_UPDATE_PUBLIC_KEY must decode to 32 bytes')
   const prefix = Buffer.from('302a300506032b6570032100', 'hex')
   return createPublicKey({ key: Buffer.concat([prefix, raw]), format: 'der', type: 'spki' })
 }

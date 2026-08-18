@@ -6,17 +6,17 @@ import { resolve } from 'node:path'
 import { createInterface } from 'node:readline'
 
 const SERVICE_VERSION = '1.0.0'
-const SCHEMA = 'cutline-crash-v1'
+const SCHEMA = 'editweave-crash-v1'
 const FILE_PATTERN = /^crashes-(\d{4}-\d{2}-\d{2})\.jsonl$/
-const PORT = integerSetting('CUTLINE_CRASH_PORT', 8787, 1, 65_535)
-const HOST = process.env.CUTLINE_CRASH_HOST?.trim() || '127.0.0.1'
-const DATA_DIR = resolve(process.env.CUTLINE_CRASH_DATA_DIR?.trim() || 'var/crash-reports')
-const RETENTION_DAYS = integerSetting('CUTLINE_CRASH_RETENTION_DAYS', 30, 1, 365)
-const MAX_STORAGE_BYTES = integerSetting('CUTLINE_CRASH_MAX_STORAGE_MB', 512, 16, 102_400) * 1024 * 1024
-const MAX_BODY_BYTES = integerSetting('CUTLINE_CRASH_MAX_BODY_KB', 32, 8, 128) * 1024
-const RATE_LIMIT = integerSetting('CUTLINE_CRASH_RATE_LIMIT_PER_MINUTE', 60, 1, 10_000)
-const TRUST_PROXY = process.env.CUTLINE_CRASH_TRUST_PROXY === '1'
-const ALLOWED_ORIGINS = new Set(csvSetting('CUTLINE_CRASH_ALLOWED_ORIGINS', [
+const PORT = integerSetting('EDITWEAVE_CRASH_PORT', 8787, 1, 65_535)
+const HOST = process.env.EDITWEAVE_CRASH_HOST?.trim() || '127.0.0.1'
+const DATA_DIR = resolve(process.env.EDITWEAVE_CRASH_DATA_DIR?.trim() || 'var/crash-reports')
+const RETENTION_DAYS = integerSetting('EDITWEAVE_CRASH_RETENTION_DAYS', 30, 1, 365)
+const MAX_STORAGE_BYTES = integerSetting('EDITWEAVE_CRASH_MAX_STORAGE_MB', 512, 16, 102_400) * 1024 * 1024
+const MAX_BODY_BYTES = integerSetting('EDITWEAVE_CRASH_MAX_BODY_KB', 32, 8, 128) * 1024
+const RATE_LIMIT = integerSetting('EDITWEAVE_CRASH_RATE_LIMIT_PER_MINUTE', 60, 1, 10_000)
+const TRUST_PROXY = process.env.EDITWEAVE_CRASH_TRUST_PROXY === '1'
+const ALLOWED_ORIGINS = new Set(csvSetting('EDITWEAVE_CRASH_ALLOWED_ORIGINS', [
   'tauri://localhost',
   'http://tauri.localhost',
   'https://tauri.localhost',
@@ -45,7 +45,7 @@ const server = createServer(async (request, response) => {
 
   if (request.method === 'OPTIONS') {
     response.writeHead(204, {
-      'access-control-allow-headers': 'content-type,x-cutline-schema',
+      'access-control-allow-headers': 'content-type,x-editweave-schema',
       'access-control-allow-methods': 'POST,OPTIONS',
       'access-control-max-age': '600',
     })
@@ -55,7 +55,7 @@ const server = createServer(async (request, response) => {
 
   let pathname
   try {
-    pathname = new URL(request.url || '/', 'http://cutline.local').pathname
+    pathname = new URL(request.url || '/', 'http://editweave.local').pathname
   } catch {
     sendJson(response, 400, { error: 'invalid_url' })
     return
@@ -64,14 +64,14 @@ const server = createServer(async (request, response) => {
   if (request.method === 'GET' && pathname === '/healthz') {
     sendJson(response, shuttingDown ? 503 : 200, {
       status: shuttingDown ? 'stopping' : 'ok',
-      service: 'cutline-crash-collector',
+      service: 'editweave-crash-collector',
       version: SERVICE_VERSION,
       schema: SCHEMA,
     })
     return
   }
 
-  if (request.method !== 'POST' || pathname !== '/api/cutline/crashes') {
+  if (request.method !== 'POST' || pathname !== '/api/editweave/crashes') {
     sendJson(response, 404, { error: 'not_found' })
     return
   }
@@ -88,7 +88,7 @@ const server = createServer(async (request, response) => {
     sendJson(response, 415, { error: 'application_json_required' })
     return
   }
-  const schemaHeader = headerValue(request.headers['x-cutline-schema'])
+  const schemaHeader = headerValue(request.headers['x-editweave-schema'])
   if (schemaHeader && schemaHeader !== SCHEMA) {
     sendJson(response, 400, { error: 'unsupported_schema' })
     return

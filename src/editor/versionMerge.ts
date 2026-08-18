@@ -1,5 +1,5 @@
 import { getProjectSequences } from './project'
-import type { AdrCue, AudioBusMap, CreatorLearningProfile, CutlineProjectDocument, EditSuggestion, PersistedMediaAsset, ProjectMergeConflictKind, ProjectMergeConflictRecord, ProjectMergeSession, ProjectSequence, SpeakerVoiceProfile, TimelineClip, TimelineMarker, TimelineTrack, TranscriptSegment } from './types'
+import type { AdrCue, AudioBusMap, CreatorLearningProfile, EditWeaveProjectDocument, EditSuggestion, PersistedMediaAsset, ProjectMergeConflictKind, ProjectMergeConflictRecord, ProjectMergeSession, ProjectSequence, SpeakerVoiceProfile, TimelineClip, TimelineMarker, TimelineTrack, TranscriptSegment } from './types'
 
 export interface SequenceVersionDiff {
   id: string
@@ -31,7 +31,7 @@ export interface ProjectMergeConflict {
 }
 
 export interface ProjectMergeResult {
-  project: CutlineProjectDocument
+  project: EditWeaveProjectDocument
   mergedSequences: number
   autoMergedClips: number
   conflicts: ProjectMergeConflict[]
@@ -40,7 +40,7 @@ export interface ProjectMergeResult {
 }
 
 interface SequenceBranchResult {
-  project: CutlineProjectDocument
+  project: EditWeaveProjectDocument
   sequenceIds: Map<string, string>
   trackIds: Map<string, string>
   clipIds: Map<string, string>
@@ -53,7 +53,7 @@ const sequenceContent = (sequence: ProjectSequence) => JSON.stringify({
   tracks: sequence.tracks, transcript: sequence.transcript, suggestions: sequence.suggestions, markers: sequence.markers, audioBuses: sequence.audioBuses,
 })
 
-export function compareProjectVersions(current: CutlineProjectDocument, snapshot: CutlineProjectDocument): ProjectVersionDiff {
+export function compareProjectVersions(current: EditWeaveProjectDocument, snapshot: EditWeaveProjectDocument): ProjectVersionDiff {
   const currentAssets = new Set(current.assets.map((asset) => asset.id))
   const snapshotAssets = new Set(snapshot.assets.map((asset) => asset.id))
   const currentSequences = new Map(getProjectSequences(current).map((sequence) => [sequence.id, sequence]))
@@ -65,10 +65,10 @@ export function compareProjectVersions(current: CutlineProjectDocument, snapshot
     const status = !currentSequence ? 'added' : !snapshotSequence ? 'removed' : sequenceContent(currentSequence) === sequenceContent(snapshotSequence) ? 'unchanged' : 'changed'
     return { id, name: snapshotSequence?.name ?? currentSequence?.name ?? id, status, currentClips: countClips(currentSequence), snapshotClips: countClips(snapshotSequence) }
   }).sort((left, right) => left.name.localeCompare(right.name, 'ko'))
-  const comments = (document: CutlineProjectDocument) => new Map(getProjectSequences(document).flatMap((sequence) => sequence.markers ?? []).filter((marker) => marker.kind === 'comment').map((marker) => [marker.id, `${marker.time}|${marker.status}|${marker.label}|${marker.updatedAt ?? marker.createdAt ?? ''}`]))
+  const comments = (document: EditWeaveProjectDocument) => new Map(getProjectSequences(document).flatMap((sequence) => sequence.markers ?? []).filter((marker) => marker.kind === 'comment').map((marker) => [marker.id, `${marker.time}|${marker.status}|${marker.label}|${marker.updatedAt ?? marker.createdAt ?? ''}`]))
   const currentComments = comments(current)
   const snapshotComments = comments(snapshot)
-  const mergeDecisions = (document: CutlineProjectDocument) => new Map((document.mergeSessions ?? []).flatMap((session) => session.conflicts.map((conflict) => [`${session.id}:${conflict.id}`, `${conflict.status}|${conflict.resolution ?? ''}|${conflict.resolvedAt ?? ''}`])))
+  const mergeDecisions = (document: EditWeaveProjectDocument) => new Map((document.mergeSessions ?? []).flatMap((session) => session.conflicts.map((conflict) => [`${session.id}:${conflict.id}`, `${conflict.status}|${conflict.resolution ?? ''}|${conflict.resolvedAt ?? ''}`])))
   const currentMergeDecisions = mergeDecisions(current)
   const snapshotMergeDecisions = mergeDecisions(snapshot)
   return {
@@ -150,7 +150,7 @@ function assertUniqueIds<T extends { id: string }>(items: T[] | undefined, label
   }
 }
 
-function validateMergeDocument(project: CutlineProjectDocument, label: string): void {
+function validateMergeDocument(project: EditWeaveProjectDocument, label: string): void {
   assertUniqueIds(project.assets, `${label} 미디어`)
   assertUniqueIds(project.adrCues, `${label} ADR 큐`)
   assertUniqueIds(project.mergeSessions, `${label} 병합 세션`)
@@ -274,7 +274,7 @@ function sequenceMetadata(sequence: ProjectSequence): Omit<ProjectSequence, 'tra
   return metadata
 }
 
-function conflictSnapshot(project: CutlineProjectDocument, kind: ProjectMergeConflictKind, sequenceId: string | undefined, entityId: string): unknown {
+function conflictSnapshot(project: EditWeaveProjectDocument, kind: ProjectMergeConflictKind, sequenceId: string | undefined, entityId: string): unknown {
   const sequence = sequenceId ? getProjectSequences(project).find((candidate) => candidate.id === sequenceId) : undefined
   if (kind === 'sequence') return sequence ? sequenceMetadata(sequence) : undefined
   if (kind === 'track') {
@@ -322,7 +322,7 @@ function mergeChangedSequence(base: ProjectSequence, current: ProjectSequence, i
   }
 }
 
-function synchronizeActiveSequence(project: CutlineProjectDocument, activeSequenceId: string): CutlineProjectDocument {
+function synchronizeActiveSequence(project: EditWeaveProjectDocument, activeSequenceId: string): EditWeaveProjectDocument {
   const sequences = getProjectSequences(project)
   const active = sequences.find((sequence) => sequence.id === activeSequenceId) ?? sequences[0]
   if (!active) throw new Error('병합 결과에 활성 시퀀스가 없습니다.')
@@ -339,7 +339,7 @@ function synchronizeActiveSequence(project: CutlineProjectDocument, activeSequen
   }
 }
 
-function addConflictReviewMarkers(project: CutlineProjectDocument, incoming: CutlineProjectDocument, conflicts: ProjectMergeConflict[]): CutlineProjectDocument {
+function addConflictReviewMarkers(project: EditWeaveProjectDocument, incoming: EditWeaveProjectDocument, conflicts: ProjectMergeConflict[]): EditWeaveProjectDocument {
   const incomingSequences = new Map(getProjectSequences(incoming).map((sequence) => [sequence.id, sequence]))
   const marked = getProjectSequences(project).map((sequence) => {
     const clipConflicts = conflicts.filter((conflict) => conflict.kind === 'clip' && conflict.sequenceId === sequence.id)
@@ -357,7 +357,7 @@ function addConflictReviewMarkers(project: CutlineProjectDocument, incoming: Cut
         color: '#ff9366',
         kind: 'comment',
         status: 'open',
-        author: 'Cutline 병합',
+        author: 'EditWeave 병합',
         createdAt,
         updatedAt: createdAt,
       }
@@ -372,7 +372,7 @@ function addConflictReviewMarkers(project: CutlineProjectDocument, incoming: Cut
  * applied automatically. Ambiguous edits never overwrite current work; the full
  * incoming sequence is copied to a new-ID conflict branch for manual comparison.
  */
-export function mergeProjectVersions(base: CutlineProjectDocument, current: CutlineProjectDocument, incoming: CutlineProjectDocument): ProjectMergeResult {
+export function mergeProjectVersions(base: EditWeaveProjectDocument, current: EditWeaveProjectDocument, incoming: EditWeaveProjectDocument): ProjectMergeResult {
   validateMergeDocument(base, '공통 기준')
   validateMergeDocument(current, '현재 프로젝트')
   validateMergeDocument(incoming, '상대 프로젝트')
@@ -498,7 +498,7 @@ export function mergeProjectVersions(base: CutlineProjectDocument, current: Cutl
   return { project, mergedSequences: changedSequences, autoMergedClips, conflicts, conflictBranchIds, mergeSessionId }
 }
 
-export function resolveProjectMergeConflict(project: CutlineProjectDocument, sessionId: string, conflictId: string, resolution: 'current' | 'incoming'): CutlineProjectDocument {
+export function resolveProjectMergeConflict(project: EditWeaveProjectDocument, sessionId: string, conflictId: string, resolution: 'current' | 'incoming'): EditWeaveProjectDocument {
   const session = project.mergeSessions?.find((candidate) => candidate.id === sessionId)
   const conflict = session?.conflicts.find((candidate) => candidate.id === conflictId)
   if (!session || !conflict) throw new Error('해결할 공동 작업 충돌을 찾을 수 없습니다.')
@@ -637,7 +637,7 @@ export function resolveProjectMergeConflict(project: CutlineProjectDocument, ses
   return synchronizeActiveSequence({ ...project, updatedAt: resolvedAt, assets, sequences, adrCues, correctionDictionary, creatorLearningProfile, speakerVoiceProfiles, mergeSessions }, project.activeSequenceId ?? conflict.sequenceId ?? sequences[0]?.id ?? '')
 }
 
-function branchSequenceFromVersionDetailed(current: CutlineProjectDocument, snapshot: CutlineProjectDocument, rootSequenceId: string): SequenceBranchResult {
+function branchSequenceFromVersionDetailed(current: EditWeaveProjectDocument, snapshot: EditWeaveProjectDocument, rootSequenceId: string): SequenceBranchResult {
   const currentSequences = getProjectSequences(current)
   const snapshotSequences = getProjectSequences(snapshot)
   const snapshotById = new Map(snapshotSequences.map((sequence) => [sequence.id, sequence]))
@@ -712,7 +712,7 @@ function branchSequenceFromVersionDetailed(current: CutlineProjectDocument, snap
   const target = imported.find((sequence) => sequence.id === sequenceIds.get(rootSequenceId))!
   const assetMap = new Map(current.assets.map((asset) => [asset.id, asset]))
   snapshot.assets.forEach((asset) => { if (!assetMap.has(asset.id)) assetMap.set(asset.id, asset) })
-  const project: CutlineProjectDocument = {
+  const project: EditWeaveProjectDocument = {
     ...current,
     updatedAt: new Date().toISOString(),
     assets: [...assetMap.values()],
@@ -730,6 +730,6 @@ function branchSequenceFromVersionDetailed(current: CutlineProjectDocument, snap
   return { project, sequenceIds, trackIds, clipIds }
 }
 
-export function branchSequenceFromVersion(current: CutlineProjectDocument, snapshot: CutlineProjectDocument, rootSequenceId: string): CutlineProjectDocument {
+export function branchSequenceFromVersion(current: EditWeaveProjectDocument, snapshot: EditWeaveProjectDocument, rootSequenceId: string): EditWeaveProjectDocument {
   return branchSequenceFromVersionDetailed(current, snapshot, rootSequenceId).project
 }

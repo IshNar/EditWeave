@@ -1,7 +1,7 @@
 import type { TimelineMarker } from './types'
 
 export interface ReviewPackage {
-  schema: 'cutline-review-v1'
+  schema: 'editweave-review-v1'
   projectId: string
   projectName: string
   sequenceId: string
@@ -11,7 +11,7 @@ export interface ReviewPackage {
 
 export function createReviewPackage(projectId: string, projectName: string, sequenceId: string, markers: TimelineMarker[]): ReviewPackage {
   return {
-    schema: 'cutline-review-v1',
+    schema: 'editweave-review-v1',
     projectId,
     projectName,
     sequenceId,
@@ -22,10 +22,10 @@ export function createReviewPackage(projectId: string, projectName: string, sequ
 
 export function parseReviewPackage(raw: string): ReviewPackage {
   const value = JSON.parse(raw) as Partial<ReviewPackage>
-  if (value.schema !== 'cutline-review-v1' || !value.projectId || !value.sequenceId || !Array.isArray(value.comments)) throw new Error('지원되는 Cutline 검토 패키지가 아닙니다.')
+  if (value.schema !== 'editweave-review-v1' || !value.projectId || !value.sequenceId || !Array.isArray(value.comments)) throw new Error('지원되는 EditWeave 검토 패키지가 아닙니다.')
   if (value.comments.length > 10_000) throw new Error('검토 패키지 코멘트 수가 안전 제한(10,000개)을 넘습니다.')
   const comments = value.comments.filter((marker): marker is TimelineMarker => Boolean(marker && marker.kind === 'comment' && typeof marker.id === 'string' && typeof marker.time === 'number' && Number.isFinite(marker.time) && typeof marker.label === 'string')).map((marker) => ({ ...marker, id: marker.id.slice(0, 160), label: marker.label.slice(0, 2_000), author: marker.author?.slice(0, 120), time: Math.max(0, marker.time), status: marker.status === 'resolved' ? 'resolved' as const : 'open' as const }))
-  return { schema: 'cutline-review-v1', projectId: value.projectId, projectName: value.projectName ?? '공유 프로젝트', sequenceId: value.sequenceId, exportedAt: value.exportedAt ?? new Date(0).toISOString(), comments }
+  return { schema: 'editweave-review-v1', projectId: value.projectId, projectName: value.projectName ?? '공유 프로젝트', sequenceId: value.sequenceId, exportedAt: value.exportedAt ?? new Date(0).toISOString(), comments }
 }
 
 export function mergeReviewComments(existing: TimelineMarker[], incoming: TimelineMarker[]): { markers: TimelineMarker[]; added: number; updated: number } {

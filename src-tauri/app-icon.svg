@@ -11,6 +11,6 @@
   </defs>
   <rect width="512" height="512" rx="120" fill="#111018"/>
   <rect x="48" y="48" width="416" height="416" rx="102" fill="url(#bg)" filter="url(#shadow)"/>
-  <path d="M342 161c-25-23-54-35-87-35-76 0-135 55-135 131 0 77 58 130 135 130 34 0 64-11 89-34l-42-48c-13 12-28 18-46 18-37 0-65-27-65-66 0-40 28-67 65-67 17 0 32 6 44 17l42-46Z" fill="white"/>
-  <path d="M235 225h137v64H235z" fill="#DCD3FF" opacity=".74"/>
+  <path d="M126 158 184 351c7 24 31 26 42 3l30-75 30 75c11 23 35 21 42-3l58-193" fill="none" stroke="white" stroke-width="62" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="m216 292 40-96 40 96" fill="none" stroke="#DCD3FF" stroke-width="30" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>
 </svg>

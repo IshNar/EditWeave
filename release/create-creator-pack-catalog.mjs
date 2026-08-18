@@ -12,7 +12,7 @@ if (!packDirectoryArgument || !originArgument || !authorityArgument) {
   if (!authorityArgument.trim() || authorityArgument.length > 120) throw new Error('authority는 1~120자여야 합니다.')
   const directoryInfo = await stat(directory)
   if (!directoryInfo.isDirectory()) throw new Error('pack-directory가 디렉터리가 아닙니다.')
-  const files = (await readdir(directory, { withFileTypes: true })).filter((entry) => entry.isFile() && entry.name.endsWith('.cutline-pack.json')).sort((left, right) => left.name.localeCompare(right.name))
+  const files = (await readdir(directory, { withFileTypes: true })).filter((entry) => entry.isFile() && entry.name.endsWith('.editweave-pack.json')).sort((left, right) => left.name.localeCompare(right.name))
   if (!files.length || files.length > 1_000) throw new Error('Pack artifact는 1~1,000개여야 합니다.')
   const entries = []
   for (const file of files) {
@@ -22,7 +22,7 @@ if (!packDirectoryArgument || !originArgument || !authorityArgument) {
     if (!file.name.includes(verified.pack.version)) throw new Error(`immutable 캐시를 위해 파일명에 버전 ${verified.pack.version}이 필요합니다: ${file.name}`)
     entries.push({
       packId: verified.pack.id, name: verified.pack.name, version: verified.pack.version, publisher: verified.pack.publisher,
-      categories: verified.categories, downloadUrl: `${origin}/cutline/packs/${encodeURIComponent(file.name)}`, artifactSha256: verified.artifactSha256,
+      categories: verified.categories, downloadUrl: `${origin}/editweave/packs/${encodeURIComponent(file.name)}`, artifactSha256: verified.artifactSha256,
       publisherKeyFingerprint: verified.publisherKeyFingerprint, minimumApiVersion: verified.pack.compatibility.minimumApiVersion,
       ...(verified.pack.compatibility.maximumApiVersion ? { maximumApiVersion: verified.pack.compatibility.maximumApiVersion } : {}), publishedAt: verified.pack.createdAt,
     })

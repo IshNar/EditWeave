@@ -1,6 +1,6 @@
-# Cutline signed update server
+# EditWeave signed update server
 
-오프라인에서 Ed25519로 서명한 플랫폼별 `cutline-update-v1` 매니페스트와 OS 코드 서명된 설치 파일만 제공하는 무의존성 Node.js 서비스다. 서버에는 업데이트 개인 키가 없으며 시작 전에 공개 키 서명, key ID, 실제 설치 파일 SHA-256·크기·확장자를 모두 확인한다.
+오프라인에서 Ed25519로 서명한 플랫폼별 `editweave-update-v1` 매니페스트와 OS 코드 서명된 설치 파일만 제공하는 무의존성 Node.js 서비스다. 서버에는 업데이트 개인 키가 없으며 시작 전에 공개 키 서명, key ID, 실제 설치 파일 SHA-256·크기·확장자를 모두 확인한다.
 
 ## 채널 준비
 
@@ -9,16 +9,16 @@
 3. 저장소 루트에서 아래 명령으로 무서명 매니페스트를 만든다. 기존 파일을 실수로 덮어쓰지 않도록 같은 platform 파일이 있으면 실패한다.
 
 ```sh
-node release/create-update-manifest.mjs release/update-channel/artifacts/Cutline_1.0.0_windows_x86_64-setup.exe 1.0.0 windows-x86_64 stable https://updates.example.com 0.1.0 "Cutline 1.0 안정화 릴리스"
+node release/create-update-manifest.mjs release/update-channel/artifacts/EditWeave_1.0.0_windows_x86_64-setup.exe 1.0.0 windows-x86_64 stable https://updates.example.com 0.1.0 "EditWeave 1.0 안정화 릴리스"
 ```
 
 4. 저장소 밖의 Ed25519 개인 키로 해당 JSON을 서명한다.
 
 ```sh
-node release/sign-update-manifest.mjs release/update-channel/manifests/stable/windows-x86_64.json /secure/cutline-update-private.pem
+node release/sign-update-manifest.mjs release/update-channel/manifests/stable/windows-x86_64.json /secure/editweave-update-private.pem
 ```
 
-5. 출력된 공개 키와 key ID를 서버 `.env`와 앱 빌드의 `VITE_CUTLINE_UPDATE_PUBLIC_KEY`·`VITE_CUTLINE_UPDATE_KEY_ID`, 같은 공개 키를 Rust 빌드의 `CUTLINE_UPDATE_PUBLIC_KEY`에 넣는다. 앱 빌드의 매니페스트 URL은 플랫폼에 맞는 `https://updates.example.com/cutline/manifests/stable/windows-x86_64.json` 형식으로 설정한다.
+5. 출력된 공개 키와 key ID를 서버 `.env`와 앱 빌드의 `VITE_EDITWEAVE_UPDATE_PUBLIC_KEY`·`VITE_EDITWEAVE_UPDATE_KEY_ID`, 같은 공개 키를 Rust 빌드의 `EDITWEAVE_UPDATE_PUBLIC_KEY`에 넣는다. 앱 빌드의 매니페스트 URL은 플랫폼에 맞는 `https://updates.example.com/editweave/manifests/stable/windows-x86_64.json` 형식으로 설정한다.
 
 입력 구조와 이름 규칙은 `release/update-channel/README.md`에 있다. 개인 키와 코드 서명 인증서는 채널 폴더·배포 서버·컨테이너에 복사하지 않는다.
 
@@ -29,9 +29,9 @@ node release/sign-update-manifest.mjs release/update-channel/manifests/stable/wi
 단독 실행은 다음 환경이 필수다.
 
 ```sh
-CUTLINE_UPDATE_PUBLIC_ORIGIN=https://updates.example.com \
-CUTLINE_UPDATE_PUBLIC_KEY=<base64-raw-ed25519-public-key> \
-CUTLINE_UPDATE_KEY_ID=<key-id> \
+EDITWEAVE_UPDATE_PUBLIC_ORIGIN=https://updates.example.com \
+EDITWEAVE_UPDATE_PUBLIC_KEY=<base64-raw-ed25519-public-key> \
+EDITWEAVE_UPDATE_KEY_ID=<key-id> \
 pnpm update:serve
 ```
 

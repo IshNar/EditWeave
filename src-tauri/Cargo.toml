@@ -1,12 +1,12 @@
 [package]
-name = "cutline"
+name = "editweave"
 version = "0.1.0"
 description = "Creator-first long-form and short-form video editor"
-authors = ["Cutline"]
+authors = ["EditWeave"]
 edition = "2024"
 
 [lib]
-name = "cutline_lib"
+name = "editweave_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

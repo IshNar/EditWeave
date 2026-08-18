@@ -11,7 +11,7 @@ export interface TimeMappedAudioPreviewDecoder {
 export async function createTimeMappedAudioPreviewDecoder(asset: MediaAsset): Promise<TimeMappedAudioPreviewDecoder> {
   if (!asset.sourceFile) throw new Error('속도 매핑 오디오에 사용할 로컬 원본 또는 프록시가 없습니다.')
   const { ALL_FORMATS, AudioSampleSink, Input } = await import('mediabunny')
-  const attachedPath = (asset.sourceFile as File & { __cutlineSourcePath?: string }).__cutlineSourcePath
+  const attachedPath = (asset.sourceFile as File & { __editweaveSourcePath?: string }).__editweaveSourcePath
   const decodePath = attachedPath ?? (asset.useProxy ? undefined : asset.sourcePath)
   const input = new Input({ source: await createMediaSource(asset.sourceFile, decodePath), formats: ALL_FORMATS })
   const audioTrack = await input.getPrimaryAudioTrack().catch((error) => {

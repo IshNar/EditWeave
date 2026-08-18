@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cutline.local/schemas/cutline-creator-pack-v2.schema.json",
-  "title": "Cutline Creator Pack v2",
-  "description": "A declarative, code-free bundle of Cutline creator templates and presets.",
+  "$id": "https://editweave.local/schemas/editweave-creator-pack-v2.schema.json",
+  "title": "EditWeave Creator Pack v2",
+  "description": "A declarative, code-free bundle of EditWeave creator templates and presets.",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema", "apiVersion", "compatibility", "id", "name", "version", "publisher", "createdAt", "security", "contents", "integrity"],
   "properties": {
-    "schema": { "const": "cutline-creator-pack-v2" },
+    "schema": { "const": "editweave-creator-pack-v2" },
     "apiVersion": { "const": "1.0.0" },
     "compatibility": {
       "type": "object",

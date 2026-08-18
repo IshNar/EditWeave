@@ -5,7 +5,7 @@ import { copyFile, exists, mkdir, open as openFsFile, readDir, readFile, readTex
 import type { StreamTargetChunk } from 'mediabunny'
 import { getProjectSequences, parseProjectDocument, PROJECT_EXTENSION } from '../editor/project'
 import { clipSourceTime } from '../editor/effects'
-import type { CutlineProjectDocument, MediaAsset, PersistedMediaAsset, ProjectSequence, TimelineClip, TimelineTrack } from '../editor/types'
+import type { EditWeaveProjectDocument, MediaAsset, PersistedMediaAsset, ProjectSequence, TimelineClip, TimelineTrack } from '../editor/types'
 import { MEDIA_EXTENSIONS, mediaFileExtensionPattern, mediaMimeType, shouldStreamDesktopMedia } from '../media/extensions'
 import { createPositionedFileStream } from './positionedFileStream'
 
@@ -24,15 +24,15 @@ function downloadBrowserBlob(blob: Blob, filename: string): string {
   return filename
 }
 
-export async function saveProjectFile(project: CutlineProjectDocument): Promise<string | undefined> {
+export async function saveProjectFile(project: EditWeaveProjectDocument): Promise<string | undefined> {
   const contents = JSON.stringify(project, null, 2)
-  const safeName = project.name.replace(/[<>:"/\\|?*]+/g, '-').trim() || 'cutline-project'
+  const safeName = project.name.replace(/[<>:"/\\|?*]+/g, '-').trim() || 'editweave-project'
 
   if (isTauri()) {
     const path = await save({
-      title: 'Cutline 프로젝트 저장',
+      title: 'EditWeave 프로젝트 저장',
       defaultPath: `${safeName}.${PROJECT_EXTENSION}`,
-      filters: [{ name: 'Cutline Project', extensions: ['json'] }],
+      filters: [{ name: 'EditWeave Project', extensions: ['json'] }],
     })
     if (!path) return undefined
     await writeTextFile(path, contents)
@@ -44,23 +44,23 @@ export async function saveProjectFile(project: CutlineProjectDocument): Promise<
 
 export async function selectProjectSavePath(projectName: string): Promise<string | undefined> {
   if (!isTauri()) return undefined
-  const safeName = projectName.replace(/[<>:"/\\|?*]+/g, '-').trim() || 'cutline-project'
-  const path = await save({ title: 'Cutline 프로젝트 저장', defaultPath: `${safeName}.${PROJECT_EXTENSION}`, filters: [{ name: 'Cutline Project', extensions: ['json'] }] })
+  const safeName = projectName.replace(/[<>:"/\\|?*]+/g, '-').trim() || 'editweave-project'
+  const path = await save({ title: 'EditWeave 프로젝트 저장', defaultPath: `${safeName}.${PROJECT_EXTENSION}`, filters: [{ name: 'EditWeave Project', extensions: ['json'] }] })
   return path || undefined
 }
 
-export async function writeProjectFileAtPath(path: string, project: CutlineProjectDocument): Promise<void> {
+export async function writeProjectFileAtPath(path: string, project: EditWeaveProjectDocument): Promise<void> {
   if (!isTauri()) throw new Error('프로젝트 경로 저장은 데스크톱 앱에서만 사용할 수 있습니다.')
   await writeTextFile(path, JSON.stringify(project, null, 2))
 }
 
-export async function openProjectFileNative(): Promise<{ project: CutlineProjectDocument; path: string } | undefined> {
+export async function openProjectFileNative(): Promise<{ project: EditWeaveProjectDocument; path: string } | undefined> {
   if (!isTauri()) return undefined
   const path = await open({
-    title: 'Cutline 프로젝트 열기',
+    title: 'EditWeave 프로젝트 열기',
     multiple: false,
     directory: false,
-    filters: [{ name: 'Cutline Project', extensions: ['json'] }],
+    filters: [{ name: 'EditWeave Project', extensions: ['json'] }],
   })
   if (!path || Array.isArray(path)) return undefined
   return { project: resolveProjectMediaPaths(parseProjectDocument(await readTextFile(path)), path), path }
@@ -84,12 +84,12 @@ export async function openExchangeFileNative(): Promise<{ contents: string; name
   return { contents: await readTextFile(path), name: path.split(/[\\/]/).pop() ?? 'import.fcpxml' }
 }
 
-export async function openProjectFileAtPath(path: string): Promise<CutlineProjectDocument> {
+export async function openProjectFileAtPath(path: string): Promise<EditWeaveProjectDocument> {
   if (!isTauri()) throw new Error('최근 프로젝트는 데스크톱 앱에서만 열 수 있습니다.')
   return resolveProjectMediaPaths(parseProjectDocument(await readTextFile(path)), path)
 }
 
-function resolveProjectMediaPaths(project: CutlineProjectDocument, projectPath: string): CutlineProjectDocument {
+function resolveProjectMediaPaths(project: EditWeaveProjectDocument, projectPath: string): EditWeaveProjectDocument {
   const normalized = projectPath.replace(/\\/g, '/')
   const base = normalized.slice(0, Math.max(0, normalized.lastIndexOf('/')))
   const resolve = (path: string | undefined) => {
@@ -129,7 +129,7 @@ export async function createDeliveryPackage(projectName: string, sources: Array<
   if (typeof destination !== 'string') return undefined
   const separator = destination.includes('\\') ? '\\' : '/'
   const join = (...parts: string[]) => parts.filter(Boolean).join(separator)
-  const safeProject = projectName.replace(/[<>:"/\\|?*]+/g, '-').trim() || 'Cutline-Delivery'
+  const safeProject = projectName.replace(/[<>:"/\\|?*]+/g, '-').trim() || 'EditWeave-Delivery'
   let directory = join(destination, `${safeProject}-Delivery`)
   let suffix = 2
   while (await exists(directory)) directory = join(destination, `${safeProject}-Delivery-${suffix++}`)
@@ -171,7 +171,7 @@ export async function createDeliveryPackage(projectName: string, sources: Array<
     }
   }
   const manifest = {
-    schema: 'cutline-delivery-package-v1', projectName, createdAt: new Date().toISOString(),
+    schema: 'editweave-delivery-package-v1', projectName, createdAt: new Date().toISOString(),
     masters: copied.filter((item) => item.target.startsWith('Masters/')),
     audioStems: copied.filter((item) => item.target.startsWith('Audio-Stems/') && !item.label?.toLocaleLowerCase().includes('mixdown')),
     audioMixdowns: copied.filter((item) => item.target.startsWith('Audio-Stems/') && item.label?.toLocaleLowerCase().includes('mixdown')),
@@ -181,7 +181,7 @@ export async function createDeliveryPackage(projectName: string, sources: Array<
   return { directory, copiedFiles: copied.length, documentFiles, failures }
 }
 
-export async function createProjectArchive(project: CutlineProjectDocument, requestedOptions?: Partial<ProjectArchiveOptions>): Promise<ProjectArchiveResult | undefined> {
+export async function createProjectArchive(project: EditWeaveProjectDocument, requestedOptions?: Partial<ProjectArchiveOptions>): Promise<ProjectArchiveResult | undefined> {
   if (!isTauri()) throw new Error('프로젝트 아카이브는 데스크톱 앱에서 사용할 수 있습니다.')
   const options: ProjectArchiveOptions = { mediaMode: 'full', handleSeconds: 2, includeUnused: true, includeProxies: true, ...requestedOptions }
   options.handleSeconds = Math.max(0, Math.min(120, options.handleSeconds))
@@ -189,7 +189,7 @@ export async function createProjectArchive(project: CutlineProjectDocument, requ
   if (typeof destination !== 'string') return undefined
   const separator = destination.includes('\\') ? '\\' : '/'
   const join = (...parts: string[]) => parts.filter(Boolean).join(separator)
-  const safeProject = project.name.replace(/[<>:"/\\|?*]+/g, '-').trim() || 'Cutline-Project'
+  const safeProject = project.name.replace(/[<>:"/\\|?*]+/g, '-').trim() || 'EditWeave-Project'
   let archiveDirectory = join(destination, `${safeProject}-Archive`)
   let suffix = 2
   while (await exists(archiveDirectory)) archiveDirectory = join(destination, `${safeProject}-Archive-${suffix++}`)
@@ -273,7 +273,7 @@ export async function createProjectArchive(project: CutlineProjectDocument, requ
   }
   const rewrittenSequences = getProjectSequences(project).map((sequence) => rewriteArchivedSequence(sequence, includedAssets, trimStarts))
   const archivedActiveSequence = rewrittenSequences.find((sequence) => sequence.id === project.activeSequenceId) ?? rewrittenSequences[0]
-  const archivedProject: CutlineProjectDocument = {
+  const archivedProject: EditWeaveProjectDocument = {
     ...project,
     assets: includedAssets.map((asset) => {
       const root = project.assets.find((candidate) => candidate.id === (asset.parentAssetId ?? asset.id))
@@ -304,15 +304,15 @@ export async function createProjectArchive(project: CutlineProjectDocument, requ
     audioBuses: archivedActiveSequence?.audioBuses ?? project.audioBuses,
     updatedAt: new Date().toISOString(),
   }
-  const projectPath = join(archiveDirectory, `${safeProject}.cutline.json`)
+  const projectPath = join(archiveDirectory, `${safeProject}.editweave.json`)
   await writeTextFile(projectPath, JSON.stringify(archivedProject, null, 2))
   const excludedUnusedMedia = project.assets.filter((asset) => !asset.parentAssetId).length - rootAssets.length
   const trimmedMedia = trimStarts.size
-  await writeTextFile(join(archiveDirectory, 'Archive-Manifest.json'), JSON.stringify({ schema: 'cutline-project-archive-v2', projectId: project.id, projectName: project.name, createdAt: new Date().toISOString(), options, mediaCount, proxyCount, excludedUnusedMedia, trimmedMedia, failures }, null, 2))
+  await writeTextFile(join(archiveDirectory, 'Archive-Manifest.json'), JSON.stringify({ schema: 'editweave-project-archive-v2', projectId: project.id, projectName: project.name, createdAt: new Date().toISOString(), options, mediaCount, proxyCount, excludedUnusedMedia, trimmedMedia, failures }, null, 2))
   return { directory: archiveDirectory, projectPath, mediaCount, proxyCount, trimmedMedia, excludedUnusedMedia, failures }
 }
 
-function archiveSourceSpans(project: CutlineProjectDocument, rootByAssetId: Map<string, string>, handleSeconds: number): Map<string, { start: number; duration: number }> {
+function archiveSourceSpans(project: EditWeaveProjectDocument, rootByAssetId: Map<string, string>, handleSeconds: number): Map<string, { start: number; duration: number }> {
   const assets = new Map(project.assets.map((asset) => [asset.id, asset]))
   const bounds = new Map<string, { start: number; end: number; asset: PersistedMediaAsset }>()
   for (const sequence of getProjectSequences(project)) {
@@ -343,7 +343,7 @@ function rewriteArchivedSequence(sequence: ProjectSequence, assets: PersistedMed
   return { ...sequence, tracks }
 }
 
-export async function openProjectFromBrowserFile(file: File): Promise<CutlineProjectDocument> {
+export async function openProjectFromBrowserFile(file: File): Promise<EditWeaveProjectDocument> {
   return parseProjectDocument(await file.text())
 }
 
@@ -450,7 +450,7 @@ function littleEndianU64(value: number): Uint8Array {
 }
 
 export async function mediaFileQuickSignature(file: File): Promise<string | undefined> {
-  const path = (file as File & { __cutlineSourcePath?: string }).__cutlineSourcePath
+  const path = (file as File & { __editweaveSourcePath?: string }).__editweaveSourcePath
   if (isTauri() && path) return invoke<string>('media_file_signature', { path }).catch(() => undefined)
   const size = file.size
   const chunkSize = 1024 * 1024
@@ -458,7 +458,7 @@ export async function mediaFileQuickSignature(file: File): Promise<string | unde
   if (size > chunkSize * 2) sections.push({ label: 'middle', offset: Math.floor(size / 2) })
   if (size > chunkSize) sections.push({ label: 'last', offset: Math.max(0, size - chunkSize) })
   try {
-    const parts: Uint8Array[] = [new TextEncoder().encode('cutline-media-signature-v1\0'), littleEndianU64(size)]
+    const parts: Uint8Array[] = [new TextEncoder().encode('editweave-media-signature-v1\0'), littleEndianU64(size)]
     for (const section of sections) {
       parts.push(new TextEncoder().encode(section.label), littleEndianU64(section.offset), new Uint8Array(await file.slice(section.offset, Math.min(size, section.offset + chunkSize)).arrayBuffer()))
     }
@@ -504,11 +504,11 @@ export async function readMediaFilesFromPaths(paths: string[], importFolderByPat
       const streamFromPath = shouldStreamDesktopMedia(name)
       const bytes = streamFromPath ? new Uint8Array() : await readFile(authorizedPath)
       const file = new File([bytes], name, { type: mediaMimeType(name), lastModified: info.mtime?.getTime() ?? Date.now() })
-      Object.defineProperty(file, '__cutlineSourcePath', { value: authorizedPath, enumerable: false })
-      Object.defineProperty(file, '__cutlineFileSize', { value: info.size, enumerable: false })
-      Object.defineProperty(file, '__cutlineStreaming', { value: streamFromPath, enumerable: false })
-      Object.defineProperty(file, '__cutlineStreamUrl', { value: streamFromPath ? convertFileSrc(authorizedPath) : undefined, enumerable: false })
-      Object.defineProperty(file, '__cutlineImportFolder', { value: importFolderByPath[path.replace(/\\/g, '/').toLocaleLowerCase()], enumerable: false })
+      Object.defineProperty(file, '__editweaveSourcePath', { value: authorizedPath, enumerable: false })
+      Object.defineProperty(file, '__editweaveFileSize', { value: info.size, enumerable: false })
+      Object.defineProperty(file, '__editweaveStreaming', { value: streamFromPath, enumerable: false })
+      Object.defineProperty(file, '__editweaveStreamUrl', { value: streamFromPath ? convertFileSrc(authorizedPath) : undefined, enumerable: false })
+      Object.defineProperty(file, '__editweaveImportFolder', { value: importFolderByPath[path.replace(/\\/g, '/').toLocaleLowerCase()], enumerable: false })
         results[index] = { status: 'fulfilled', value: file }
       } catch (reason) {
         results[index] = { status: 'rejected', reason }
@@ -528,7 +528,7 @@ export async function readMediaFilesFromPaths(paths: string[], importFolderByPat
 export type RenderContainer = 'mp4' | 'mov'
 
 export async function saveRenderedVideo(buffer: ArrayBuffer, filename: string, container: RenderContainer = 'mp4'): Promise<string | undefined> {
-  const safeName = filename.replace(/[<>:"/\\|?*]+/g, '-').replace(/\.(mp4|mov)$/i, '').trim() || 'cutline-export'
+  const safeName = filename.replace(/[<>:"/\\|?*]+/g, '-').replace(/\.(mp4|mov)$/i, '').trim() || 'editweave-export'
   if (isTauri()) {
     const path = await save({
       title: container === 'mov' ? 'MOV 마스터 저장' : 'MP4 영상 저장',
@@ -551,7 +551,7 @@ export async function saveRenderedVideo(buffer: ArrayBuffer, filename: string, c
 
 export async function saveFrameImage(buffer: ArrayBuffer, filename: string, format: 'png' | 'jpeg'): Promise<string | undefined> {
   const extension = format === 'jpeg' ? 'jpg' : 'png'
-  const safeName = filename.replace(/[<>:"/\\|?*]+/g, '-').replace(/\.(png|jpe?g)$/i, '').trim() || 'cutline-frame'
+  const safeName = filename.replace(/[<>:"/\\|?*]+/g, '-').replace(/\.(png|jpe?g)$/i, '').trim() || 'editweave-frame'
   if (isTauri()) {
     const path = await save({ title: '현재 프레임 저장', defaultPath: `${safeName}.${extension}`, filters: [{ name: format === 'jpeg' ? 'JPEG Image' : 'PNG Image', extensions: [extension] }] })
     if (!path) return undefined
@@ -575,7 +575,7 @@ export async function prepareRenderedVideoTarget(filename: string): Promise<{ pa
 
 export async function selectRenderedVideoPath(filename: string, container: RenderContainer = 'mp4'): Promise<string | undefined> {
   if (!isTauri()) return undefined
-  const safeName = filename.replace(/[<>:"/\\|?*]+/g, '-').replace(/\.(mp4|mov)$/i, '').trim() || 'cutline-export'
+  const safeName = filename.replace(/[<>:"/\\|?*]+/g, '-').replace(/\.(mp4|mov)$/i, '').trim() || 'editweave-export'
   const path = await save({
     title: container === 'mov' ? 'MOV 마스터 저장' : 'MP4 영상 저장',
     defaultPath: `${safeName}.${container}`,
@@ -586,7 +586,7 @@ export async function selectRenderedVideoPath(filename: string, container: Rende
 
 export async function selectAudioWavPath(filename: string): Promise<string | undefined> {
   if (!isTauri()) return undefined
-  const safeName = filename.replace(/[<>:"/\\|?*]+/g, '-').replace(/\.wav$/i, '').trim() || 'cutline-audio-master'
+  const safeName = filename.replace(/[<>:"/\\|?*]+/g, '-').replace(/\.wav$/i, '').trim() || 'editweave-audio-master'
   const path = await save({ title: 'Full Mix WAV 저장', defaultPath: `${safeName}-Full-Mix.wav`, filters: [{ name: 'Wave Audio', extensions: ['wav'] }] })
   return path || undefined
 }
@@ -609,7 +609,7 @@ export async function prepareRenderedVideoTargetInDirectory(directory: string, f
 }
 
 export async function reserveRenderedVideoPathInDirectory(directory: string, filename: string, container: RenderContainer = 'mp4'): Promise<string> {
-  const safeName = filename.replace(/[<>:"/\\|?*]+/g, '-').replace(/\.(mp4|mov)$/i, '').trim() || 'cutline-export'
+  const safeName = filename.replace(/[<>:"/\\|?*]+/g, '-').replace(/\.(mp4|mov)$/i, '').trim() || 'editweave-export'
   const separator = directory.endsWith('/') || directory.endsWith('\\') ? '' : directory.includes('\\') ? '\\' : '/'
   let path = `${directory}${separator}${safeName}.${container}`
   let suffix = 2
@@ -618,7 +618,7 @@ export async function reserveRenderedVideoPathInDirectory(directory: string, fil
 }
 
 export async function reserveAudioWavPathInDirectory(directory: string, filename: string): Promise<string> {
-  const safeName = filename.replace(/[<>:"/\\|?*]+/g, '-').replace(/\.wav$/i, '').trim() || 'cutline-audio-master'
+  const safeName = filename.replace(/[<>:"/\\|?*]+/g, '-').replace(/\.wav$/i, '').trim() || 'editweave-audio-master'
   const separator = directory.endsWith('/') || directory.endsWith('\\') ? '' : directory.includes('\\') ? '\\' : '/'
   let path = `${directory}${separator}${safeName}-Full-Mix.wav`
   let suffix = 2
@@ -639,8 +639,8 @@ export async function prepareAudioStemTarget(videoPath: string, stemName: string
   const separatorIndex = normalized.lastIndexOf('/')
   const directory = separatorIndex >= 0 ? videoPath.slice(0, separatorIndex) : ''
   const separator = videoPath.includes('\\') ? '\\' : '/'
-  const rawBaseName = normalized.slice(separatorIndex + 1).replace(/\.[^.]+$/, '').replace(/[<>:"/\\|?*]+/g, '-').trim() || 'cutline-export'
-  const baseName = /\.wav$/i.test(normalized) ? rawBaseName.replace(/-Full-Mix(?:-\d+)?$/i, '') || 'cutline-export' : rawBaseName
+  const rawBaseName = normalized.slice(separatorIndex + 1).replace(/\.[^.]+$/, '').replace(/[<>:"/\\|?*]+/g, '-').trim() || 'editweave-export'
+  const baseName = /\.wav$/i.test(normalized) ? rawBaseName.replace(/-Full-Mix(?:-\d+)?$/i, '') || 'editweave-export' : rawBaseName
   const safeStem = stemName.replace(/[<>:"/\\|?*]+/g, '-').trim() || 'stem'
   let path = `${directory}${directory ? separator : ''}${baseName}-${safeStem}.wav`
   let suffix = 2
@@ -649,7 +649,7 @@ export async function prepareAudioStemTarget(videoPath: string, stemName: string
 }
 
 export async function saveAudioStem(buffer: ArrayBuffer, filename: string, stemName: string): Promise<string | undefined> {
-  const safeName = filename.replace(/[<>:"/\\|?*]+/g, '-').replace(/\.(mp4|wav)$/i, '').trim() || 'cutline-export'
+  const safeName = filename.replace(/[<>:"/\\|?*]+/g, '-').replace(/\.(mp4|wav)$/i, '').trim() || 'editweave-export'
   const safeStem = stemName.replace(/[<>:"/\\|?*]+/g, '-').trim() || 'stem'
   const downloadName = `${safeName}-${safeStem}.wav`
   return downloadBrowserBlob(new Blob([buffer], { type: 'audio/wav' }), downloadName)
@@ -668,7 +668,7 @@ async function createRenderedVideoTarget(path: string): Promise<{ path: string; 
 }
 
 export async function saveSubtitleFile(contents: string, filename: string, format: 'srt' | 'vtt' | 'ttml' = 'srt'): Promise<string | undefined> {
-  const safeName = filename.replace(/[<>:"/\\|?*]+/g, '-').replace(/\.(srt|vtt|ttml)$/i, '').trim() || 'cutline-subtitles'
+  const safeName = filename.replace(/[<>:"/\\|?*]+/g, '-').replace(/\.(srt|vtt|ttml)$/i, '').trim() || 'editweave-subtitles'
   if (isTauri()) {
     const path = await save({
       title: `${format.toUpperCase()} 자막 저장`,
@@ -684,7 +684,7 @@ export async function saveSubtitleFile(contents: string, filename: string, forma
 
 export async function saveExchangeFile(contents: string, filename: string, format: 'otio' | 'premiere-xml' | 'fcpxml' | 'edl'): Promise<string | undefined> {
   const extension = format === 'premiere-xml' ? 'xml' : format
-  const safeName = filename.replace(/[<>:"/\\|?*]+/g, '-').replace(/\.(xml|fcpxml|edl)$/i, '').trim() || 'cutline-timeline'
+  const safeName = filename.replace(/[<>:"/\\|?*]+/g, '-').replace(/\.(xml|fcpxml|edl)$/i, '').trim() || 'editweave-timeline'
   if (isTauri()) {
     const path = await save({
       title: format === 'otio' ? 'OpenTimelineIO 타임라인 저장' : format === 'premiere-xml' ? 'Premiere Pro XML 타임라인 저장' : format === 'fcpxml' ? 'FCPXML 타임라인 저장' : 'EDL 타임라인 저장',
@@ -701,7 +701,7 @@ export async function saveExchangeFile(contents: string, filename: string, forma
 export async function saveMarkerDeliveryFile(contents: string, filename: string, format: 'chapters' | 'markers'): Promise<string | undefined> {
   const extension = format === 'chapters' ? 'txt' : 'csv'
   const suffix = format === 'chapters' ? 'chapters' : 'markers'
-  const safeName = filename.replace(/[<>:"/\\|?*]+/g, '-').replace(/\.(txt|csv)$/i, '').trim() || 'cutline-timeline'
+  const safeName = filename.replace(/[<>:"/\\|?*]+/g, '-').replace(/\.(txt|csv)$/i, '').trim() || 'editweave-timeline'
   const downloadName = `${safeName}-${suffix}.${extension}`
   if (isTauri()) {
     const path = await save({ title: format === 'chapters' ? '챕터 목록 저장' : '마커 보고서 저장', defaultPath: downloadName, filters: [{ name: format === 'chapters' ? 'Chapter Text' : 'Marker CSV', extensions: [extension] }] })
@@ -714,7 +714,7 @@ export async function saveMarkerDeliveryFile(contents: string, filename: string,
 }
 
 export async function saveReviewFile(contents: string, filename: string): Promise<string | undefined> {
-  const safeName = filename.replace(/[<>:"/\\|?*]+/g, '-').replace(/\.csv$/i, '').trim() || 'cutline-review'
+  const safeName = filename.replace(/[<>:"/\\|?*]+/g, '-').replace(/\.csv$/i, '').trim() || 'editweave-review'
   if (isTauri()) {
     const path = await save({ title: '검토 코멘트 CSV 저장', defaultPath: `${safeName}.csv`, filters: [{ name: 'CSV', extensions: ['csv'] }] })
     if (!path) return undefined
@@ -725,7 +725,7 @@ export async function saveReviewFile(contents: string, filename: string): Promis
 }
 
 export async function saveMediaMetadataFile(contents: string, filename: string): Promise<string | undefined> {
-  const safeName = filename.replace(/[<>:"/\\|?*]+/g, '-').replace(/\.csv$/i, '').trim() || 'cutline-media-metadata'
+  const safeName = filename.replace(/[<>:"/\\|?*]+/g, '-').replace(/\.csv$/i, '').trim() || 'editweave-media-metadata'
   const downloadName = `${safeName}.csv`
   const payload = contents.startsWith('\uFEFF') ? contents : `\uFEFF${contents}`
   if (isTauri()) {
@@ -738,12 +738,12 @@ export async function saveMediaMetadataFile(contents: string, filename: string):
 }
 
 export async function saveReviewPackageFile(contents: string, filename: string): Promise<string | undefined> {
-  const safeName = filename.replace(/[<>:"/\\|?*]+/g, '-').replace(/\.cutline-review\.json$/i, '').trim() || 'cutline-review'
+  const safeName = filename.replace(/[<>:"/\\|?*]+/g, '-').replace(/\.editweave-review\.json$/i, '').trim() || 'editweave-review'
   if (isTauri()) {
-    const path = await save({ title: 'Cutline 검토 패키지 저장', defaultPath: `${safeName}.cutline-review.json`, filters: [{ name: 'Cutline Review', extensions: ['json'] }] })
+    const path = await save({ title: 'EditWeave 검토 패키지 저장', defaultPath: `${safeName}.editweave-review.json`, filters: [{ name: 'EditWeave Review', extensions: ['json'] }] })
     if (!path) return undefined
     await writeTextFile(path, contents)
     return path
   }
-  return downloadBrowserBlob(new Blob([contents], { type: 'application/json;charset=utf-8' }), `${safeName}.cutline-review.json`)
+  return downloadBrowserBlob(new Blob([contents], { type: 'application/json;charset=utf-8' }), `${safeName}.editweave-review.json`)
 }

@@ -32,7 +32,7 @@ export interface LoudnessConformance {
 
 export const audioDeliveryProfiles: Record<AudioDeliveryProfileId, AudioDeliveryProfile> = {
   'web-video': {
-    id: 'web-video', name: 'Web 영상 · Cutline -14', targetLufs: -14, toleranceLu: 2, maxTruePeakDbtp: -1,
+    id: 'web-video', name: 'Web 영상 · EditWeave -14', targetLufs: -14, toleranceLu: 2, maxTruePeakDbtp: -1,
     allowedSampleRates: [44_100, 48_000, 96_000], allowedChannels: [1, 2, 6],
   },
   'broadcast-ebu-r128': {
@@ -40,7 +40,7 @@ export const audioDeliveryProfiles: Record<AudioDeliveryProfileId, AudioDelivery
     allowedSampleRates: [48_000], allowedChannels: [2, 6], requiredStemRoles: [...audioRoles], require24BitWav: true,
   },
   'podcast-stereo': {
-    id: 'podcast-stereo', name: '팟캐스트 스테레오 · Cutline -16', targetLufs: -16, toleranceLu: 1, maxTruePeakDbtp: -1,
+    id: 'podcast-stereo', name: '팟캐스트 스테레오 · EditWeave -16', targetLufs: -16, toleranceLu: 1, maxTruePeakDbtp: -1,
     allowedSampleRates: [44_100, 48_000], allowedChannels: [2],
   },
 }
@@ -139,14 +139,14 @@ export function audioChannelLabels(channels: 1 | 2 | 6): string[] {
 }
 
 export interface AudioDeliveryBenchmark {
-  version: 'cutline-audio-delivery-v1'
+  version: 'editweave-audio-delivery-v1'
   provenance: 'synthetic-reference' | 'measured-lab'
   cases: Array<{ id: string; profileId: AudioDeliveryProfileId; integratedLufs: number; truePeakDbtp: number; expected: 'pass' | 'fail' }>
 }
 
 export function evaluateAudioDeliveryBenchmark(value: unknown): { cases: number; passed: number; mismatches: string[] } {
   const benchmark = value as Partial<AudioDeliveryBenchmark>
-  if (benchmark.version !== 'cutline-audio-delivery-v1' || !['synthetic-reference', 'measured-lab'].includes(benchmark.provenance ?? '') || !Array.isArray(benchmark.cases)) throw new Error('지원되는 오디오 납품 기준셋 형식이 아닙니다.')
+  if (benchmark.version !== 'editweave-audio-delivery-v1' || !['synthetic-reference', 'measured-lab'].includes(benchmark.provenance ?? '') || !Array.isArray(benchmark.cases)) throw new Error('지원되는 오디오 납품 기준셋 형식이 아닙니다.')
   const mismatches: string[] = []
   for (const item of benchmark.cases) {
     if (!item.id || !(item.profileId in audioDeliveryProfiles) || !Number.isFinite(item.integratedLufs) || !Number.isFinite(item.truePeakDbtp) || !['pass', 'fail'].includes(item.expected)) throw new Error('오디오 납품 기준 사례가 올바르지 않습니다.')

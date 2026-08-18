@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'cutline-recent-projects-v1'
+const STORAGE_KEY = 'editweave-recent-projects-v1'
 const MAX_RECENT_PROJECTS = 10
 
 export interface RecentProjectEntry {
@@ -42,5 +42,5 @@ export function forgetRecentProject(path: string): RecentProjectEntry[] {
 }
 
 function projectNameFromPath(path: string): string {
-  return path.split(/[\\/]/).pop()?.replace(/\.cutline\.json$/i, '').replace(/\.json$/i, '') || 'Cutline 프로젝트'
+  return path.split(/[\\/]/).pop()?.replace(/\.editweave\.json$/i, '').replace(/\.json$/i, '') || 'EditWeave 프로젝트'
 }

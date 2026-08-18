@@ -4,12 +4,12 @@ const STALE_AFTER_MS: u64 = 45_000;
 
 fn lock_path(project_path: &Path) -> Result<PathBuf, String> {
     let name = project_path.file_name().and_then(|value| value.to_str()).ok_or_else(|| "프로젝트 파일 이름이 올바르지 않습니다.".to_string())?;
-    Ok(project_path.with_file_name(format!(".{name}.cutline-lock")))
+    Ok(project_path.with_file_name(format!(".{name}.editweave-lock")))
 }
 
 fn owner(instance_id: &str, now_ms: u64) -> serde_json::Value {
     serde_json::json!({
-        "schema": "cutline-project-lock-v1",
+        "schema": "editweave-project-lock-v1",
         "instanceId": instance_id,
         "user": std::env::var("USERNAME").or_else(|_| std::env::var("USER")).unwrap_or_else(|_| "unknown".into()),
         "host": std::env::var("COMPUTERNAME").or_else(|_| std::env::var("HOSTNAME")).unwrap_or_else(|_| "unknown".into()),

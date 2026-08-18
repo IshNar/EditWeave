@@ -2,7 +2,7 @@ import { isTauri } from '@tauri-apps/api/core'
 import { getVersion } from '@tauri-apps/api/app'
 
 export interface CrashReport {
-  schema: 'cutline-crash-v1'
+  schema: 'editweave-crash-v1'
   id: string
   occurredAt: string
   kind: 'react' | 'window' | 'promise'
@@ -19,12 +19,12 @@ export interface CrashReport {
 
 type PublicCrashReport = Omit<CrashReport, 'attempts' | 'nextAttemptAt'>
 
-const REPORT_KEY = 'cutline.crash-reports.v1'
-const CONSENT_KEY = 'cutline.crash-consent.v1'
+const REPORT_KEY = 'editweave.crash-reports.v1'
+const CONSENT_KEY = 'editweave.crash-consent.v1'
 let flushing: Promise<void> | undefined
 let lastSignature = ''
 let lastRecordedAt = 0
-let detectedAppVersion = clean((import.meta.env.VITE_CUTLINE_APP_VERSION as string | undefined) ?? '0.1.0', 80)
+let detectedAppVersion = clean((import.meta.env.VITE_EDITWEAVE_APP_VERSION as string | undefined) ?? '0.1.0', 80)
 
 export function hasCrashConsent(): boolean {
   try {
@@ -50,7 +50,7 @@ export function recordCrash(error: Error, componentStack?: string, kind: CrashRe
   lastSignature = signature
   lastRecordedAt = now
   const report: CrashReport = {
-    schema: 'cutline-crash-v1',
+    schema: 'editweave-crash-v1',
     id: crypto.randomUUID(),
     occurredAt: new Date(now).toISOString(),
     kind,
@@ -76,7 +76,7 @@ export async function submitCrashIfConsented(report: CrashReport): Promise<void>
   try {
     const response = await fetch(endpoint, {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-cutline-schema': 'cutline-crash-v1' },
+      headers: { 'content-type': 'application/json', 'x-editweave-schema': 'editweave-crash-v1' },
       body: JSON.stringify(publicReport(report)),
       cache: 'no-store',
       credentials: 'omit',
@@ -137,13 +137,13 @@ export function downloadCrashReports(): void {
   const url = URL.createObjectURL(new Blob([contents], { type: 'application/json' }))
   const anchor = document.createElement('a')
   anchor.href = url
-  anchor.download = `cutline-crash-report-${new Date().toISOString().slice(0, 10)}.json`
+  anchor.download = `editweave-crash-report-${new Date().toISOString().slice(0, 10)}.json`
   anchor.click()
   window.setTimeout(() => URL.revokeObjectURL(url), 0)
 }
 
 function crashEndpoint(): string | undefined {
-  const value = import.meta.env.VITE_CUTLINE_CRASH_ENDPOINT as string | undefined
+  const value = import.meta.env.VITE_EDITWEAVE_CRASH_ENDPOINT as string | undefined
   if (!value) return undefined
   try {
     const url = new URL(value, window.location.href)
@@ -162,7 +162,7 @@ function readReports(): CrashReport[] {
     if (!Array.isArray(value)) return []
     return value.filter((item): item is CrashReport => Boolean(item && typeof item === 'object' && typeof item.id === 'string' && typeof item.occurredAt === 'string' && typeof item.message === 'string')).map((item) => ({
       ...item,
-      schema: 'cutline-crash-v1' as const,
+      schema: 'editweave-crash-v1' as const,
       errorName: typeof item.errorName === 'string' ? clean(item.errorName, 120) : 'Error',
       kind: (['react', 'window', 'promise'].includes(item.kind) ? item.kind : 'react') as CrashReport['kind'],
       runtime: (item.runtime === 'desktop' ? 'desktop' : 'browser') as CrashReport['runtime'],
@@ -183,7 +183,7 @@ function writeReports(reports: CrashReport[]): void {
 
 function publicReport(report: CrashReport): PublicCrashReport {
   return {
-    schema: 'cutline-crash-v1',
+    schema: 'editweave-crash-v1',
     id: report.id,
     occurredAt: report.occurredAt,
     kind: report.kind,

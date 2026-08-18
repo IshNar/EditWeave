@@ -1,4 +1,4 @@
-{$CUTLINE_CRASH_DOMAIN} {
+{$EDITWEAVE_CRASH_DOMAIN} {
   encode zstd gzip
   reverse_proxy collector:8787
 

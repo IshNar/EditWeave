@@ -52,7 +52,7 @@ import { branchSequenceFromVersion, mergeProjectVersions, resolveProjectMergeCon
 import { createReviewPackage, mergeReviewComments, parseReviewPackage } from './editor/reviewPackage'
 import { createProjectDocument, getProjectSequences, parseProjectDocument, readAutosave, readAutosaveHistory, reconcileProjectAssets, restoreAssets, saveAutosave } from './editor/project'
 import { addTimelineTrack, extendTimelineClipAtEnd, extendTimelineClipAtStart, insertTimelineClip, insertTimelineGap, liftTimelineRange, linkClipsAtTime, moveClipGroup, overwriteMovedTimelineClips, removeTimelineRange, removeTimelineTrack, setClipGroup, snapClipStart, snapTimelineTime, splitTimelineClipsAt, trimTimelineClipAdvancedResult, unlinkClip, upsertMarker } from './editor/timelineOps'
-import type { AdrCue, AiActivityRecord, AspectRatio, AudioBusMap, AudioBusSettings, AudioRole, ClipMarker, ClipTransition, CutlineProjectDocument, EditMode, EditorTool, EditSuggestion, EditorPanel, MaskPoint, MediaAsset, MediaKind, ProjectMergeSession, ProjectSequence, ShortsCandidate, SourceGraphDomain, SpeakerVoiceProfile, TimelineClip, TimelineMarker, TimelineTrack, TitleTemplate, TrackKind, TranscriptSegment, TrimMode } from './editor/types'
+import type { AdrCue, AiActivityRecord, AspectRatio, AudioBusMap, AudioBusSettings, AudioRole, ClipMarker, ClipTransition, EditWeaveProjectDocument, EditMode, EditorTool, EditSuggestion, EditorPanel, MaskPoint, MediaAsset, MediaKind, ProjectMergeSession, ProjectSequence, ShortsCandidate, SourceGraphDomain, SpeakerVoiceProfile, TimelineClip, TimelineMarker, TimelineTrack, TitleTemplate, TrackKind, TranscriptSegment, TrimMode } from './editor/types'
 import { createRoughCutSuggestions, defaultCreatorLearningProfile, normalizeCreatorLearningProfile, recordSuggestionFeedback, resetCreatorFeedback } from './ai/roughCut'
 import { appendAiActivity, finishAiActivity, normalizeAiActivityLog, startAiActivity, updateAiActivity } from './ai/activity'
 import { enrichSemanticHighlights } from './ai/semanticHighlights'
@@ -81,7 +81,7 @@ import { openHdrRawSource } from './platform/hdrRawSource'
 import { applyHdrOutputMetadata, collectHdrOutputMetadata } from './platform/hdrMetadata'
 import { deleteLanReviewComment, startLanReviewSession, stopLanReviewSession, syncLanReviewSession, type LanReviewSession } from './platform/lanReview'
 import { acquireProjectLock, heartbeatProjectLock, releaseProjectLock, type ProjectLockResult } from './platform/projectLock'
-import { checkForUpdate, clearStoredUpdateAttempt, currentCutlineVersion, downloadVerifiedUpdateInstaller, launchVerifiedUpdateInstaller, markUpdateInstallerLaunched, markUpdateInstallerLaunchFailed, matchingStoredUpdateInstaller, prepareExistingVerifiedUpdateInstaller, reconcileStoredUpdateAttempt, rememberVerifiedUpdateInstaller, selectUpdateInstallerDestination } from './platform/update'
+import { checkForUpdate, clearStoredUpdateAttempt, currentEditWeaveVersion, downloadVerifiedUpdateInstaller, launchVerifiedUpdateInstaller, markUpdateInstallerLaunched, markUpdateInstallerLaunchFailed, matchingStoredUpdateInstaller, prepareExistingVerifiedUpdateInstaller, reconcileStoredUpdateAttempt, rememberVerifiedUpdateInstaller, selectUpdateInstallerDestination } from './platform/update'
 import { deleteVoiceoverRecording, persistVoiceoverRecording } from './platform/recordingStore'
 import { measureRenderedLoudness } from './platform/loudness'
 import { inspectAudioOutputSettings, inspectAudioProjectRouting, normalizeAudioDeliveryProfileId } from './platform/audioDeliveryConformance'
@@ -151,7 +151,7 @@ function resolvePreviewMediaAsset(asset: MediaAsset | undefined): MediaAsset | u
       imageSequenceFiles: undefined,
       imageSequencePaths: undefined,
       imageSequenceUrls: undefined,
-      streamingSource: Boolean((asset.proxyFile as (File & { __cutlineStreaming?: boolean }) | undefined)?.__cutlineStreaming),
+      streamingSource: Boolean((asset.proxyFile as (File & { __editweaveStreaming?: boolean }) | undefined)?.__editweaveStreaming),
       status: 'ready',
       error: undefined,
     }
@@ -393,17 +393,17 @@ function mediaFilenameKey(value: string | undefined): string {
 }
 
 function importedFileIdentity(file: File): string {
-  const pathFile = file as File & { __cutlineSourcePath?: string; __cutlineFileSize?: number }
-  const size = pathFile.__cutlineFileSize ?? file.size
-  const path = normalizedMediaPath(pathFile.__cutlineSourcePath)
+  const pathFile = file as File & { __editweaveSourcePath?: string; __editweaveFileSize?: number }
+  const size = pathFile.__editweaveFileSize ?? file.size
+  const path = normalizedMediaPath(pathFile.__editweaveSourcePath)
   return path ? `path:${path}|${size}` : `file:${file.name}|${size}|${file.lastModified}|${file.type}`
 }
 
 function isAlreadyConnectedSource(asset: MediaAsset, file: File, quickSignature?: string): boolean {
-  const pathFile = file as File & { __cutlineSourcePath?: string; __cutlineFileSize?: number }
-  const size = pathFile.__cutlineFileSize ?? file.size
+  const pathFile = file as File & { __editweaveSourcePath?: string; __editweaveFileSize?: number }
+  const size = pathFile.__editweaveFileSize ?? file.size
   const currentPath = normalizedMediaPath(asset.sourcePath)
-  const incomingPath = normalizedMediaPath(pathFile.__cutlineSourcePath)
+  const incomingPath = normalizedMediaPath(pathFile.__editweaveSourcePath)
   const hasComparableSignatures = asset.sourceQuickSignature !== undefined && quickSignature !== undefined
   const sourceRevisionMatches = hasComparableSignatures
     ? asset.sourceQuickSignature === quickSignature
@@ -436,7 +436,7 @@ function timelineTimeForClipSource(clip: TimelineClip, sourceTime: number): numb
 }
 
 function uniqueQueuedFilename(base: string, hint: string, jobs: RenderQueueJob[], targetProjectId: string): string {
-  const cleanBase = base.replace(/\.mp4$/i, '').trim() || 'cutline-export'
+  const cleanBase = base.replace(/\.mp4$/i, '').trim() || 'editweave-export'
   const used = new Set(jobs.filter((job) => job.projectId === targetProjectId).map((job) => job.settings.filename.replace(/\.mp4$/i, '').toLocaleLowerCase()))
   if (!used.has(cleanBase.toLocaleLowerCase())) return cleanBase
   const cleanHint = hint.replace(/[<>:"/\\|?*]+/g, '-').trim() || 'sequence'
@@ -488,7 +488,7 @@ function warpTrackedMaskPoint(point: MaskPoint, bounds: { minX: number; maxX: nu
 }
 
 export default function App() {
-  const restoredProjectRef = useRef<CutlineProjectDocument | undefined>(readAutosave())
+  const restoredProjectRef = useRef<EditWeaveProjectDocument | undefined>(readAutosave())
   const recoveredRenderRef = useRef<RenderRecoveryRecord | undefined>(readRenderRecovery())
   const restoredProject = restoredProjectRef.current
   const initialCreatedAtRef = useRef(restoredProject?.createdAt ?? new Date().toISOString())
@@ -603,7 +603,7 @@ export default function App() {
   const [shortcuts, setShortcuts] = useState<ShortcutMap>(() => readShortcuts())
   const [pendingTranscriptCut, setPendingTranscriptCut] = useState<TranscriptSegment | undefined>(undefined)
   const [checkingUpdate, setCheckingUpdate] = useState(false)
-  const [autosaveHistory, setAutosaveHistory] = useState<CutlineProjectDocument[]>([])
+  const [autosaveHistory, setAutosaveHistory] = useState<EditWeaveProjectDocument[]>([])
   const [mergeSessions, setMergeSessions] = useState<ProjectMergeSession[]>(restoredProject?.mergeSessions ?? [])
   const [transcriptionRunning, setTranscriptionRunning] = useState(false)
   const [transcriptionProgress, setTranscriptionProgress] = useState(0)
@@ -996,12 +996,12 @@ export default function App() {
 
   useEffect(() => {
     let cancelled = false
-    void currentCutlineVersion().then((version) => {
+    void currentEditWeaveVersion().then((version) => {
       if (cancelled) return
       const result = reconcileStoredUpdateAttempt(version)
-      if (result.status === 'applied') setToast(`Cutline ${result.targetVersion} 업데이트가 적용되었습니다.`)
-      else if (result.status === 'not-applied') setToast(`Cutline ${result.targetVersion} 업데이트가 적용되지 않았습니다. 업데이트 확인에서 기존 설치 파일을 다시 검증할 수 있습니다.`)
-      else if (result.status === 'expired') setToast(`Cutline ${result.targetVersion} 업데이트 재시도 기록이 만료되었습니다. 새 설치 파일을 받아주세요.`)
+      if (result.status === 'applied') setToast(`EditWeave ${result.targetVersion} 업데이트가 적용되었습니다.`)
+      else if (result.status === 'not-applied') setToast(`EditWeave ${result.targetVersion} 업데이트가 적용되지 않았습니다. 업데이트 확인에서 기존 설치 파일을 다시 검증할 수 있습니다.`)
+      else if (result.status === 'expired') setToast(`EditWeave ${result.targetVersion} 업데이트 재시도 기록이 만료되었습니다. 새 설치 파일을 받아주세요.`)
     }).catch(() => undefined)
     return () => { cancelled = true }
   }, [])
@@ -2478,13 +2478,13 @@ export default function App() {
         continue
       }
       pendingFiles.add(fileIdentity)
-      const pathFile = file as File & { __cutlineSourcePath?: string; __cutlineFileSize?: number; __cutlineStreaming?: boolean; __cutlineStreamUrl?: string; __cutlineImportFolder?: string; __cutlineImageSequenceFiles?: File[]; __cutlineImageSequenceFrameRate?: number }
-      const actualSize = pathFile.__cutlineFileSize ?? file.size
+      const pathFile = file as File & { __editweaveSourcePath?: string; __editweaveFileSize?: number; __editweaveStreaming?: boolean; __editweaveStreamUrl?: string; __editweaveImportFolder?: string; __editweaveImageSequenceFiles?: File[]; __editweaveImageSequenceFrameRate?: number }
+      const actualSize = pathFile.__editweaveFileSize ?? file.size
       const sourceQuickSignature = quickSignatureByFile.get(file)
-      const imageSequenceFiles = pathFile.__cutlineImageSequenceFiles
-      const imageSequenceFrameRate = pathFile.__cutlineImageSequenceFrameRate
+      const imageSequenceFiles = pathFile.__editweaveImageSequenceFiles
+      const imageSequenceFrameRate = pathFile.__editweaveImageSequenceFrameRate
       const imageSequencePaths = imageSequenceFiles?.flatMap((item) => {
-        const path = (item as File & { __cutlineSourcePath?: string }).__cutlineSourcePath
+        const path = (item as File & { __editweaveSourcePath?: string }).__editweaveSourcePath
         return path ? [path] : []
       })
       const imageSequenceUrls = imageSequenceFiles?.map((item) => URL.createObjectURL(item))
@@ -2495,7 +2495,7 @@ export default function App() {
         continue
       }
       const offlineMatch = currentAssets.find((asset) => (asset.status === 'offline' || asset.status === 'error') && !claimedOfflineIds.has(asset.id) && (isAlreadyConnectedSource(asset, file, sourceQuickSignature) || asset.name === file.name && asset.size === actualSize && (asset.sourceQuickSignature === undefined || sourceQuickSignature === undefined ? asset.sourceLastModified === undefined || Math.abs(asset.sourceLastModified - file.lastModified) < 2_000 : asset.sourceQuickSignature === sourceQuickSignature)))
-      const incomingPath = normalizedMediaPath(pathFile.__cutlineSourcePath)
+      const incomingPath = normalizedMediaPath(pathFile.__editweaveSourcePath)
       const changedPathMatch = incomingPath ? currentAssets.find((asset) => !asset.parentAssetId && !claimedOfflineIds.has(asset.id) && normalizedMediaPath(asset.sourcePath) === incomingPath && !isAlreadyConnectedSource(asset, file, sourceQuickSignature)) : undefined
       const matchedAsset = offlineMatch ?? changedPathMatch
       if (matchedAsset) claimedOfflineIds.add(matchedAsset.id)
@@ -2504,19 +2504,19 @@ export default function App() {
         id: matchedAsset?.id ?? crypto.randomUUID(),
         name: imageSequenceFiles?.length ? `${file.name.replace(/(\d+)(\.[^.]+)$/, '')}[${imageSequenceFiles.length} frames]` : file.name,
         kind: imageSequenceFiles?.length ? 'video' : getMediaKind(file) ?? 'video',
-        url: imageSequenceUrls?.[0] ?? pathFile.__cutlineStreamUrl ?? URL.createObjectURL(file),
+        url: imageSequenceUrls?.[0] ?? pathFile.__editweaveStreamUrl ?? URL.createObjectURL(file),
         sourceFile: file,
-        sourcePath: pathFile.__cutlineSourcePath ?? matchedAsset?.sourcePath,
+        sourcePath: pathFile.__editweaveSourcePath ?? matchedAsset?.sourcePath,
         sourceLastModified: file.lastModified,
         sourceQuickSignature,
         imageSequenceFiles,
         imageSequencePaths,
         imageSequenceUrls,
         imageSequenceFrameRate,
-        folder: matchedAsset?.folder ?? pathFile.__cutlineImportFolder,
-        streamingSource: Boolean(pathFile.__cutlineStreaming),
+        folder: matchedAsset?.folder ?? pathFile.__editweaveImportFolder,
+        streamingSource: Boolean(pathFile.__editweaveStreaming),
         duration: imageSequenceFiles?.length ? imageSequenceFiles.length / Math.max(1, imageSequenceFrameRate ?? activeSequenceFps) : matchedAsset?.duration ?? 10,
-        size: imageSequenceFiles?.reduce((sum, item) => sum + ((item as File & { __cutlineFileSize?: number }).__cutlineFileSize ?? item.size), 0) ?? actualSize,
+        size: imageSequenceFiles?.reduce((sum, item) => sum + ((item as File & { __editweaveFileSize?: number }).__editweaveFileSize ?? item.size), 0) ?? actualSize,
         extension: file.name.split('.').pop() ?? 'media',
         status: 'analyzing',
         analysisStartedAt: Date.now(),
@@ -2616,7 +2616,7 @@ export default function App() {
             } : item))
           }).catch(() => undefined)
         }
-        const streaming = Boolean((asset.sourceFile as File & { __cutlineStreaming?: boolean }).__cutlineStreaming)
+        const streaming = Boolean((asset.sourceFile as File & { __editweaveStreaming?: boolean }).__editweaveStreaming)
         const needsVideoProxy = asset.kind === 'video' && !asset.imageSequenceFiles?.length && Boolean(analyzedAsset.sourcePath) && (analyzedAsset.videoDecodable === false || Boolean(analyzedAsset.audioCodec && analyzedAsset.audioDecodable === false))
         const needsImageSequenceProxy = asset.kind === 'video' && Boolean(asset.imageSequenceFiles?.length && asset.imageSequencePaths?.length) && analyzedAsset.videoDecodable === false
         const needsAudioProxy = asset.kind === 'audio' && Boolean(analyzedAsset.sourcePath) && analyzedAsset.audioDecodable === false
@@ -2753,9 +2753,9 @@ export default function App() {
       return
     }
     const orderedFiles = matching.map((item) => item.file)
-    const carrier = orderedFiles[0] as File & { __cutlineImageSequenceFiles?: File[]; __cutlineImageSequenceFrameRate?: number }
-    carrier.__cutlineImageSequenceFiles = orderedFiles
-    carrier.__cutlineImageSequenceFrameRate = Math.max(1, Math.min(240, frameRate))
+    const carrier = orderedFiles[0] as File & { __editweaveImageSequenceFiles?: File[]; __editweaveImageSequenceFrameRate?: number }
+    carrier.__editweaveImageSequenceFiles = orderedFiles
+    carrier.__editweaveImageSequenceFrameRate = Math.max(1, Math.min(240, frameRate))
     void handleFiles([carrier])
   }, [handleFiles])
 
@@ -2771,8 +2771,8 @@ export default function App() {
       setToast(`원본 교체는 같은 미디어 종류만 가능합니다. 현재 ${asset.kind} · 선택 ${replacementKind}`)
       return false
     }
-    const pathFile = file as File & { __cutlineSourcePath?: string; __cutlineFileSize?: number; __cutlineStreaming?: boolean; __cutlineStreamUrl?: string }
-    const nextUrl = pathFile.__cutlineStreamUrl ?? URL.createObjectURL(file)
+    const pathFile = file as File & { __editweaveSourcePath?: string; __editweaveFileSize?: number; __editweaveStreaming?: boolean; __editweaveStreamUrl?: string }
+    const nextUrl = pathFile.__editweaveStreamUrl ?? URL.createObjectURL(file)
     const sourceSignaturePromise = mediaFileQuickSignature(file)
     const preserveConnectedProxy = preserveProxy && asset.proxyStatus === 'ready' && Boolean(asset.proxyFile || asset.proxyUrl || asset.proxyCachePath || asset.proxySourcePath)
     const manualTimecode = asset.timecodeSource === 'manual' ? {
@@ -2787,16 +2787,16 @@ export default function App() {
       kind: replacementKind,
       url: nextUrl,
       sourceFile: file,
-      sourcePath: pathFile.__cutlineSourcePath,
+      sourcePath: pathFile.__editweaveSourcePath,
       sourceLastModified: file.lastModified,
       sourceQuickSignature: asset.sourceQuickSignature,
-      streamingSource: Boolean(pathFile.__cutlineStreaming),
+      streamingSource: Boolean(pathFile.__editweaveStreaming),
       imageSequenceFiles: undefined,
       imageSequencePaths: undefined,
       imageSequenceUrls: undefined,
       imageSequenceFrameRate: undefined,
       duration: asset.duration,
-      size: pathFile.__cutlineFileSize ?? file.size,
+      size: pathFile.__editweaveFileSize ?? file.size,
       extension: file.name.split('.').pop() ?? asset.extension,
       width: undefined, height: undefined, videoCodec: undefined, videoDecodable: undefined, imageDecodable: undefined,
       frameRate: undefined, variableFrameRate: undefined, frameRateVariation: undefined,
@@ -2974,7 +2974,7 @@ export default function App() {
         return
       }
       const readResult = await readMediaFilesFromPaths([...new Set(selected.map(({ candidate }) => candidate.path))])
-      const filesByPath = new Map(readResult.files.map((file) => [normalizedMediaPath((file as File & { __cutlineSourcePath?: string }).__cutlineSourcePath), file]))
+      const filesByPath = new Map(readResult.files.map((file) => [normalizedMediaPath((file as File & { __editweaveSourcePath?: string }).__editweaveSourcePath), file]))
       let connected = 0
       for (const { asset, candidate } of selected) {
         if ((asset.imageSequencePaths?.length ?? 0) >= 2) {
@@ -3188,7 +3188,7 @@ export default function App() {
       setToast(`외부 프록시는 원본과 같은 미디어 종류여야 합니다. 원본 ${asset.kind} · 선택 ${proxyKind ?? '미지원'}`)
       return false
     }
-    const pathFile = file as File & { __cutlineSourcePath?: string; __cutlineFileSize?: number; __cutlineStreaming?: boolean; __cutlineStreamUrl?: string }
+    const pathFile = file as File & { __editweaveSourcePath?: string; __editweaveFileSize?: number; __editweaveStreaming?: boolean; __editweaveStreamUrl?: string }
     const proxyUrl = proxyPreviewUrl(file)
     setAssets((current) => current.map((item) => item.id === assetId ? { ...item, proxyStatus: 'loading', proxyError: undefined } : item))
     try {
@@ -3214,12 +3214,12 @@ export default function App() {
         ...item,
         proxyFile: file,
         proxyUrl,
-        proxySize: pathFile.__cutlineFileSize ?? file.size,
+        proxySize: pathFile.__editweaveFileSize ?? file.size,
         proxyWidth: analysis.width,
         proxyHeight: analysis.height,
         proxyFrameRate: analysis.frameRate,
         proxyCachePath: undefined,
-        proxySourcePath: pathFile.__cutlineSourcePath,
+        proxySourcePath: pathFile.__editweaveSourcePath,
         proxySourceName: file.name,
         proxyOrigin: 'attached' as const,
         proxyPurpose: 'external' as const,
@@ -3913,7 +3913,7 @@ export default function App() {
     try {
       const sourceAtStart = clipSourceTime(clip, clip.start)
       const sourceAtEnd = clipSourceTime(clip, clip.start + clip.duration)
-      const trackingAsset = asset.useProxy && asset.proxyFile ? { ...asset, sourceFile: asset.proxyFile, sourcePath: (asset.proxyFile as File & { __cutlineSourcePath?: string }).__cutlineSourcePath } : asset
+      const trackingAsset = asset.useProxy && asset.proxyFile ? { ...asset, sourceFile: asset.proxyFile, sourcePath: (asset.proxyFile as File & { __editweaveSourcePath?: string }).__editweaveSourcePath } : asset
       const frames = await createVideoForegroundMasks(trackingAsset.sourceFile!, trackingAsset.sourcePath, sourceAtStart, sourceAtEnd, {
         signal: controller.signal,
         onProgress: (progress, stage) => { setBackgroundRemovalProgress(progress); setBackgroundRemovalStage(stage) },
@@ -4092,7 +4092,7 @@ export default function App() {
     setMotionTrackingClipId(clipId)
     setToast('선택 클립 구간의 얼굴 모션을 로컬에서 분석하고 있습니다.')
     try {
-      const trackingAsset = asset.useProxy && asset.proxyFile ? { ...asset, sourceFile: asset.proxyFile, sourcePath: (asset.proxyFile as File & { __cutlineSourcePath?: string }).__cutlineSourcePath } : asset
+      const trackingAsset = asset.useProxy && asset.proxyFile ? { ...asset, sourceFile: asset.proxyFile, sourcePath: (asset.proxyFile as File & { __editweaveSourcePath?: string }).__editweaveSourcePath } : asset
       const tracked = await trackFacesInRange(trackingAsset, sourceStart, sourceEnd, { signal: controller.signal, onProgress: (progress) => {
         if (Math.round(progress * 100) % 10 === 0) setToast(`얼굴 모션 추적 ${Math.round(progress * 100)}%`)
       } })
@@ -4160,13 +4160,13 @@ export default function App() {
     const maximumY = Math.max(...maskPoints.map((point) => point.y)) / 100
     const sourceAtStart = clipSourceTime(clip, correctionTimeline)
     const sourceAtEnd = clipSourceTime(clip, clip.start + clip.duration)
-    const activityId = beginAiActivity({ operation: 'object-tracking', label: '로컬 AI 4점 물체 추적', processing: { location: 'local-device', processor: 'Cutline four-point tracker' }, input: { sequenceId: activeSequenceId, assetIds: [asset.id], clipIds: [clip.id], timeRange: { start: correctionTimeline, end: clip.start + clip.duration }, dataCategories: ['선택 클립 프레임', '사용자 지정 마스크'], summary: `“${clip.name}” 마스크 교정점 ${maskPoints.length}개` }, reason: '사용자 마스크를 기준으로 이동·회전·크기·원근 변화 키프레임을 생성합니다.', approval: 'user-confirmed-change', undo: { available: true, method: 'editor-history', description: '한 번의 실행 취소로 이전 마스크 키프레임 복원' } })
+    const activityId = beginAiActivity({ operation: 'object-tracking', label: '로컬 AI 4점 물체 추적', processing: { location: 'local-device', processor: 'EditWeave four-point tracker' }, input: { sequenceId: activeSequenceId, assetIds: [asset.id], clipIds: [clip.id], timeRange: { start: correctionTimeline, end: clip.start + clip.duration }, dataCategories: ['선택 클립 프레임', '사용자 지정 마스크'], summary: `“${clip.name}” 마스크 교정점 ${maskPoints.length}개` }, reason: '사용자 마스크를 기준으로 이동·회전·크기·원근 변화 키프레임을 생성합니다.', approval: 'user-confirmed-change', undo: { available: true, method: 'editor-history', description: '한 번의 실행 취소로 이전 마스크 키프레임 복원' } })
     const controller = new AbortController()
     objectTrackingAbortRef.current = controller
     setObjectTrackingClipId(clipId)
     setToast('자유형 마스크의 네 기준점을 추적해 이동·회전·크기·원근 변화를 분석하고 있습니다.')
     try {
-      const trackingAsset = asset.useProxy && asset.proxyFile ? { ...asset, sourceFile: asset.proxyFile, sourcePath: (asset.proxyFile as File & { __cutlineSourcePath?: string }).__cutlineSourcePath } : asset
+      const trackingAsset = asset.useProxy && asset.proxyFile ? { ...asset, sourceFile: asset.proxyFile, sourcePath: (asset.proxyFile as File & { __editweaveSourcePath?: string }).__editweaveSourcePath } : asset
       const tracked = await trackObjectInRange(trackingAsset, sourceAtStart, sourceAtEnd, { x: minimumX, y: minimumY, width: maximumX - minimumX, height: maximumY - minimumY }, { signal: controller.signal, onProgress: (progress) => {
         if (Math.round(progress * 100) % 10 === 0) setToast(`4점 원근 모션 추적 ${Math.round(progress * 100)}%`)
       } })
@@ -4220,13 +4220,13 @@ export default function App() {
     if (clip.keyframes?.length && !clip.stabilization && !window.confirm('현재 위치·크기 키프레임을 보존한 상태에서 안정화 보정을 새 키프레임으로 결합할까요?')) return
     const sourceAtStart = clipSourceTime(clip, clip.start)
     const sourceAtEnd = clipSourceTime(clip, clip.start + clip.duration)
-    const activityId = beginAiActivity({ operation: 'stabilization', label: '로컬 AI 영상 안정화', processing: { location: 'local-device', processor: 'Cutline four-point stabilization' }, input: { sequenceId: activeSequenceId, assetIds: [asset.id], clipIds: [clip.id], timeRange: { start: clip.start, end: clip.start + clip.duration }, dataCategories: ['선택 클립 프레임', '기존 변형 키프레임'], summary: `“${clip.name}” ${clip.duration.toFixed(2)}초` }, reason: '카메라 이동·회전·줌을 추적해 안정화 보정과 자동 크롭을 생성합니다.', approval: 'user-confirmed-change', undo: { available: true, method: 'editor-history', description: '한 번의 실행 취소로 원래 변형·키프레임 복원' } })
+    const activityId = beginAiActivity({ operation: 'stabilization', label: '로컬 AI 영상 안정화', processing: { location: 'local-device', processor: 'EditWeave four-point stabilization' }, input: { sequenceId: activeSequenceId, assetIds: [asset.id], clipIds: [clip.id], timeRange: { start: clip.start, end: clip.start + clip.duration }, dataCategories: ['선택 클립 프레임', '기존 변형 키프레임'], summary: `“${clip.name}” ${clip.duration.toFixed(2)}초` }, reason: '카메라 이동·회전·줌을 추적해 안정화 보정과 자동 크롭을 생성합니다.', approval: 'user-confirmed-change', undo: { available: true, method: 'editor-history', description: '한 번의 실행 취소로 원래 변형·키프레임 복원' } })
     const controller = new AbortController()
     stabilizationAbortRef.current = controller
     setStabilizationClipId(clipId)
     setToast('4점 특징 추적으로 카메라 이동·회전·줌을 안정화하고 있습니다.')
     try {
-      const trackingAsset = asset.useProxy && asset.proxyFile ? { ...asset, sourceFile: asset.proxyFile, sourcePath: (asset.proxyFile as File & { __cutlineSourcePath?: string }).__cutlineSourcePath } : asset
+      const trackingAsset = asset.useProxy && asset.proxyFile ? { ...asset, sourceFile: asset.proxyFile, sourcePath: (asset.proxyFile as File & { __editweaveSourcePath?: string }).__editweaveSourcePath } : asset
       const tracked = await trackObjectInRange(trackingAsset, sourceAtStart, sourceAtEnd, { x: 0.12, y: 0.12, width: 0.76, height: 0.76 }, { signal: controller.signal, onProgress: (progress) => {
         if (Math.round(progress * 100) % 10 === 0) setToast(`영상 안정화 분석 ${Math.round(progress * 100)}%`)
       } })
@@ -4321,13 +4321,13 @@ export default function App() {
     }
     const sourceAtStart = clipSourceTime(clip, clip.start)
     const sourceAtEnd = clipSourceTime(clip, clip.start + clip.duration)
-    const activityId = beginAiActivity({ operation: 'scene-detection', label: '로컬 장면 전환 감지', processing: { location: 'local-device', processor: 'Cutline frame-difference detector' }, input: { sequenceId: activeSequenceId, assetIds: [asset.id], clipIds: [clip.id], timeRange: { start: clip.start, end: clip.start + clip.duration }, dataCategories: ['선택 클립 축소 프레임'], summary: `“${clip.name}” ${clip.duration.toFixed(2)}초` }, reason: '클립 분할 또는 마커 적용 전에 장면 전환 후보를 검토용으로 찾습니다.', approval: 'analysis-only', undo: { available: false, method: 'none', description: '분석만 수행하며 승인 전 타임라인 변경 없음' } })
+    const activityId = beginAiActivity({ operation: 'scene-detection', label: '로컬 장면 전환 감지', processing: { location: 'local-device', processor: 'EditWeave frame-difference detector' }, input: { sequenceId: activeSequenceId, assetIds: [asset.id], clipIds: [clip.id], timeRange: { start: clip.start, end: clip.start + clip.duration }, dataCategories: ['선택 클립 축소 프레임'], summary: `“${clip.name}” ${clip.duration.toFixed(2)}초` }, reason: '클립 분할 또는 마커 적용 전에 장면 전환 후보를 검토용으로 찾습니다.', approval: 'analysis-only', undo: { available: false, method: 'none', description: '분석만 수행하며 승인 전 타임라인 변경 없음' } })
     const controller = new AbortController()
     sceneDetectionAbortRef.current = controller
     setSceneDetectionClipId(clipId)
     setToast('선택 클립의 장면 전환을 로컬에서 분석하고 있습니다.')
     try {
-      const analysisAsset = asset.useProxy && asset.proxyFile ? { ...asset, sourceFile: asset.proxyFile, sourcePath: (asset.proxyFile as File & { __cutlineSourcePath?: string }).__cutlineSourcePath } : asset
+      const analysisAsset = asset.useProxy && asset.proxyFile ? { ...asset, sourceFile: asset.proxyFile, sourcePath: (asset.proxyFile as File & { __editweaveSourcePath?: string }).__editweaveSourcePath } : asset
       const candidates = await detectSceneCuts(analysisAsset, sourceAtStart, sourceAtEnd, { signal: controller.signal, onProgress: (progress) => {
         if (Math.round(progress * 100) % 10 === 0) setToast(`장면 전환 감지 ${Math.round(progress * 100)}%`)
       } })
@@ -4641,7 +4641,7 @@ export default function App() {
     const activityId = beginAiActivity({
       operation: 'rough-cut-analysis',
       label: '채널 맞춤 초벌 편집 분석',
-      processing: { location: 'local-device', processor: 'Cutline rules + multilingual-e5-small' },
+      processing: { location: 'local-device', processor: 'EditWeave rules + multilingual-e5-small' },
       input: { sequenceId: activeSequenceId, assetIds: [...new Set(sourceClips.flatMap((clip) => clip.assetId ? [clip.assetId] : []))], clipIds: sourceClips.map((clip) => clip.id), dataCategories: ['대본', '오디오 파형', '채널 적용·기각 피드백', ...(creatorLearningProfile.audienceRetention ? ['유지율 CSV'] : [])], summary: `대본 ${transcript.length}개 · 소스 클립 ${sourceClips.length}개` },
       reason: '침묵·군더더기·반복 제거와 하이라이트 후보를 적용 전 검토용으로 제안합니다.',
       approval: 'analysis-only',
@@ -4679,14 +4679,14 @@ export default function App() {
         markers: (current) => [...current, { id: crypto.randomUUID(), time: suggestion.start, label: suggestion.label.replace(/^하이라이트:\s*/, ''), color: '#f1b84b', kind: 'chapter' as const, createdAt: new Date().toISOString() }].sort((left, right) => left.time - right.time),
       })
       setPlayhead(suggestion.start)
-      const activityId = beginAiActivity({ operation: 'suggestion-apply', label: `AI 제안 적용 · ${suggestion.label}`, processing: { location: 'local-device', processor: 'Cutline rough-cut decision' }, input: { sequenceId: activeSequenceId, timeRange: { start: suggestion.start, end: suggestion.end }, dataCategories: ['AI 추천 점수', '추천 이유', '사용자 승인'], summary: `${suggestion.type} · ${Math.round(suggestion.score * 100)}% · ${suggestion.start.toFixed(2)}–${suggestion.end.toFixed(2)}초` }, reason: suggestion.reason, approval: 'user-confirmed-change', undo: { available: true, method: 'editor-history', description: '마커는 한 번의 실행 취소로 제거 · 채널 적용 피드백은 학습 초기화 전까지 유지' } })
+      const activityId = beginAiActivity({ operation: 'suggestion-apply', label: `AI 제안 적용 · ${suggestion.label}`, processing: { location: 'local-device', processor: 'EditWeave rough-cut decision' }, input: { sequenceId: activeSequenceId, timeRange: { start: suggestion.start, end: suggestion.end }, dataCategories: ['AI 추천 점수', '추천 이유', '사용자 승인'], summary: `${suggestion.type} · ${Math.round(suggestion.score * 100)}% · ${suggestion.start.toFixed(2)}–${suggestion.end.toFixed(2)}초` }, reason: suggestion.reason, approval: 'user-confirmed-change', undo: { available: true, method: 'editor-history', description: '마커는 한 번의 실행 취소로 제거 · 채널 적용 피드백은 학습 초기화 전까지 유지' } })
       endAiActivity(activityId, { status: 'completed', changes: { summary: '하이라이트 후보를 챕터 마커로 적용', markers: 1 } })
       setToast('하이라이트 후보를 챕터 마커로 적용했습니다.')
       return
     }
     if (!commitRippleDelete(suggestion.start, suggestion.end, { appliedSuggestionId: suggestion.id, addAudioFades: true })) return
     setCreatorLearningProfile((current) => recordSuggestionFeedback(current, suggestion, 'applied'))
-    const activityId = beginAiActivity({ operation: 'suggestion-apply', label: `AI 제안 적용 · ${suggestion.label}`, processing: { location: 'local-device', processor: 'Cutline rough-cut decision' }, input: { sequenceId: activeSequenceId, timeRange: { start: suggestion.start, end: suggestion.end }, dataCategories: ['AI 추천 점수', '추천 이유', '사용자 승인'], summary: `${suggestion.type} · ${Math.round(suggestion.score * 100)}% · ${suggestion.start.toFixed(2)}–${suggestion.end.toFixed(2)}초` }, reason: suggestion.reason, approval: 'user-confirmed-change', undo: { available: true, method: 'editor-history', description: '리플 삭제는 한 번의 실행 취소로 복원 · 채널 적용 피드백은 학습 초기화 전까지 유지' } })
+    const activityId = beginAiActivity({ operation: 'suggestion-apply', label: `AI 제안 적용 · ${suggestion.label}`, processing: { location: 'local-device', processor: 'EditWeave rough-cut decision' }, input: { sequenceId: activeSequenceId, timeRange: { start: suggestion.start, end: suggestion.end }, dataCategories: ['AI 추천 점수', '추천 이유', '사용자 승인'], summary: `${suggestion.type} · ${Math.round(suggestion.score * 100)}% · ${suggestion.start.toFixed(2)}–${suggestion.end.toFixed(2)}초` }, reason: suggestion.reason, approval: 'user-confirmed-change', undo: { available: true, method: 'editor-history', description: '리플 삭제는 한 번의 실행 취소로 복원 · 채널 적용 피드백은 학습 초기화 전까지 유지' } })
     endAiActivity(activityId, { status: 'completed', changes: { summary: `${(suggestion.end - suggestion.start).toFixed(2)}초 구간 리플 삭제`, clips: tracksRef.current.flatMap((track) => track.clips).filter((clip) => clip.start < suggestion.end && clip.start + clip.duration > suggestion.start).length } })
     setPlayhead(suggestion.start)
     setSelectedClipId(undefined)
@@ -4698,7 +4698,7 @@ export default function App() {
     if (target) setCreatorLearningProfile((current) => recordSuggestionFeedback(current, target, 'dismissed'))
     commitEditor({ suggestions: (current) => current.map((suggestion) => suggestion.id === id ? { ...suggestion, status: 'dismissed' } : suggestion) })
     if (target) {
-      const activityId = beginAiActivity({ operation: 'suggestion-dismiss', label: `AI 제안 유지 · ${target.label}`, processing: { location: 'local-device', processor: 'Cutline creator feedback' }, input: { sequenceId: activeSequenceId, timeRange: { start: target.start, end: target.end }, dataCategories: ['AI 추천 점수', '추천 이유', '사용자 유지 결정'], summary: `${target.type} · ${Math.round(target.score * 100)}%` }, reason: target.reason, approval: 'user-confirmed-change', undo: { available: true, method: 'editor-history', description: '제안 상태는 실행 취소 가능 · 채널 기각 피드백은 학습 초기화 전까지 유지' } })
+      const activityId = beginAiActivity({ operation: 'suggestion-dismiss', label: `AI 제안 유지 · ${target.label}`, processing: { location: 'local-device', processor: 'EditWeave creator feedback' }, input: { sequenceId: activeSequenceId, timeRange: { start: target.start, end: target.end }, dataCategories: ['AI 추천 점수', '추천 이유', '사용자 유지 결정'], summary: `${target.type} · ${Math.round(target.score * 100)}%` }, reason: target.reason, approval: 'user-confirmed-change', undo: { available: true, method: 'editor-history', description: '제안 상태는 실행 취소 가능 · 채널 기각 피드백은 학습 초기화 전까지 유지' } })
       endAiActivity(activityId, { status: 'completed', changes: { summary: 'AI 제안을 적용하지 않고 채널 기각 피드백에 반영' } })
     }
   }, [activeSequenceId, beginAiActivity, commitEditor, endAiActivity])
@@ -5307,7 +5307,7 @@ export default function App() {
       setRenderReplaceStage('렌더 파일 저장')
       const persisted = await persistVoiceoverRecording(projectId, file)
       if (controller.signal.aborted) throw new DOMException('Render and Replace cancelled', 'AbortError')
-      const sourcePath = (persisted as File & { __cutlineSourcePath?: string }).__cutlineSourcePath
+      const sourcePath = (persisted as File & { __editweaveSourcePath?: string }).__editweaveSourcePath
       const renderedAsset: MediaAsset = {
         id: renderedAssetId,
         name: persisted.name,
@@ -5896,7 +5896,7 @@ export default function App() {
     const activityId = beginAiActivity({
       operation: 'shorts-generation',
       label: `AI 쇼츠 파생 · ${derivedAspectRatio}`,
-      processing: { location: 'local-device', processor: 'Cutline multimodal shorts + face reframe' },
+      processing: { location: 'local-device', processor: 'EditWeave multimodal shorts + face reframe' },
       input: { sequenceId: current.id, timeRange: { start: Math.min(...candidates.map((candidate) => candidate.start)), end: Math.max(...candidates.map((candidate) => candidate.end)) }, dataCategories: ['대본 훅', 'AI 하이라이트', '오디오 에너지', '얼굴 궤적', '장면 경계'], summary: `선택 후보 ${candidates.length}개 · ${derivedAspectRatio}` },
       reason: candidates.map((candidate) => candidate.reason).filter(Boolean).join(' / ') || '선택한 멀티모달 후보를 플랫폼 화면비 파생물로 생성합니다.',
       approval: 'user-confirmed-change',
@@ -6006,7 +6006,7 @@ export default function App() {
       })))
   }, [assets, captureActiveSequence, sequenceLibrary])
 
-  const applyProject = useCallback((project: CutlineProjectDocument, options: { trustStableMediaIds?: boolean } = {}) => {
+  const applyProject = useCallback((project: EditWeaveProjectDocument, options: { trustStableMediaIds?: boolean } = {}) => {
     const sameProject = project.id === projectId
     if (!sameProject) {
       clipClipboardRef.current = undefined
@@ -6185,13 +6185,13 @@ export default function App() {
     if (checkingUpdate) return
     setCheckingUpdate(true)
     try {
-      const currentVersion = await currentCutlineVersion()
+      const currentVersion = await currentEditWeaveVersion()
       const result = await checkForUpdate(currentVersion)
-      if (!result.configured) setToast('업데이트 서버가 아직 설정되지 않았습니다. VITE_CUTLINE_UPDATE_MANIFEST를 지정해주세요.')
+      if (!result.configured) setToast('업데이트 서버가 아직 설정되지 않았습니다. VITE_EDITWEAVE_UPDATE_MANIFEST를 지정해주세요.')
       else if (!result.available || !result.manifest) setToast('현재 최신 버전을 사용하고 있습니다.')
       else {
         const previous = matchingStoredUpdateInstaller(result.manifest)
-        if (runningInDesktop() && previous && window.confirm(`Cutline ${result.manifest.version}의 기존 설치 파일이 있습니다. SHA-256과 운영체제 서명을 다시 검사해 실행할까요?\n\n${previous.installerPath}`)) {
+        if (runningInDesktop() && previous && window.confirm(`EditWeave ${result.manifest.version}의 기존 설치 파일이 있습니다. SHA-256과 운영체제 서명을 다시 검사해 실행할까요?\n\n${previous.installerPath}`)) {
           try {
             setToast('기존 업데이트 설치 파일을 다시 검증하고 있습니다.')
             const installer = await prepareExistingVerifiedUpdateInstaller(result.manifest, previous.installerPath)
@@ -6205,7 +6205,7 @@ export default function App() {
             setToast(error instanceof Error ? `기존 설치 파일을 재사용하지 못했습니다: ${error.message}` : '기존 설치 파일을 재사용하지 못했습니다.')
           }
         }
-        if (!window.confirm(`Cutline ${result.manifest.version} 버전이 있습니다. 새 설치 파일을 내려받을까요?\n\n${result.manifest.notes ?? ''}`)) return
+        if (!window.confirm(`EditWeave ${result.manifest.version} 버전이 있습니다. 새 설치 파일을 내려받을까요?\n\n${result.manifest.notes ?? ''}`)) return
         if (!runningInDesktop()) {
           window.open(result.manifest.downloadUrl, '_blank', 'noopener,noreferrer')
         } else {
@@ -6215,7 +6215,7 @@ export default function App() {
           const installer = await downloadVerifiedUpdateInstaller(result.manifest, destination)
           rememberVerifiedUpdateInstaller(result.manifest, installer, currentVersion)
           setToast(`업데이트 설치 파일 검증 완료 · ${formatFileSize(installer.size)} · ${installer.signer}`)
-          if (window.confirm(`Cutline ${result.manifest.version} 설치 파일의 SHA-256과 운영체제 서명 검증이 끝났습니다. 지금 실행할까요?\n\n서명자: ${installer.signer}\n${installer.path}`)) {
+          if (window.confirm(`EditWeave ${result.manifest.version} 설치 파일의 SHA-256과 운영체제 서명 검증이 끝났습니다. 지금 실행할까요?\n\n서명자: ${installer.signer}\n${installer.path}`)) {
             markUpdateInstallerLaunched()
             try { await launchVerifiedUpdateInstaller(installer) } catch (error) { markUpdateInstallerLaunchFailed(); throw error }
             setToast('검증된 업데이트 설치 파일을 실행했습니다. 설치 프로그램 안내를 따라주세요.')
@@ -7258,7 +7258,7 @@ export default function App() {
       ]
       const captionLanguage = transcript.find((segment) => segment.language)?.language ?? 'ko'
       const documents = [
-        { filename: `${projectName}.cutline.json`, contents: JSON.stringify(buildProjectDocument(), null, 2) },
+        { filename: `${projectName}.editweave.json`, contents: JSON.stringify(buildProjectDocument(), null, 2) },
         { filename: `${projectName}.otio`, contents: createOtio(projectName, tracks, assets, markers, activeSequenceFps, activeSequenceTimecodeStart, preset, activeSequenceTimecodeDropFrame, activeTransitionDefaults) },
         { filename: `${projectName}-premiere.xml`, contents: createPremiereXml(projectName, preset, tracks, assets, markers, activeSequenceFps, activeSequenceTimecodeStart, activeSequenceTimecodeDropFrame, activeTransitionDefaults) },
         { filename: `${projectName}.fcpxml`, contents: createFcpxml(projectName, preset, tracks, assets, activeSequenceFps, activeSequenceTimecodeStart, activeSequenceTimecodeDropFrame, activeTransitionDefaults) },
@@ -7624,7 +7624,7 @@ export default function App() {
         ref={projectInputRef}
         type="file"
         hidden
-        accept=".json,.cutline.json,application/json"
+        accept=".json,.editweave.json,application/json"
         onChange={(event) => {
           const file = event.target.files?.[0]
           if (!file) return

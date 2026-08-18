@@ -68,7 +68,7 @@ export async function createVideoForegroundMasks(file: File, sourcePath: string 
         canvas.height = height
         sample.draw(context, 0, 0, width, height)
         const frameBlob = await canvasBlob(canvas, 'image/jpeg', 0.88)
-        const frameFile = new File([frameBlob], `cutline-mask-${index}.jpg`, { type: 'image/jpeg' })
+        const frameFile = new File([frameBlob], `editweave-mask-${index}.jpg`, { type: 'image/jpeg' })
         const output = await remover(frameFile)
         const outputBlob = await output.toBlob('image/png') as Blob
         const bitmap = await createImageBitmap(outputBlob)

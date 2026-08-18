@@ -1,8 +1,8 @@
-# 09. Top 3 벤치마크와 Cutline 차별화
+# 09. Top 3 벤치마크와 EditWeave 차별화
 
 ## 목적
 
-Cutline은 Premiere Pro, DaVinci Resolve, CapCut Desktop을 유튜브 롱폼·쇼츠 제작의 기준 제품으로 삼는다. 제품 전체를 화면 단위로 복제하지 않고, 세 제품에서 실제 납품에 필요한 기능 범주를 빠짐없이 정의한 뒤 Cutline의 더 짧고 복구 가능한 작업 흐름으로 다시 설계한다.
+EditWeave은 Premiere Pro, DaVinci Resolve, CapCut Desktop을 유튜브 롱폼·쇼츠 제작의 기준 제품으로 삼는다. 제품 전체를 화면 단위로 복제하지 않고, 세 제품에서 실제 납품에 필요한 기능 범주를 빠짐없이 정의한 뒤 EditWeave의 더 짧고 복구 가능한 작업 흐름으로 다시 설계한다.
 
 기준 자료는 2026-08-09에 확인한 공식 제품 설명이다.
 
@@ -21,7 +21,7 @@ Cutline은 Premiere Pro, DaVinci Resolve, CapCut Desktop을 유튜브 롱폼·�
 
 ## 경쟁 우위가 되는 하나의 작업 흐름
 
-`원본 한 번 가져오기 → 대본 기반 초벌 → 정밀 타임라인 편집 → 색상·오디오 후반 → 본편·쇼츠 동시 파생 → Delivery Guard → 복구 가능한 렌더 큐 → 검토 패키지 병합`을 프로젝트 안에서 끊김 없이 끝내는 것이 Cutline의 중심 경험이다.
+`원본 한 번 가져오기 → 대본 기반 초벌 → 정밀 타임라인 편집 → 색상·오디오 후반 → 본편·쇼츠 동시 파생 → Delivery Guard → 복구 가능한 렌더 큐 → 검토 패키지 병합`을 프로젝트 안에서 끊김 없이 끝내는 것이 EditWeave의 중심 경험이다.
 
 이 흐름의 차별점은 다음과 같다.
 
@@ -33,7 +33,7 @@ Cutline은 Premiere Pro, DaVinci Resolve, CapCut Desktop을 유튜브 롱폼·�
 
 ## 기능 완성도 매트릭스
 
-| 영역 | Premiere 기준 | Resolve 기준 | CapCut 기준 | Cutline 제품 목표 |
+| 영역 | Premiere 기준 | Resolve 기준 | CapCut 기준 | EditWeave 제품 목표 |
 |---|---|---|---|---|
 | 미디어 | 빈·메타데이터·프록시·검색 | 전문 포맷·동기화·미디어 관리 | 쉬운 가져오기·스마트 검색 | 경로 복구, 프록시, 메타데이터, 자연어·태그 검색을 한 미디어 패널에서 제공 |
 | 편집 | 3점 편집, J/L 컷, 리플·롤·슬립·슬라이드, 멀티캠, Time Remapping | 정밀 트림, 복수 타임라인, 중첩, Retime Curve | 빠른 멀티트랙·자동 컷·Speed Curve | 프레임 정확도, 소스/프로그램 인·아웃, 멀티캠, 중첩, 동기화, 전체 단축키 사용자화, 인스펙터 속도 램프와 생성·복제·참조 보호 삭제 시퀀스 라이브러리 |
@@ -56,7 +56,7 @@ Cutline은 Premiere Pro, DaVinci Resolve, CapCut Desktop을 유튜브 롱폼·�
 6. **클라우드는 선택이다.** 기본 편집·전사·분석은 로컬에서 동작하며 외부 전송 기능은 데이터 범위와 목적을 먼저 표시한다.
 7. **외부 AI는 이중 확인한다.** 전체 AI 데이터 설정에서 기능별 처리 위치·입력·보관을 확인하고, 선택적 ComfyUI 전송은 실제 실행 창에서도 동의가 켜져 있어야 동작한다.
 
-## Cutline 고유 기능
+## EditWeave 고유 기능
 
 ### Creator Source Graph
 
@@ -64,7 +64,7 @@ Cutline은 Premiere Pro, DaVinci Resolve, CapCut Desktop을 유튜브 롱폼·�
 
 ### Transcript Edit Contract
 
-대본 삭제가 즉시 원본을 파괴하지 않는다. Cutline은 제거 후보와 타임라인 영향, 문장 연결부의 오디오 상태를 먼저 보여주고 승인된 변경을 컷·자막·마커에 원자적으로 적용한다.
+대본 삭제가 즉시 원본을 파괴하지 않는다. EditWeave은 제거 후보와 타임라인 영향, 문장 연결부의 오디오 상태를 먼저 보여주고 승인된 변경을 컷·자막·마커에 원자적으로 적용한다.
 
 ### Delivery Guard
 

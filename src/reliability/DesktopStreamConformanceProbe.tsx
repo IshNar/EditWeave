@@ -12,7 +12,7 @@ export function DesktopStreamConformanceProbe({ config }: { config: DesktopStrea
     return () => { active = false }
   }, [config])
   return <main data-testid="desktop-stream-conformance" data-status={report?.status ?? 'running'} style={{ padding: 24, fontFamily: 'ui-monospace, monospace', background: '#101016', color: '#f4f1ff', minHeight: '100vh' }}>
-    <h1>Cutline Tauri Stream Conformance</h1>
+    <h1>EditWeave Tauri Stream Conformance</h1>
     <p>{report?.stage ?? '준비 중'}</p>
     <pre>{JSON.stringify(report ?? { status: 'running' }, null, 2)}</pre>
   </main>

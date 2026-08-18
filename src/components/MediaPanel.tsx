@@ -256,7 +256,7 @@ export function MediaPanel({
   const [automateOpen, setAutomateOpen] = useState(false)
   const [multicamSourceOpen, setMulticamSourceOpen] = useState(false)
   const [proxyResolution, setProxyResolution] = useState<'540p' | '720p' | '1080p'>(() => {
-    const saved = localStorage.getItem('cutline.proxy-resolution')
+    const saved = localStorage.getItem('editweave.proxy-resolution')
     return saved === '720p' || saved === '1080p' ? saved : '540p'
   })
   const selectionAnchorRef = useRef<string | undefined>(undefined)
@@ -287,7 +287,7 @@ export function MediaPanel({
   const proxyMaxDimension = proxyResolution === '1080p' ? 1920 : proxyResolution === '720p' ? 1280 : 960
 
   useEffect(() => {
-    localStorage.setItem('cutline.proxy-resolution', proxyResolution)
+    localStorage.setItem('editweave.proxy-resolution', proxyResolution)
   }, [proxyResolution])
   const resolveAssetState = (asset: MediaAsset): MediaAsset => {
     const source = asset.parentAssetId ? assets.find((candidate) => candidate.id === asset.parentAssetId) : undefined
@@ -373,7 +373,7 @@ export function MediaPanel({
     event?.stopPropagation()
     let transferredIds: string[] = []
     try {
-      const raw = event?.dataTransfer.getData('application/x-cutline-assets')
+      const raw = event?.dataTransfer.getData('application/x-editweave-assets')
       const parsed: unknown = raw ? JSON.parse(raw) : []
       if (Array.isArray(parsed)) transferredIds = parsed.filter((id): id is string => typeof id === 'string')
     } catch { transferredIds = [] }
@@ -622,8 +622,8 @@ export function MediaPanel({
                     const ids = selectedAssetIds.has(asset.id) ? [...selectedAssetIds] : [asset.id]
                     setDraggedAssetIds(ids)
                     event.dataTransfer.effectAllowed = 'move'
-                    event.dataTransfer.setData('text/x-cutline-asset', asset.id)
-                    event.dataTransfer.setData('application/x-cutline-assets', JSON.stringify(ids))
+                    event.dataTransfer.setData('text/x-editweave-asset', asset.id)
+                    event.dataTransfer.setData('application/x-editweave-assets', JSON.stringify(ids))
                   }}
                   onDragEnd={() => setDraggedAssetIds([])}
                   title="더블 클릭하여 타임라인에 추가"

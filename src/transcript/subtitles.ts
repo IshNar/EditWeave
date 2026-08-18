@@ -41,7 +41,7 @@ export function transcriptToTtml(segments: TranscriptSegment[], language = 'ko')
     .sort((a, b) => a.start - b.start)
     .map((segment) => `      <p begin="${formatVttTimestamp(segment.start)}" end="${formatVttTimestamp(segment.end)}"${segment.language && segment.language !== language ? ` xml:lang="${escapeXml(segment.language)}"` : ''}>${escapeXml(segment.text)}</p>`)
     .join('\n')
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<tt xmlns="http://www.w3.org/ns/ttml" xml:lang="${escapeXml(language)}">\n  <head><metadata xmlns="http://www.w3.org/ns/ttml#metadata"><title>Cutline Captions</title></metadata></head>\n  <body><div>\n${body}\n  </div></body>\n</tt>\n`
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<tt xmlns="http://www.w3.org/ns/ttml" xml:lang="${escapeXml(language)}">\n  <head><metadata xmlns="http://www.w3.org/ns/ttml#metadata"><title>EditWeave Captions</title></metadata></head>\n  <body><div>\n${body}\n  </div></body>\n</tt>\n`
 }
 
 function parseTtml(contents: string): TranscriptSegment[] {

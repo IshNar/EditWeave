@@ -59,9 +59,9 @@ async function mergeRenderedSegmentsInternal(segments: RenderSegmentSource[], ou
   const output = new Output({ format: videoCodec === 'vp9' ? new WebMOutputFormat() : new Mp4OutputFormat({ fastStart: false }), target })
   const videoSource = new EncodedVideoPacketSource(videoCodec)
   const audioSource = audioCodec ? new EncodedAudioPacketSource(audioCodec) : undefined
-  output.addVideoTrack(videoSource, { name: 'Cutline Program' })
-  if (audioSource) output.addAudioTrack(audioSource, { name: 'Cutline Mix' })
-  output.setMetadataTags({ comment: 'Created with Cutline · checkpoint merge' })
+  output.addVideoTrack(videoSource, { name: 'EditWeave Program' })
+  if (audioSource) output.addAudioTrack(audioSource, { name: 'EditWeave Mix' })
+  output.setMetadataTags({ comment: 'Created with EditWeave · checkpoint merge' })
   await output.start()
   let videoSequence = 0
   let audioSequence = 0

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import creatorPackSchema from '../../schemas/cutline-creator-pack-v2.schema.json'
+import creatorPackSchema from '../../schemas/editweave-creator-pack-v2.schema.json'
 import { readTitleStyleTemplates, writeTitleStyleTemplates, type TitleStyleTemplate } from './titleStyleTemplates'
 import {
   assessCreatorPackInstall,
@@ -33,7 +33,7 @@ beforeEach(() => {
 
 describe('Creator Pack v2 envelope', () => {
   it('keeps the published JSON Schema aligned with the runtime contract', () => {
-    expect(creatorPackSchema.properties.schema.const).toBe('cutline-creator-pack-v2')
+    expect(creatorPackSchema.properties.schema.const).toBe('editweave-creator-pack-v2')
     expect(creatorPackSchema.properties.apiVersion.const).toBe('1.0.0')
     expect(creatorPackSchema.properties.security.properties).toMatchObject({ executableCode: { const: false }, networkAccess: { const: false }, filesystemAccess: { const: false } })
     expect(creatorPackSchema.properties.contents.properties.audioTemplates).toEqual({ $ref: '#/$defs/templateList50' })
@@ -42,7 +42,7 @@ describe('Creator Pack v2 envelope', () => {
   it('seals and verifies a versioned declarative pack with SHA-256', async () => {
     const serialized = await serializeCreatorPack(createCreatorPack('Studio Pack', 'Creator'))
     const parsed = await parseCreatorPack(serialized)
-    expect(parsed).toMatchObject({ schema: 'cutline-creator-pack-v2', apiVersion: '1.0.0', name: 'Studio Pack', verification: { integrity: 'verified', signature: 'unsigned' } })
+    expect(parsed).toMatchObject({ schema: 'editweave-creator-pack-v2', apiVersion: '1.0.0', name: 'Studio Pack', verification: { integrity: 'verified', signature: 'unsigned' } })
     expect(parsed.integrity?.digest).toMatch(/^[0-9a-f]{64}$/)
     expect(parsed.contents.titleStyleTemplates).toEqual([])
   })
@@ -61,11 +61,11 @@ describe('Creator Pack v2 envelope', () => {
 
   it('migrates legacy v1 packs without granting privileges', async () => {
     const legacy = {
-      schema: 'cutline-creator-pack-v1', id: 'legacy', name: 'Legacy', version: '1.0.0', publisher: 'Creator', createdAt: '2026-01-01T00:00:00.000Z',
+      schema: 'editweave-creator-pack-v1', id: 'legacy', name: 'Legacy', version: '1.0.0', publisher: 'Creator', createdAt: '2026-01-01T00:00:00.000Z',
       security: { executableCode: false, networkAccess: false, filesystemAccess: false },
       contents: { motionTemplates: [], speedTemplates: [], audioTemplates: [], exportPresets: [], transitionPresets: [] },
     }
-    await expect(parseCreatorPack(JSON.stringify(legacy))).resolves.toMatchObject({ schema: 'cutline-creator-pack-v2', verification: { integrity: 'legacy-unsigned', signature: 'unsigned' } })
+    await expect(parseCreatorPack(JSON.stringify(legacy))).resolves.toMatchObject({ schema: 'editweave-creator-pack-v2', verification: { integrity: 'legacy-unsigned', signature: 'unsigned' } })
   })
 
   it('verifies an optional Ed25519 publisher signature', async () => {
@@ -80,7 +80,7 @@ describe('Creator Pack v2 envelope', () => {
 
 describe('Creator Pack install lifecycle', () => {
   it('deduplicates install content and preserves user-modified templates on uninstall', async () => {
-    const title = { id: 'title', name: 'Creator Lower Third', version: 'cutline-title-style-v1', createdAt: '2026-01-01T00:00:00.000Z', style: { fontSize: 90 } } as unknown as TitleStyleTemplate
+    const title = { id: 'title', name: 'Creator Lower Third', version: 'editweave-title-style-v1', createdAt: '2026-01-01T00:00:00.000Z', style: { fontSize: 90 } } as unknown as TitleStyleTemplate
     const source = createCreatorPack('Titles', 'Creator')
     source.contents.titleStyleTemplates = [title]
     const pack = await parseCreatorPack(await serializeCreatorPack(source))

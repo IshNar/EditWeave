@@ -1,4 +1,4 @@
-{$CUTLINE_UPDATE_DOMAIN} {
+{$EDITWEAVE_UPDATE_DOMAIN} {
   reverse_proxy update-server:8790
 
   header {

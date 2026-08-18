@@ -22,7 +22,7 @@ function runFfmpeg(args: string[]): void {
 }
 
 beforeAll(async () => {
-  fixtureDirectory = await mkdtemp(join(tmpdir(), 'cutline-preview-output-'))
+  fixtureDirectory = await mkdtemp(join(tmpdir(), 'editweave-preview-output-'))
   const referencePath = join(fixtureDirectory, 'reference.mkv')
   const candidatePath = join(fixtureDirectory, 'candidate.mp4')
   const referenceRgbPath = join(fixtureDirectory, 'reference.rgb')

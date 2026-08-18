@@ -25,7 +25,7 @@ export async function persistVoiceoverRecording(projectId: string, file: File): 
     absolutePath = await join(await appDataDir(), ...relativePath.split('/'))
   }
   const persistedFile = new File([file], persistedName, { type: file.type, lastModified: file.lastModified })
-  Object.defineProperty(persistedFile, '__cutlineSourcePath', { value: absolutePath, enumerable: false })
+  Object.defineProperty(persistedFile, '__editweaveSourcePath', { value: absolutePath, enumerable: false })
   return persistedFile
 }
 
@@ -34,7 +34,7 @@ export async function deleteVoiceoverRecording(sourcePath?: string): Promise<voi
   const root = await join(await appDataDir(), ROOT)
   const normalizedRoot = root.replace(/\\/g, '/').replace(/\/+$/, '').toLocaleLowerCase()
   const normalizedPath = sourcePath.replace(/\\/g, '/').toLocaleLowerCase()
-  if (!normalizedPath.startsWith(`${normalizedRoot}/`) && !isKnownScratchPath('recording', sourcePath)) throw new Error('Cutline 녹음 폴더 밖의 파일은 삭제할 수 없습니다.')
+  if (!normalizedPath.startsWith(`${normalizedRoot}/`) && !isKnownScratchPath('recording', sourcePath)) throw new Error('EditWeave 녹음 폴더 밖의 파일은 삭제할 수 없습니다.')
   await remove(sourcePath)
 }
 

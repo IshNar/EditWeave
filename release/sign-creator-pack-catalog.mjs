@@ -21,6 +21,6 @@ if (!inputArgument || !privateKeyArgument) {
   const signature = sign(null, Buffer.from(catalogSigningPayload(unsigned)), privateKey).toString('base64')
   await writeFile(output, `${JSON.stringify({ ...unsigned, signature }, null, 2)}\n`, 'utf8')
   console.log(`Signed Creator Pack catalog: ${output}`)
-  console.log(`VITE_CUTLINE_CREATOR_CATALOG_KEY_ID=${keyId}`)
-  console.log(`VITE_CUTLINE_CREATOR_CATALOG_PUBLIC_KEY=${publicKey.toString('base64')}`)
+  console.log(`VITE_EDITWEAVE_CREATOR_CATALOG_KEY_ID=${keyId}`)
+  console.log(`VITE_EDITWEAVE_CREATOR_CATALOG_PUBLIC_KEY=${publicKey.toString('base64')}`)
 }

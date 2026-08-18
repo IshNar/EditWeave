@@ -12,7 +12,7 @@ export interface MotionTrackPoint {
 export async function trackFacesInRange(asset: MediaAsset, start: number, end: number, options: { signal?: AbortSignal; onProgress?: (progress: number) => void } = {}): Promise<MotionTrackPoint[]> {
   if (asset.kind !== 'video' || !asset.sourceFile) throw new Error('모션 추적에 사용할 영상 원본이 없습니다.')
   const { ALL_FORMATS, Input, VideoSampleSink } = await import('mediabunny')
-  const filePath = (asset.sourceFile as File & { __cutlineSourcePath?: string }).__cutlineSourcePath ?? asset.sourcePath
+  const filePath = (asset.sourceFile as File & { __editweaveSourcePath?: string }).__editweaveSourcePath ?? asset.sourcePath
   const input = new Input({ source: await createMediaSource(asset.sourceFile, filePath), formats: ALL_FORMATS })
   try {
     const track = await input.getPrimaryVideoTrack()

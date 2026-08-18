@@ -12,7 +12,7 @@ const cachedAsset: MediaAsset = {
   size: 8,
   extension: 'mp4',
   status: 'ready',
-  proxyFile: new File(['proxy'], 'sample.cutline-proxy.mp4', { type: 'video/mp4' }),
+  proxyFile: new File(['proxy'], 'sample.editweave-proxy.mp4', { type: 'video/mp4' }),
   proxyUrl: 'blob:proxy',
   proxySize: 5,
   proxyWidth: 960,

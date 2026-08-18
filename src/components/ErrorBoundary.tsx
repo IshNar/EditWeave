@@ -19,7 +19,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
-    console.error('Cutline UI crash', error, info.componentStack)
+    console.error('EditWeave UI crash', error, info.componentStack)
     recordCrash(error, info.componentStack ?? undefined)
     void flushCrashReportsIfConsented()
   }
@@ -28,7 +28,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     if (!this.state.error) return this.props.children
     return (
       <main className="crash-screen">
-        <div className="brand"><span className="brand-mark">C</span><span>cutline</span></div>
+        <div className="brand"><span className="brand-mark">C</span><span>editweave</span></div>
         <span className="eyebrow">RECOVERY MODE</span>
         <h1>편집 화면을 복구하지 못했습니다.</h1>
         <p>자동 저장 프로젝트는 유지되어 있습니다. 먼저 앱을 다시 불러오고, 문제가 반복될 때만 마지막 자동 저장을 초기화하세요.</p>

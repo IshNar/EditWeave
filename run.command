@@ -1,7 +1,7 @@
 #!/bin/zsh
 set -e
 SCRIPT_DIR="${0:A:h}"
-APP_PATH="$SCRIPT_DIR/src-tauri/target/release/bundle/macos/Cutline.app"
+APP_PATH="$SCRIPT_DIR/src-tauri/target/release/bundle/macos/EditWeave.app"
 
 if [[ -d "$APP_PATH" ]]; then
   open "$APP_PATH"

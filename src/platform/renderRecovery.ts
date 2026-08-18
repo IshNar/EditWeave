@@ -25,7 +25,7 @@ export interface RenderRecoveryRecord {
   completedOutputs?: Array<{ sequenceId: string; path: string }>
 }
 
-const KEY = 'cutline.render-recovery.v1'
+const KEY = 'editweave.render-recovery.v1'
 
 export function readRenderRecovery(): RenderRecoveryRecord | undefined {
   try {

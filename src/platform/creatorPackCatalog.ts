@@ -1,6 +1,6 @@
 import { CREATOR_PACK_API_VERSION, parseCreatorPack, type CreatorPack, type InstalledCreatorPack } from './creatorPacks'
 
-export const CREATOR_PACK_CATALOG_SCHEMA = 'cutline-creator-catalog-v1' as const
+export const CREATOR_PACK_CATALOG_SCHEMA = 'editweave-creator-catalog-v1' as const
 const MAX_CATALOG_BYTES = 1_000_000
 const MAX_PACK_BYTES = 2_000_000
 const SEMVER_PATTERN = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
@@ -49,13 +49,13 @@ export interface CreatorPackCatalogStatus {
 export interface InstalledPackRevocation { installed: InstalledCreatorPack; revocation: CreatorPackRevocation }
 
 export function creatorPackCatalogConfigured(): boolean {
-  return Boolean((import.meta.env.VITE_CUTLINE_CREATOR_CATALOG_URL as string | undefined)?.trim())
+  return Boolean((import.meta.env.VITE_EDITWEAVE_CREATOR_CATALOG_URL as string | undefined)?.trim())
 }
 
 export async function loadConfiguredCreatorPackCatalog(signal?: AbortSignal): Promise<CreatorPackCatalog> {
-  const endpoint = (import.meta.env.VITE_CUTLINE_CREATOR_CATALOG_URL as string | undefined)?.trim()
-  const publicKey = (import.meta.env.VITE_CUTLINE_CREATOR_CATALOG_PUBLIC_KEY as string | undefined)?.trim()
-  const keyId = (import.meta.env.VITE_CUTLINE_CREATOR_CATALOG_KEY_ID as string | undefined)?.trim()
+  const endpoint = (import.meta.env.VITE_EDITWEAVE_CREATOR_CATALOG_URL as string | undefined)?.trim()
+  const publicKey = (import.meta.env.VITE_EDITWEAVE_CREATOR_CATALOG_PUBLIC_KEY as string | undefined)?.trim()
+  const keyId = (import.meta.env.VITE_EDITWEAVE_CREATOR_CATALOG_KEY_ID as string | undefined)?.trim()
   if (!endpoint) throw new Error('Creator Pack 카탈로그 URL이 설정되지 않았습니다.')
   if (!publicKey || !keyId) throw new Error('운영 Creator Pack 카탈로그 공개키와 keyId가 설정되지 않았습니다.')
   const url = safeHttpsUrl(endpoint, 'Creator Pack 카탈로그')

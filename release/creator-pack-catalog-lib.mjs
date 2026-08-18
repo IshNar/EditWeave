@@ -1,7 +1,7 @@
 import { createHash, createPublicKey, verify } from 'node:crypto'
 
-export const CATALOG_SCHEMA = 'cutline-creator-catalog-v1'
-export const PACK_SCHEMA = 'cutline-creator-pack-v2'
+export const CATALOG_SCHEMA = 'editweave-creator-catalog-v1'
+export const PACK_SCHEMA = 'editweave-creator-pack-v2'
 export const MAX_CATALOG_BYTES = 1_000_000
 export const MAX_PACK_BYTES = 2_000_000
 const SEMVER = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
@@ -41,7 +41,7 @@ export function validateSignedPackArtifact(raw, sourceName = 'Creator Pack') {
   const publicKeyBytes = decodeBase64(pack.signature.publicKey, `${sourceName} publisher public key`)
   const signatureBytes = decodeBase64(pack.signature.value, `${sourceName} publisher signature`)
   if (publicKeyBytes.length !== 32 || signatureBytes.length !== 64) throw new Error(`${sourceName}: publisher key or signature length is invalid`)
-  const payload = Buffer.from(`cutline-creator-pack-v2\n${pack.integrity.digest.toLowerCase()}`)
+  const payload = Buffer.from(`editweave-creator-pack-v2\n${pack.integrity.digest.toLowerCase()}`)
   if (!verify(null, payload, ed25519PublicKey(publicKeyBytes), signatureBytes)) throw new Error(`${sourceName}: publisher signature is invalid`)
   const categories = [
     ['motionTemplates', 'motion'], ['speedTemplates', 'speed'], ['audioTemplates', 'audio'], ['titleStyleTemplates', 'title'], ['exportPresets', 'export'], ['transitionPresets', 'transition'],

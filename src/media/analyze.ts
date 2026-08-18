@@ -54,7 +54,7 @@ export async function analyzeMediaFile(file: File, url: string, kind: MediaKind,
       bitmap.close()
       return analysis
     } catch (error) {
-      const sourcePath = (file as File & { __cutlineSourcePath?: string }).__cutlineSourcePath
+      const sourcePath = (file as File & { __editweaveSourcePath?: string }).__editweaveSourcePath
       const native = sourcePath ? await probeContainerMetadata(sourcePath).catch(() => undefined) : undefined
       if (!native?.width || !native.height) throw error
       return {
@@ -76,7 +76,7 @@ export async function analyzeMediaFile(file: File, url: string, kind: MediaKind,
   }
 
   void url
-  const sourcePath = (file as File & { __cutlineSourcePath?: string }).__cutlineSourcePath
+  const sourcePath = (file as File & { __editweaveSourcePath?: string }).__editweaveSourcePath
   const { ALL_FORMATS, AudioSampleSink, EncodedPacketSink, Input, VideoSampleSink } = await import('mediabunny')
   const input = new Input({ source: await createMediaSource(file, sourcePath), formats: ALL_FORMATS })
   try {

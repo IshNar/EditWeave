@@ -29,7 +29,7 @@ describe('color and HDR numerical conformance', () => {
   it('rejects malformed or out-of-gamut benchmark patches', () => {
     expect(() => parseColorConformanceBenchmark({ version: 'old', cases: [] })).toThrow(/형식/)
     expect(() => parseColorConformanceBenchmark({
-      version: 'cutline-color-hdr-v1', provenance: 'synthetic-reference', standards: [],
+      version: 'editweave-color-hdr-v1', provenance: 'synthetic-reference', standards: [],
       tolerance: { signal: 0.1, scope: 0.1, codeValue: 0 },
       cases: [{ id: 'bad', srgb: [2, 0, 0], expected: { pq: [0, 0, 0], hlg: [0, 0, 0], limitedLuma: 0, scopeLuma: 0 } }],
     })).toThrow(/0~1/)

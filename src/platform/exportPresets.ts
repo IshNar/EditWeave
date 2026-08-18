@@ -7,7 +7,7 @@ export interface SavedExportPreset {
   builtIn?: boolean
 }
 
-const storageKey = 'cutline.export-presets.v1'
+const storageKey = 'editweave.export-presets.v1'
 
 export const builtInExportPresets: SavedExportPreset[] = [
   { id: 'youtube-1080', name: 'YouTube 1080p', builtIn: true, settings: { height: 1080, codec: 'avc', colorMode: 'sdr', fps: 30, bitrateMbps: 16, hardwareAcceleration: 'prefer-hardware', includeAudio: true, audioSampleRate: 48_000, audioBitrateKbps: 192, audioChannels: 2 } },
@@ -43,7 +43,7 @@ export function normalizeUserExportPreset(value: unknown, renewIdentity = false)
   const settings = preset.settings as Partial<SavedExportPreset['settings']> | undefined
   const fps = Number(settings?.fps)
   const height = Number(settings?.height)
-  if (!settings || !Number.isFinite(height) || height < 16 || height > 8_192 || !['avc', 'hevc', 'prores-422', 'prores-422-hq', 'prores-4444', 'dnxhr-hq', 'dnxhr-hqx'].includes(String(settings.codec)) || !Number.isFinite(fps) || fps < 1 || fps > 240) throw new Error('지원되는 Cutline 출력 프리셋이 아닙니다.')
+  if (!settings || !Number.isFinite(height) || height < 16 || height > 8_192 || !['avc', 'hevc', 'prores-422', 'prores-422-hq', 'prores-4444', 'dnxhr-hq', 'dnxhr-hqx'].includes(String(settings.codec)) || !Number.isFinite(fps) || fps < 1 || fps > 240) throw new Error('지원되는 EditWeave 출력 프리셋이 아닙니다.')
   const colorMode = ['sdr', 'hdr10-pq', 'hdr-hlg'].includes(String(settings.colorMode)) ? settings.colorMode : 'sdr'
   const codec = colorMode === 'sdr' ? settings.codec! : 'hevc'
   const acceleration = ['no-preference', 'prefer-hardware', 'prefer-software'].includes(String(settings.hardwareAcceleration)) ? settings.hardwareAcceleration : 'prefer-hardware'

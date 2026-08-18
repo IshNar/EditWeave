@@ -1,11 +1,11 @@
 import type { ClipTransition } from '../editor/types'
 
-const STORAGE_KEY = 'cutline.transition-presets.v1'
+const STORAGE_KEY = 'editweave.transition-presets.v1'
 
 export interface TransitionPreset {
   id: string
   name: string
-  version: 'cutline-transition-preset-v1'
+  version: 'editweave-transition-preset-v1'
   createdAt: string
   mediaKind: 'video' | 'audio'
   favorite?: boolean
@@ -26,17 +26,17 @@ export function writeTransitionPresets(presets: TransitionPreset[]): void {
 }
 
 export function createTransitionPreset(name: string, mediaKind: TransitionPreset['mediaKind'], transition: ClipTransition): TransitionPreset {
-  return clonePreset({ id: crypto.randomUUID(), name: name.trim() || '전환 프리셋', version: 'cutline-transition-preset-v1', createdAt: new Date().toISOString(), mediaKind, favorite: false, transition })
+  return clonePreset({ id: crypto.randomUUID(), name: name.trim() || '전환 프리셋', version: 'editweave-transition-preset-v1', createdAt: new Date().toISOString(), mediaKind, favorite: false, transition })
 }
 
 export function serializeTransitionPreset(preset: TransitionPreset): string {
-  return JSON.stringify({ format: 'cutline-transition-preset', version: 1, preset: clonePreset(preset) }, null, 2)
+  return JSON.stringify({ format: 'editweave-transition-preset', version: 1, preset: clonePreset(preset) }, null, 2)
 }
 
 export function parseTransitionPreset(raw: string): TransitionPreset {
   const value: unknown = JSON.parse(raw)
   const candidate = value && typeof value === 'object' && 'preset' in value ? (value as { preset: unknown }).preset : value
-  if (!isTransitionPreset(candidate)) throw new Error('지원되는 Cutline 전환 프리셋이 아닙니다.')
+  if (!isTransitionPreset(candidate)) throw new Error('지원되는 EditWeave 전환 프리셋이 아닙니다.')
   return clonePreset({ ...candidate, id: crypto.randomUUID(), createdAt: new Date().toISOString() })
 }
 
@@ -48,7 +48,7 @@ function isTransitionPreset(value: unknown): value is TransitionPreset {
   if (!value || typeof value !== 'object') return false
   const candidate = value as Partial<TransitionPreset>
   const transition = candidate.transition as Partial<ClipTransition> | undefined
-  return candidate.version === 'cutline-transition-preset-v1'
+  return candidate.version === 'editweave-transition-preset-v1'
     && typeof candidate.id === 'string'
     && typeof candidate.name === 'string'
     && typeof candidate.createdAt === 'string'

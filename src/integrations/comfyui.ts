@@ -116,7 +116,7 @@ function injectInputImage(workflow: ComfyWorkflow, uploaded: UploadedImage): Com
   for (const node of Object.values(clone)) {
     if (!node?.inputs) continue
     for (const [key, value] of Object.entries(node.inputs)) {
-      if (value === '{{CUTLINE_INPUT}}') {
+      if (value === '{{EDITWEAVE_INPUT}}') {
         node.inputs[key] = imageName
         replaced++
       }
@@ -126,7 +126,7 @@ function injectInputImage(workflow: ComfyWorkflow, uploaded: UploadedImage): Com
       replaced++
     }
   }
-  if (!replaced) throw new Error('워크플로에서 LoadImage 노드 또는 {{CUTLINE_INPUT}} 자리표시자를 찾지 못했습니다.')
+  if (!replaced) throw new Error('워크플로에서 LoadImage 노드 또는 {{EDITWEAVE_INPUT}} 자리표시자를 찾지 못했습니다.')
   return clone
 }
 

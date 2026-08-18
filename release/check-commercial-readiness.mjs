@@ -17,7 +17,7 @@ const valueAfter = (flag) => {
   const index = argv.indexOf(flag);
   return index >= 0 ? argv[index + 1] : undefined;
 };
-const manifestPath = resolve(valueAfter('--manifest') ?? process.env.CUTLINE_COMMERCIAL_EVIDENCE ?? 'release/commercial-evidence.json');
+const manifestPath = resolve(valueAfter('--manifest') ?? process.env.EDITWEAVE_COMMERCIAL_EVIDENCE ?? 'release/commercial-evidence.json');
 const reportPath = resolve(valueAfter('--report') ?? 'release/commercial-readiness-report.json');
 
 function readJson(path) {

@@ -5,9 +5,9 @@ COPY --chown=node:node server.mjs /app/server.mjs
 RUN mkdir -p /data && chown node:node /data
 
 ENV NODE_ENV=production \
-    CUTLINE_CRASH_HOST=0.0.0.0 \
-    CUTLINE_CRASH_PORT=8787 \
-    CUTLINE_CRASH_DATA_DIR=/data
+    EDITWEAVE_CRASH_HOST=0.0.0.0 \
+    EDITWEAVE_CRASH_PORT=8787 \
+    EDITWEAVE_CRASH_DATA_DIR=/data
 
 USER node
 EXPOSE 8787

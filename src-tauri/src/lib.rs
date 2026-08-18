@@ -18,7 +18,7 @@ fn quick_media_signature(path: &std::path::Path) -> Result<String, String> {
     let mut file = std::fs::File::open(path).map_err(|error| format!("미디어 지문을 위해 파일을 열지 못했습니다: {error}"))?;
     let size = file.metadata().map_err(|error| error.to_string())?.len();
     let mut hasher = Sha256::new();
-    hasher.update(b"cutline-media-signature-v1\0");
+    hasher.update(b"editweave-media-signature-v1\0");
     hasher.update(size.to_le_bytes());
     let mut read_chunk = |offset: u64, label: &[u8]| -> Result<(), String> {
         file.seek(SeekFrom::Start(offset)).map_err(|error| error.to_string())?;
@@ -48,7 +48,7 @@ struct SignedUpdatePayload {
 fn verified_update_payload(public_key: &str, signature: &str, payload: &str) -> Result<SignedUpdatePayload, String> {
     if !update_signature::verify_trusted(public_key, signature, payload)? { return Err("업데이트 매니페스트 서명이 올바르지 않습니다.".into()); }
     let manifest: SignedUpdatePayload = serde_json::from_str(payload).map_err(|_| "업데이트 서명 payload JSON이 올바르지 않습니다.".to_string())?;
-    if manifest.schema != "cutline-update-v1" { return Err("업데이트 서명 payload schema가 올바르지 않습니다.".into()); }
+    if manifest.schema != "editweave-update-v1" { return Err("업데이트 서명 payload schema가 올바르지 않습니다.".into()); }
     update_installer::validate_platform(&manifest.platform)?;
     Ok(manifest)
 }
@@ -80,7 +80,7 @@ fn custom_scratch_path(root: &str, category: &str, parts: &[&str]) -> Result<std
     if !authorized_scratch_roots().lock().map_err(|_| "스크래치 디스크 경로 잠금 오류".to_string())?.contains(&canonical) {
         return Err("선택하여 허용한 스크래치 디스크가 아닙니다.".into());
     }
-    let mut path = canonical.join("Cutline").join(category);
+    let mut path = canonical.join("EditWeave").join(category);
     for part in parts { path = path.join(safe_scratch_part(part)); }
     Ok(path)
 }
@@ -149,9 +149,9 @@ fn media_tool_path(app: &tauri::AppHandle, tool: &str) -> std::path::PathBuf {
     use tauri::Manager;
     let executable = if cfg!(target_os = "windows") { format!("{tool}.exe") } else { tool.to_string() };
     let environment_key = match tool {
-        "ffmpeg" => "CUTLINE_FFMPEG_PATH",
-        "ffprobe" => "CUTLINE_FFPROBE_PATH",
-        _ => "CUTLINE_MEDIA_TOOL_PATH",
+        "ffmpeg" => "EDITWEAVE_FFMPEG_PATH",
+        "ffprobe" => "EDITWEAVE_FFPROBE_PATH",
+        _ => "EDITWEAVE_MEDIA_TOOL_PATH",
     };
     if let Some(configured) = std::env::var_os(environment_key).map(std::path::PathBuf::from).filter(|path| path.is_file()) {
         return configured;
@@ -197,7 +197,7 @@ fn media_tool_version(app: &tauri::AppHandle, tool: &str) -> serde_json::Value {
 #[tauri::command]
 fn codec_toolchain_status(app: tauri::AppHandle) -> serde_json::Value {
     serde_json::json!({
-        "schema": "cutline-codec-toolchain-v1",
+        "schema": "editweave-codec-toolchain-v1",
         "ffmpeg": media_tool_version(&app, "ffmpeg"),
         "ffprobe": media_tool_version(&app, "ffprobe")
     })
@@ -232,7 +232,7 @@ async fn decode_render_hdr_source(app: tauri::AppHandle, job_id: String, index: 
         let source = std::fs::canonicalize(&source_path).map_err(|error| format!("HDR 원본을 찾을 수 없습니다: {error}"))?;
         if !source.is_file() { return Err("HDR 원본 경로가 파일이 아닙니다.".to_string()); }
         let nonce = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|value| value.as_nanos()).unwrap_or(0);
-        let temporary = directory.join(format!(".cutline-hdr-source-{nonce}.yuv"));
+        let temporary = directory.join(format!(".editweave-hdr-source-{nonce}.yuv"));
         let start = format!("{range_start:.6}");
         let size = format!("{width}x{height}");
         let fps_value = format!("{fps:.6}");
@@ -267,7 +267,7 @@ async fn encode_render_hdr_segment(app: tauri::AppHandle, raw_path: String, outp
         let parent = output.parent().ok_or_else(|| "HDR 구간 출력 폴더를 찾을 수 없습니다.".to_string())?;
         std::fs::create_dir_all(parent).map_err(|error| error.to_string())?;
         let nonce = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|value| value.as_nanos()).unwrap_or(0);
-        let temporary = parent.join(format!(".cutline-hdr-{nonce}.mp4"));
+        let temporary = parent.join(format!(".editweave-hdr-{nonce}.mp4"));
         let size = format!("{width}x{height}");
         let fps_value = format!("{fps:.6}");
         let frames_value = frames.to_string();
@@ -307,11 +307,11 @@ async fn mux_render_surround_audio(app: tauri::AppHandle, video_path: String, au
         if !video.is_file() || !audio.is_file() { return Err("AAC 5.1 결합 입력이 파일이 아닙니다.".to_string()); }
         if audio.extension().and_then(|value| value.to_str()).map(|value| value.eq_ignore_ascii_case("wav")) != Some(true) { return Err("AAC 5.1 결합 입력은 WAV여야 합니다.".to_string()); }
         let parent = video.parent().ok_or_else(|| "영상 출력 폴더를 찾을 수 없습니다.".to_string())?;
-        let stem = video.file_stem().and_then(|value| value.to_str()).unwrap_or("cutline-output");
+        let stem = video.file_stem().and_then(|value| value.to_str()).unwrap_or("editweave-output");
         let extension = video.extension().and_then(|value| value.to_str()).unwrap_or("mp4");
         let nonce = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|value| value.as_nanos()).unwrap_or(0);
-        let temporary = parent.join(format!(".{stem}.cutline-surround-{nonce}.{extension}"));
-        let backup = parent.join(format!(".{stem}.cutline-before-surround-{nonce}.{extension}"));
+        let temporary = parent.join(format!(".{stem}.editweave-surround-{nonce}.{extension}"));
+        let backup = parent.join(format!(".{stem}.editweave-before-surround-{nonce}.{extension}"));
         let bitrate = format!("{bitrate_kbps}k");
         let sample_rate = sample_rate.to_string();
         let output = media_tool_command(&app, "ffmpeg").args(["-y", "-hide_banner", "-loglevel", "error", "-i"]).arg(&video)
@@ -433,18 +433,18 @@ fn app_environment() -> serde_json::Value {
 #[tauri::command]
 fn desktop_stream_conformance_config(app: tauri::AppHandle) -> Result<Option<serde_json::Value>, String> {
     use tauri_plugin_fs::FsExt;
-    if std::env::var("CUTLINE_CONFORMANCE_MODE").ok().as_deref() != Some("desktop-stream") { return Ok(None); }
-    let duration = std::env::var("CUTLINE_CONFORMANCE_DURATION_SECONDS").ok().and_then(|value| value.parse::<u32>().ok()).unwrap_or(60);
+    if std::env::var("EDITWEAVE_CONFORMANCE_MODE").ok().as_deref() != Some("desktop-stream") { return Ok(None); }
+    let duration = std::env::var("EDITWEAVE_CONFORMANCE_DURATION_SECONDS").ok().and_then(|value| value.parse::<u32>().ok()).unwrap_or(60);
     if !(30..=3_600).contains(&duration) { return Err("데스크톱 스트리밍 적합성 시간은 30~3600초여야 합니다.".into()); }
-    let audio_channels = std::env::var("CUTLINE_CONFORMANCE_AUDIO_CHANNELS").ok().and_then(|value| value.parse::<u32>().ok()).unwrap_or(1);
+    let audio_channels = std::env::var("EDITWEAVE_CONFORMANCE_AUDIO_CHANNELS").ok().and_then(|value| value.parse::<u32>().ok()).unwrap_or(1);
     if audio_channels != 1 && audio_channels != 6 { return Err("데스크톱 스트리밍 적합성 오디오 채널은 1 또는 6이어야 합니다.".into()); }
-    let color_mode = std::env::var("CUTLINE_CONFORMANCE_COLOR_MODE").unwrap_or_else(|_| "sdr".into());
+    let color_mode = std::env::var("EDITWEAVE_CONFORMANCE_COLOR_MODE").unwrap_or_else(|_| "sdr".into());
     if color_mode != "sdr" && color_mode != "hdr10-pq" && color_mode != "hdr-hlg" { return Err("데스크톱 스트리밍 적합성 색상 모드는 sdr, hdr10-pq, hdr-hlg 중 하나여야 합니다.".into()); }
-    let hdr_effect = std::env::var("CUTLINE_CONFORMANCE_HDR_EFFECT").ok().as_deref() == Some("exposure");
-    let output = std::env::var("CUTLINE_CONFORMANCE_OUTPUT_PATH").map_err(|_| "CUTLINE_CONFORMANCE_OUTPUT_PATH가 필요합니다.".to_string())?;
-    let report = std::env::var("CUTLINE_CONFORMANCE_REPORT_PATH").map_err(|_| "CUTLINE_CONFORMANCE_REPORT_PATH가 필요합니다.".to_string())?;
-    let audio_fixture = std::env::var("CUTLINE_CONFORMANCE_AUDIO_PATH").map_err(|_| "CUTLINE_CONFORMANCE_AUDIO_PATH가 필요합니다.".to_string())?;
-    let hdr_fixture = std::env::var("CUTLINE_CONFORMANCE_HDR_SOURCE_PATH").ok();
+    let hdr_effect = std::env::var("EDITWEAVE_CONFORMANCE_HDR_EFFECT").ok().as_deref() == Some("exposure");
+    let output = std::env::var("EDITWEAVE_CONFORMANCE_OUTPUT_PATH").map_err(|_| "EDITWEAVE_CONFORMANCE_OUTPUT_PATH가 필요합니다.".to_string())?;
+    let report = std::env::var("EDITWEAVE_CONFORMANCE_REPORT_PATH").map_err(|_| "EDITWEAVE_CONFORMANCE_REPORT_PATH가 필요합니다.".to_string())?;
+    let audio_fixture = std::env::var("EDITWEAVE_CONFORMANCE_AUDIO_PATH").map_err(|_| "EDITWEAVE_CONFORMANCE_AUDIO_PATH가 필요합니다.".to_string())?;
+    let hdr_fixture = std::env::var("EDITWEAVE_CONFORMANCE_HDR_SOURCE_PATH").ok();
     let output_path = std::path::PathBuf::from(output);
     let report_path = std::path::PathBuf::from(report);
     let audio_fixture_path = std::path::PathBuf::from(audio_fixture);
@@ -452,7 +452,7 @@ fn desktop_stream_conformance_config(app: tauri::AppHandle) -> Result<Option<ser
     if output_path.extension().and_then(|value| value.to_str()) != Some("mp4") || report_path.extension().and_then(|value| value.to_str()) != Some("json") || audio_fixture_path.extension().and_then(|value| value.to_str()) != Some("wav") { return Err("적합성 출력은 .mp4, 보고서는 .json, 오디오 기준은 .wav여야 합니다.".into()); }
     if !audio_fixture_path.is_file() { return Err("적합성 PCM 오디오 기준 파일이 없습니다.".into()); }
     let hdr_fixture_path = hdr_fixture.map(std::path::PathBuf::from);
-    if color_mode != "sdr" && !hdr_fixture_path.as_ref().map(|path| path.is_absolute() && path.is_file() && path.extension().and_then(|value| value.to_str()) == Some("mp4")).unwrap_or(false) { return Err("HDR 적합성에는 절대 경로의 CUTLINE_CONFORMANCE_HDR_SOURCE_PATH .mp4가 필요합니다.".into()); }
+    if color_mode != "sdr" && !hdr_fixture_path.as_ref().map(|path| path.is_absolute() && path.is_file() && path.extension().and_then(|value| value.to_str()) == Some("mp4")).unwrap_or(false) { return Err("HDR 적합성에는 절대 경로의 EDITWEAVE_CONFORMANCE_HDR_SOURCE_PATH .mp4가 필요합니다.".into()); }
     let output_parent = output_path.parent().ok_or_else(|| "적합성 출력 폴더가 없습니다.".to_string())?;
     let report_parent = report_path.parent().ok_or_else(|| "적합성 보고서 폴더가 없습니다.".to_string())?;
     if output_parent != report_parent || audio_fixture_path.parent() != Some(output_parent) { return Err("적합성 출력·보고서·오디오 기준은 같은 전용 폴더에 있어야 합니다.".into()); }
@@ -1031,16 +1031,16 @@ async fn apply_broadcast_wav_metadata(app: tauri::AppHandle, output_path: String
         let source = std::fs::canonicalize(&output_path).map_err(|error| format!("BWF 대상 WAV를 찾을 수 없습니다: {error}"))?;
         if !source.is_file() || source.extension().and_then(|value| value.to_str()).map(|value| !value.eq_ignore_ascii_case("wav")).unwrap_or(true) { return Err("BWF 메타데이터 대상은 WAV 파일이어야 합니다.".to_string()); }
         let parent = source.parent().ok_or_else(|| "WAV 상위 폴더를 찾을 수 없습니다.".to_string())?;
-        let stem = source.file_stem().and_then(|value| value.to_str()).unwrap_or("cutline-audio");
+        let stem = source.file_stem().and_then(|value| value.to_str()).unwrap_or("editweave-audio");
         let nonce = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|value| value.as_nanos()).unwrap_or(0);
-        let temporary = parent.join(format!(".{stem}.cutline-bwf-{nonce}.wav"));
-        let backup = parent.join(format!(".{stem}.cutline-bwf-backup-{nonce}.wav"));
+        let temporary = parent.join(format!(".{stem}.editweave-bwf-{nonce}.wav"));
+        let backup = parent.join(format!(".{stem}.editweave-bwf-backup-{nonce}.wav"));
         let time_reference_value = time_reference.to_string();
         let time_reference_metadata = format!("time_reference={time_reference_value}");
         let description_metadata = format!("description={description}");
         let mut command = media_tool_command(&app, "ffmpeg");
         let output = command.args(["-y", "-hide_banner", "-loglevel", "error", "-i"]).arg(&source).args([
-            "-map", "0:a:0", "-c:a", "copy", "-write_bext", "1", "-metadata", "originator=Cutline", "-metadata",
+            "-map", "0:a:0", "-c:a", "copy", "-write_bext", "1", "-metadata", "originator=EditWeave", "-metadata",
         ]).arg(&time_reference_metadata).arg("-metadata").arg(&description_metadata).arg(&temporary).output().map_err(|error| format!("BWF 메타데이터 기록기를 실행하지 못했습니다: {error}"))?;
         if !output.status.success() {
             let _ = std::fs::remove_file(&temporary);
@@ -1076,14 +1076,14 @@ async fn transcode_render_codec(app: tauri::AppHandle, source_path: String, code
         let source = std::fs::canonicalize(&source_path).map_err(|error| format!("코덱 변환 대상 파일을 찾을 수 없습니다: {error}"))?;
         if !source.is_file() { return Err("코덱 변환 대상이 파일이 아닙니다.".to_string()); }
         let parent = source.parent().ok_or_else(|| "출력 파일의 상위 폴더를 찾을 수 없습니다.".to_string())?;
-        let stem = source.file_stem().and_then(|value| value.to_str()).unwrap_or("cutline-output");
+        let stem = source.file_stem().and_then(|value| value.to_str()).unwrap_or("editweave-output");
         let nonce = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|value| value.as_nanos()).unwrap_or(0);
         let is_prores = codec.starts_with("prores-");
         let is_dnxhr = codec.starts_with("dnxhr-");
         let is_mezzanine = is_prores || is_dnxhr;
         let source_extension = source.extension().and_then(|value| value.to_str()).unwrap_or(if is_mezzanine { "mov" } else { "mp4" });
-        let temporary = parent.join(format!(".{stem}.cutline-transcode-{nonce}.{}", if is_mezzanine { "mov" } else { source_extension }));
-        let backup = parent.join(format!(".{stem}.cutline-original-{nonce}.{source_extension}"));
+        let temporary = parent.join(format!(".{stem}.editweave-transcode-{nonce}.{}", if is_mezzanine { "mov" } else { source_extension }));
+        let backup = parent.join(format!(".{stem}.editweave-original-{nonce}.{source_extension}"));
         let video_encoder = if codec == "hevc" { "libx265" } else if is_prores { "prores_ks" } else if is_dnxhr { "dnxhd" } else { "libx264" };
         let bitrate = format!("{}M", bitrate_mbps);
         let maxrate = format!("{}M", bitrate_mbps.saturating_mul(3) / 2);
@@ -1181,5 +1181,5 @@ pub fn run() {
         .plugin(tauri_plugin_persisted_scope::init())
         .invoke_handler(tauri::generate_handler![app_environment, desktop_stream_conformance_config, authorize_media_paths, authorize_scratch_directory, scratch_disk_usage, clear_scratch_area, find_media_relink_candidates, media_file_signature, reveal_media_in_file_manager, trim_archive_media, codec_toolchain_status, create_ffmpeg_proxy, create_ffmpeg_audio_proxy, create_ffmpeg_image_proxy, create_ffmpeg_image_sequence_proxy, cancel_ffmpeg_proxy, probe_media_metadata, measure_rendered_loudness, apply_broadcast_wav_metadata, transcode_render_codec, mux_render_surround_audio, prepare_render_segment, prepare_render_hdr_raw_segment, decode_render_hdr_source, encode_render_hdr_segment, prepare_render_audio_master, inspect_render_segments, cleanup_render_segments, apply_hdr_output_metadata, verify_update_signature, download_update_installer, prepare_existing_update_installer, launch_verified_update, start_lan_review, sync_lan_review, delete_lan_review_comment, stop_lan_review, acquire_project_lock, heartbeat_project_lock, release_project_lock])
         .run(tauri::generate_context!())
-        .expect("failed to run Cutline desktop application");
+        .expect("failed to run EditWeave desktop application");
 }

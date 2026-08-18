@@ -4,9 +4,9 @@ WORKDIR /app
 COPY --chown=node:node server.mjs /app/server.mjs
 
 ENV NODE_ENV=production \
-    CUTLINE_UPDATE_HOST=0.0.0.0 \
-    CUTLINE_UPDATE_PORT=8790 \
-    CUTLINE_UPDATE_CHANNEL_DIR=/channel
+    EDITWEAVE_UPDATE_HOST=0.0.0.0 \
+    EDITWEAVE_UPDATE_PORT=8790 \
+    EDITWEAVE_UPDATE_CHANNEL_DIR=/channel
 
 USER node
 EXPOSE 8790

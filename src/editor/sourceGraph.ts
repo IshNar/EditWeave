@@ -153,7 +153,7 @@ export function sourceGraphFingerprints(sequence: ProjectSequence, range?: { sta
 }
 
 export function createSourceGraphSnapshot(sequence: ProjectSequence, range?: { start: number; end: number }): SourceGraphSnapshot {
-  return { version: 'cutline-source-graph-v1', fingerprints: sourceGraphFingerprints(sequence, range) }
+  return { version: 'editweave-source-graph-v1', fingerprints: sourceGraphFingerprints(sequence, range) }
 }
 
 export function sequenceFingerprint(sequence: ProjectSequence, range?: { start: number; end: number }): string {
@@ -302,7 +302,7 @@ export function synchronizeDerivedSequenceDomains(options: {
     transitionDefaults: selected.has('settings') ? regenerated.transitionDefaults : derived.transitionDefaults,
     audioBuses: selected.has('audio') ? regenerated.audioBuses : derived.audioBuses,
     sourceFingerprint: fullySynchronized ? sequenceFingerprint(source, derived.sourceRange) : derived.sourceFingerprint ?? sequenceFingerprint(source, derived.sourceRange),
-    sourceGraphSnapshot: { version: 'cutline-source-graph-v1', fingerprints: mergedFingerprints },
+    sourceGraphSnapshot: { version: 'editweave-source-graph-v1', fingerprints: mergedFingerprints },
   }
 }
 

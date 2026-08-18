@@ -48,7 +48,7 @@ export interface RenderQueueJob {
   error?: string
 }
 
-const KEY = 'cutline.render-queue.v1'
+const KEY = 'editweave.render-queue.v1'
 
 export function readRenderQueue(): RenderQueueJob[] {
   try {

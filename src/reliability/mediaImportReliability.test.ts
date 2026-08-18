@@ -21,7 +21,7 @@ async function fileFromPath(path: string, name: string, type: string): Promise<F
 }
 
 beforeAll(async () => {
-  fixtureDirectory = await mkdtemp(join(tmpdir(), 'cutline-e1-media-'))
+  fixtureDirectory = await mkdtemp(join(tmpdir(), 'editweave-e1-media-'))
   movPath = join(fixtureDirectory, 'h264-aac.mov')
   vfrPath = join(fixtureDirectory, 'smartphone-vfr.mp4')
   runFfmpeg([

@@ -106,9 +106,9 @@ export function Topbar({
 }: TopbarProps) {
   return (
     <header className="topbar">
-      <div className="brand" aria-label="Cutline">
+      <div className="brand" aria-label="EditWeave">
         <span className="brand-mark">C</span>
-        <span>cutline</span>
+        <span>editweave</span>
       </div>
 
       <div className="project-meta">

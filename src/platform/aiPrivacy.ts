@@ -4,7 +4,7 @@ export interface AiPrivacySettings {
   updatedAt?: string
 }
 
-const STORAGE_KEY = 'cutline.ai-privacy.v1'
+const STORAGE_KEY = 'editweave.ai-privacy.v1'
 
 export function readAiPrivacySettings(): AiPrivacySettings {
   try {

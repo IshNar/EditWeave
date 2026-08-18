@@ -5,10 +5,10 @@ import { parseSpeedTemplate, readSpeedTemplates, writeSpeedTemplates, type Speed
 import { parseTitleStyleTemplate, readTitleStyleTemplates, writeTitleStyleTemplates, type TitleStyleTemplate } from './titleStyleTemplates'
 import { parseTransitionPreset, readTransitionPresets, writeTransitionPresets, type TransitionPreset } from './transitionPresets'
 
-export const CREATOR_PACK_CHANGED_EVENT = 'cutline-creator-pack-changed'
+export const CREATOR_PACK_CHANGED_EVENT = 'editweave-creator-pack-changed'
 export const CREATOR_PACK_API_VERSION = '1.0.0'
-const INSTALL_REGISTRY_KEY = 'cutline.creator-pack-installs.v1'
-const PUBLISHER_TRUST_REGISTRY_KEY = 'cutline.creator-pack-publisher-trust.v1'
+const INSTALL_REGISTRY_KEY = 'editweave.creator-pack-installs.v1'
+const PUBLISHER_TRUST_REGISTRY_KEY = 'editweave.creator-pack-publisher-trust.v1'
 
 export interface CreatorPackIntegrity { algorithm: 'SHA-256'; digest: string }
 export interface CreatorPackSignature { algorithm: 'Ed25519'; keyId: string; publicKey: string; value: string }
@@ -26,7 +26,7 @@ export interface CreatorPackTrustAssessment { status: 'unsigned' | 'untrusted' |
 export interface CreatorPackInstallDecision { status: 'new' | 'reinstall' | 'upgrade' | 'downgrade' | 'publisher-key-changed'; installedVersion?: string }
 
 export interface CreatorPack {
-  schema: 'cutline-creator-pack-v2'
+  schema: 'editweave-creator-pack-v2'
   apiVersion: '1.0.0'
   compatibility: { minimumApiVersion: string; maximumApiVersion?: string }
   id: string
@@ -72,10 +72,10 @@ export interface InstalledCreatorPack {
 
 export function createCreatorPack(name: string, publisher: string): CreatorPack {
   return {
-    schema: 'cutline-creator-pack-v2', apiVersion: CREATOR_PACK_API_VERSION,
+    schema: 'editweave-creator-pack-v2', apiVersion: CREATOR_PACK_API_VERSION,
     compatibility: { minimumApiVersion: CREATOR_PACK_API_VERSION },
     id: crypto.randomUUID(), name: name.trim().slice(0, 100) || 'Creator Pack', version: '1.0.0',
-    publisher: publisher.trim().slice(0, 100) || 'Cutline 사용자', createdAt: new Date().toISOString(),
+    publisher: publisher.trim().slice(0, 100) || 'EditWeave 사용자', createdAt: new Date().toISOString(),
     security: { executableCode: false, networkAccess: false, filesystemAccess: false },
     contents: {
       motionTemplates: readMotionTemplates(), speedTemplates: readSpeedTemplates(), audioTemplates: readAudioTeamTemplates(),
@@ -89,7 +89,7 @@ export async function serializeCreatorPack(pack: CreatorPack): Promise<string> {
 }
 
 export async function sealCreatorPack(pack: CreatorPack): Promise<CreatorPack> {
-  const normalized: CreatorPack = { ...pack, schema: 'cutline-creator-pack-v2', apiVersion: CREATOR_PACK_API_VERSION, verification: undefined }
+  const normalized: CreatorPack = { ...pack, schema: 'editweave-creator-pack-v2', apiVersion: CREATOR_PACK_API_VERSION, verification: undefined }
   const digest = await creatorPackDigest(normalized)
   const signature = pack.integrity?.digest.toLowerCase() === digest ? pack.signature : undefined
   return { ...normalized, signature, integrity: { algorithm: 'SHA-256', digest } }
@@ -111,8 +111,8 @@ export async function parseCreatorPack(raw: string, currentApiVersion = CREATOR_
   const value: unknown = JSON.parse(raw)
   if (!value || typeof value !== 'object') throw new Error('Creator Pack 형식이 아닙니다.')
   const source = value as Record<string, unknown>
-  const legacy = source.schema === 'cutline-creator-pack-v1'
-  if (!legacy && source.schema !== 'cutline-creator-pack-v2') throw new Error('지원되는 Cutline Creator Pack이 아닙니다.')
+  const legacy = source.schema === 'editweave-creator-pack-v1'
+  if (!legacy && source.schema !== 'editweave-creator-pack-v2') throw new Error('지원되는 EditWeave Creator Pack이 아닙니다.')
   assertNoPrivileges(source.security)
   const compatibility = legacy ? { minimumApiVersion: CREATOR_PACK_API_VERSION } : parseCompatibility(source.compatibility)
   assertCompatibleApi(compatibility, currentApiVersion)
@@ -132,7 +132,7 @@ export async function parseCreatorPack(raw: string, currentApiVersion = CREATOR_
   const exports = boundedArray(contents.exportPresets, 100, '출력').map((preset) => normalizeUserExportPreset(preset, true))
   const transitions = boundedArray(contents.transitionPresets, 100, '전환').map((preset) => parseTransitionPreset(JSON.stringify(preset)))
   return {
-    schema: 'cutline-creator-pack-v2', apiVersion: CREATOR_PACK_API_VERSION, compatibility,
+    schema: 'editweave-creator-pack-v2', apiVersion: CREATOR_PACK_API_VERSION, compatibility,
     id: safeText(source.id, 160, crypto.randomUUID()), name: safeText(source.name, 100, 'Creator Pack'),
     version: requireSemver(source.version, 'Pack 버전'), publisher: safeText(source.publisher, 100, '알 수 없음'),
     createdAt: safeText(source.createdAt, 80, new Date().toISOString()),
@@ -295,7 +295,7 @@ async function sha256Hex(bytes: Uint8Array): Promise<string> {
 
 function signingPayload(pack: CreatorPack | Record<string, unknown>): ArrayBuffer {
   const integrity = (pack.integrity as CreatorPackIntegrity | undefined)?.digest ?? ''
-  return ownedBuffer(new TextEncoder().encode(`cutline-creator-pack-v2\n${integrity.toLowerCase()}`))
+  return ownedBuffer(new TextEncoder().encode(`editweave-creator-pack-v2\n${integrity.toLowerCase()}`))
 }
 
 function stableStringify(value: unknown): string {

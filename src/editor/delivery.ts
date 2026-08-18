@@ -198,7 +198,7 @@ export function inspectDelivery(options: {
   }
 
   const unresolvedSessionConflicts = (options.mergeSessions ?? []).flatMap((session) => session.conflicts.filter((conflict) => conflict.status === 'open'))
-  const unresolvedMergeMarkers = (options.markers ?? []).filter((marker) => marker.kind === 'comment' && marker.status !== 'resolved' && (marker.author === 'Cutline 병합' || marker.id.startsWith('merge-conflict-')))
+  const unresolvedMergeMarkers = (options.markers ?? []).filter((marker) => marker.kind === 'comment' && marker.status !== 'resolved' && (marker.author === 'EditWeave 병합' || marker.id.startsWith('merge-conflict-')))
   const unresolvedMergeCount = unresolvedSessionConflicts.length || unresolvedMergeMarkers.length
   if (unresolvedMergeCount) issues.push({ id: 'unresolved-merge-conflicts', level: 'warning', title: '공동 작업 충돌 미확인', detail: `프로젝트에 해결되지 않은 병합 충돌 ${unresolvedMergeCount}개가 있습니다. 버전 기록에서 현재/상대 결정을 완료하고 의도한 편집인지 확인하세요.` })
 

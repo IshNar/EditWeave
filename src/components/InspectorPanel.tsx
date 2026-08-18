@@ -826,7 +826,7 @@ export function InspectorPanel({ clip, adrCue, track, tracks = [], asset, locked
     const url = URL.createObjectURL(new Blob([serializeSpeedTemplate(template)], { type: 'application/json' }))
     const anchor = document.createElement('a')
     anchor.href = url
-    anchor.download = `${template.name.replace(/[\\/:*?"<>|]/g, '-')}.cutline-speed.json`
+    anchor.download = `${template.name.replace(/[\\/:*?"<>|]/g, '-')}.editweave-speed.json`
     anchor.click()
     setTimeout(() => URL.revokeObjectURL(url), 0)
   }
@@ -923,7 +923,7 @@ export function InspectorPanel({ clip, adrCue, track, tracks = [], asset, locked
     const url = URL.createObjectURL(new Blob([serializeMotionTemplate(template)], { type: 'application/json' }))
     const anchor = document.createElement('a')
     anchor.href = url
-    anchor.download = `${template.name.replace(/[\\/:*?"<>|]/g, '-')}.cutline-motion.json`
+    anchor.download = `${template.name.replace(/[\\/:*?"<>|]/g, '-')}.editweave-motion.json`
     anchor.click()
     setTimeout(() => URL.revokeObjectURL(url), 0)
   }
@@ -987,7 +987,7 @@ export function InspectorPanel({ clip, adrCue, track, tracks = [], asset, locked
     const url = URL.createObjectURL(new Blob([serializeEffectPreset(preset)], { type: 'application/json' }))
     const anchor = document.createElement('a')
     anchor.href = url
-    anchor.download = `${preset.name.replace(/[\\/:*?"<>|]/g, '-')}.cutline-effect.json`
+    anchor.download = `${preset.name.replace(/[\\/:*?"<>|]/g, '-')}.editweave-effect.json`
     anchor.click()
     setTimeout(() => URL.revokeObjectURL(url), 0)
   }
@@ -1111,7 +1111,7 @@ export function InspectorPanel({ clip, adrCue, track, tracks = [], asset, locked
     const url = URL.createObjectURL(new Blob([serializeTransitionPreset(preset)], { type: 'application/json' }))
     const anchor = document.createElement('a')
     anchor.href = url
-    anchor.download = `${preset.name.replace(/[\\/:*?"<>|]/g, '-')}.cutline-transition.json`
+    anchor.download = `${preset.name.replace(/[\\/:*?"<>|]/g, '-')}.editweave-transition.json`
     anchor.click()
     setTimeout(() => URL.revokeObjectURL(url), 0)
   }
@@ -1159,7 +1159,7 @@ export function InspectorPanel({ clip, adrCue, track, tracks = [], asset, locked
     const url = URL.createObjectURL(new Blob([serializeTitleStyleTemplate(template)], { type: 'application/json' }))
     const anchor = document.createElement('a')
     anchor.href = url
-    anchor.download = `${template.name.replace(/[\\/:*?"<>|]/g, '-')}.cutline-title.json`
+    anchor.download = `${template.name.replace(/[\\/:*?"<>|]/g, '-')}.editweave-title.json`
     anchor.click()
     setTimeout(() => URL.revokeObjectURL(url), 0)
   }
@@ -1215,7 +1215,7 @@ export function InspectorPanel({ clip, adrCue, track, tracks = [], asset, locked
           <button disabled={!selectedEffectPresetId} onClick={exportSelectedEffectPreset}>공유</button>
           <button onClick={() => effectImportRef.current?.click()}>가져오기</button>
           <button disabled={!selectedEffectPresetId} onClick={deleteSelectedEffectPreset}>삭제</button>
-          <input ref={effectImportRef} hidden type="file" accept=".json,.cutline-effect.json,application/json" onChange={(event) => void importEffectPreset(event.target.files?.[0])} />
+          <input ref={effectImportRef} hidden type="file" accept=".json,.editweave-effect.json,application/json" onChange={(event) => void importEffectPreset(event.target.files?.[0])} />
         </div>
         <p className="feature-note">영상·이미지는 색보정·마스크·코너 핀·시각 효과를, 오디오 클립은 오디오 효과를 저장하고 적용합니다.</p>
       </section>}
@@ -1233,7 +1233,7 @@ export function InspectorPanel({ clip, adrCue, track, tracks = [], asset, locked
         {clip.kind !== 'caption' && !clip.adjustmentLayer && !clip.nestedSequenceId && !clip.freezeFrame && <>
           <div className="property-heading"><h3>속도 램프</h3><button className="mini-action" disabled={locked} onClick={addSpeedKeyframe}><Plus size={12} /> {localTime.toFixed(2)}s 지점</button></div>
           <SpeedRampGraph clip={clip} disabled={locked} onChange={(speedKeyframes) => onUpdateClip(clip.id, { speedKeyframes })} />
-          <div className="speed-template-tools"><select aria-label="사용자 속도 템플릿" value={selectedSpeedTemplateId} onChange={(event) => setSelectedSpeedTemplateId(event.target.value)}><option value="">사용자 속도 선택</option>{speedTemplates.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}</select><button disabled={locked || !selectedSpeedTemplateId} onClick={applySelectedSpeedTemplate}>적용</button><button disabled={locked} onClick={saveSpeedTemplate}>현재값 저장</button><button disabled={!selectedSpeedTemplateId} onClick={exportSelectedSpeedTemplate}>공유</button><button onClick={() => speedImportRef.current?.click()}>가져오기</button><button disabled={!selectedSpeedTemplateId} onClick={deleteSelectedSpeedTemplate}>삭제</button><input ref={speedImportRef} hidden type="file" accept=".json,.cutline-speed.json,application/json" onChange={(event) => void importSpeedTemplate(event.target.files?.[0])} /></div>
+          <div className="speed-template-tools"><select aria-label="사용자 속도 템플릿" value={selectedSpeedTemplateId} onChange={(event) => setSelectedSpeedTemplateId(event.target.value)}><option value="">사용자 속도 선택</option>{speedTemplates.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}</select><button disabled={locked || !selectedSpeedTemplateId} onClick={applySelectedSpeedTemplate}>적용</button><button disabled={locked} onClick={saveSpeedTemplate}>현재값 저장</button><button disabled={!selectedSpeedTemplateId} onClick={exportSelectedSpeedTemplate}>공유</button><button onClick={() => speedImportRef.current?.click()}>가져오기</button><button disabled={!selectedSpeedTemplateId} onClick={deleteSelectedSpeedTemplate}>삭제</button><input ref={speedImportRef} hidden type="file" accept=".json,.editweave-speed.json,application/json" onChange={(event) => void importSpeedTemplate(event.target.files?.[0])} /></div>
           <div className="keyframe-list speed-keyframe-list">
             {(clip.speedKeyframes ?? []).map((keyframe) => <div className="speed-keyframe-group" key={keyframe.id}><div><Diamond size={10} fill="currentColor" /><span>{keyframe.time.toFixed(2)}s</span><input aria-label={`${keyframe.time.toFixed(2)}초 속도`} type="number" min="5" max="1600" step="5" value={Math.round(keyframe.rate * 100)} disabled={locked} onChange={(event) => onUpdateClip(clip.id, { speedKeyframes: clip.speedKeyframes?.map((item) => item.id === keyframe.id ? { ...item, rate: Math.max(0.05, Math.min(16, Number(event.target.value) / 100)) } : item) })} /><small>%</small><select value={keyframe.easing} disabled={locked} onChange={(event) => { const easing = event.target.value as typeof keyframe.easing; onUpdateClip(clip.id, { speedKeyframes: clip.speedKeyframes?.map((item) => item.id === keyframe.id ? { ...item, easing, curve: easing === 'bezier' ? item.curve ?? { x1: 0.33, y1: 0, x2: 0.67, y2: 1 } : item.curve } : item) }) }}><option value="linear">선형</option><option value="hold">홀드</option><option value="ease-in">가속</option><option value="ease-out">감속</option><option value="ease-in-out">부드럽게</option><option value="bezier">자유 곡선</option></select><button aria-label="속도 지점 삭제" disabled={locked} onClick={() => onUpdateClip(clip.id, { speedKeyframes: clip.speedKeyframes?.filter((item) => item.id !== keyframe.id) })}><Trash2 size={11} /></button></div>{keyframe.easing === 'bezier' && <SpeedBezierEditor curve={keyframe.curve} disabled={locked} onChange={(curve) => onUpdateClip(clip.id, { speedKeyframes: clip.speedKeyframes?.map((item) => item.id === keyframe.id ? { ...item, curve } : item) })} />}</div>)}
             {!clip.speedKeyframes?.length && <small>재생 헤드에 속도 지점을 추가하면 구간 사이가 자연스럽게 가속·감속됩니다.</small>}
@@ -1289,7 +1289,7 @@ export function InspectorPanel({ clip, adrCue, track, tracks = [], asset, locked
           <SelectField label="경로 방향 정렬" value={clip.motionPathAutoOrient ? 'on' : 'off'} disabled={locked || (clip.keyframes?.length ?? 0) < 2} onChange={(value) => onUpdateClip(clip.id, { motionPathAutoOrient: value === 'on' })}><option value="off">끄기</option><option value="on">켜기</option></SelectField>
           <NumberField label="방향 오프셋" value={clip.motionPathOrientationOffset ?? 0} suffix="°" min={-720} max={720} disabled={locked || !clip.motionPathAutoOrient} onChange={(motionPathOrientationOffset) => onUpdateClip(clip.id, { motionPathOrientationOffset })} />
         </div>
-        <div className="motion-template-tools"><select aria-label="사용자 모션 템플릿" value={selectedMotionTemplateId} onChange={(event) => setSelectedMotionTemplateId(event.target.value)}><option value="">사용자 모션 선택</option>{motionTemplates.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}</select><button disabled={locked || !selectedMotionTemplateId} onClick={applySelectedMotionTemplate}>적용</button><button disabled={locked} onClick={saveMotionTemplate}>현재값 저장</button><button disabled={!selectedMotionTemplateId} onClick={exportSelectedMotionTemplate}>공유</button><button onClick={() => motionImportRef.current?.click()}>가져오기</button><button disabled={!selectedMotionTemplateId} onClick={deleteSelectedMotionTemplate}>삭제</button><input ref={motionImportRef} hidden type="file" accept=".json,.cutline-motion.json,application/json" onChange={(event) => void importMotionTemplate(event.target.files?.[0])} /></div>
+        <div className="motion-template-tools"><select aria-label="사용자 모션 템플릿" value={selectedMotionTemplateId} onChange={(event) => setSelectedMotionTemplateId(event.target.value)}><option value="">사용자 모션 선택</option>{motionTemplates.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}</select><button disabled={locked || !selectedMotionTemplateId} onClick={applySelectedMotionTemplate}>적용</button><button disabled={locked} onClick={saveMotionTemplate}>현재값 저장</button><button disabled={!selectedMotionTemplateId} onClick={exportSelectedMotionTemplate}>공유</button><button onClick={() => motionImportRef.current?.click()}>가져오기</button><button disabled={!selectedMotionTemplateId} onClick={deleteSelectedMotionTemplate}>삭제</button><input ref={motionImportRef} hidden type="file" accept=".json,.editweave-motion.json,application/json" onChange={(event) => void importMotionTemplate(event.target.files?.[0])} /></div>
         <div className="keyframe-list">
           {(clip.keyframes ?? []).map((keyframe) => <div className="automation-keyframe-group" key={keyframe.id}><div className="automation-keyframe-row"><Diamond size={10} fill="currentColor" /><span>{keyframe.time.toFixed(2)}s</span><select value={keyframe.easing} disabled={locked} onChange={(event) => { const easing = event.target.value as typeof keyframe.easing; onUpdateClip(clip.id, { keyframes: clip.keyframes?.map((item) => item.id === keyframe.id ? { ...item, easing, curve: easing === 'bezier' ? item.curve ?? { x1: 0.33, y1: 0, x2: 0.67, y2: 1 } : item.curve } : item) }) }}><option value="linear">선형</option><option value="hold">홀드</option><option value="ease-in">가속</option><option value="ease-out">감속</option><option value="ease-in-out">부드럽게</option><option value="bezier">자유 곡선</option></select><button aria-label="키프레임 삭제" disabled={locked} onClick={() => onUpdateClip(clip.id, { keyframes: clip.keyframes?.filter((item) => item.id !== keyframe.id) })}><Trash2 size={11} /></button></div>{keyframe.easing === 'bezier' && <SpeedBezierEditor curve={keyframe.curve} disabled={locked} onChange={(curve) => onUpdateClip(clip.id, { keyframes: clip.keyframes?.map((item) => item.id === keyframe.id ? { ...item, curve } : item) })} />}</div>)}
           {!clip.keyframes?.length && <small>재생 헤드 위치에 현재 변형 값을 기록합니다.</small>}
@@ -1331,7 +1331,7 @@ export function InspectorPanel({ clip, adrCue, track, tracks = [], asset, locked
           <button disabled={!selectedTransitionPresetId} onClick={exportSelectedTransitionPreset}>공유</button>
           <button onClick={() => transitionImportRef.current?.click()}><Upload size={11} /> 가져오기</button>
           <button className="danger" disabled={!selectedTransitionPresetId} onClick={deleteSelectedTransitionPreset}>삭제</button>
-          <input ref={transitionImportRef} hidden type="file" accept=".json,.cutline-transition.json,application/json" onChange={(event) => void importTransitionPreset(event.target.files?.[0])} />
+          <input ref={transitionImportRef} hidden type="file" accept=".json,.editweave-transition.json,application/json" onChange={(event) => void importTransitionPreset(event.target.files?.[0])} />
         </div>
         {clip.transitionIn?.easing === 'bezier' && clip.transitionIn.type !== 'none' && <div className="transition-curve-editor"><span>시작 자유 곡선</span><SpeedBezierEditor curve={clip.transitionIn.curve} disabled={locked} onChange={(curve) => onUpdateClip(clip.id, { transitionIn: { ...clip.transitionIn!, curve } })} /></div>}
         {clip.transitionOut?.easing === 'bezier' && clip.transitionOut.type !== 'none' && <div className="transition-curve-editor"><span>끝 자유 곡선</span><SpeedBezierEditor curve={clip.transitionOut.curve} disabled={locked} onChange={(curve) => onUpdateClip(clip.id, { transitionOut: { ...clip.transitionOut!, curve } })} /></div>}
@@ -1487,7 +1487,7 @@ export function InspectorPanel({ clip, adrCue, track, tracks = [], asset, locked
 
       {clip.kind === 'caption' && <section className="property-section">
         <div className="property-heading"><h3>자막 스타일</h3><button className="mini-action" disabled={locked || !onApplyCaptionStyleToTrack} onClick={() => onApplyCaptionStyleToTrack?.(clip.id)}>이 트랙 전체 적용</button></div>
-        <div className="title-style-tools"><select value={selectedTitleStyleId} onChange={(event) => setSelectedTitleStyleId(event.target.value)}><option value="">사용자 타이틀 스타일</option>{titleStyleTemplates.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}</select><button disabled={locked || !selectedTitleStyleId} onClick={applySelectedTitleStyle}>적용</button><button disabled={locked} onClick={saveTitleStyleTemplate}>현재값 저장</button><button disabled={!selectedTitleStyleId} onClick={exportSelectedTitleStyle}>공유</button><button onClick={() => titleStyleImportRef.current?.click()}>가져오기</button><button disabled={!selectedTitleStyleId} onClick={deleteSelectedTitleStyle}>삭제</button><input ref={titleStyleImportRef} hidden type="file" accept=".json,.cutline-title.json,application/json" onChange={(event) => void importTitleStyle(event.target.files?.[0])} /></div>
+        <div className="title-style-tools"><select value={selectedTitleStyleId} onChange={(event) => setSelectedTitleStyleId(event.target.value)}><option value="">사용자 타이틀 스타일</option>{titleStyleTemplates.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}</select><button disabled={locked || !selectedTitleStyleId} onClick={applySelectedTitleStyle}>적용</button><button disabled={locked} onClick={saveTitleStyleTemplate}>현재값 저장</button><button disabled={!selectedTitleStyleId} onClick={exportSelectedTitleStyle}>공유</button><button onClick={() => titleStyleImportRef.current?.click()}>가져오기</button><button disabled={!selectedTitleStyleId} onClick={deleteSelectedTitleStyle}>삭제</button><input ref={titleStyleImportRef} hidden type="file" accept=".json,.editweave-title.json,application/json" onChange={(event) => void importTitleStyle(event.target.files?.[0])} /></div>
         <div className="field-grid">
           <SelectField label="프리셋" value={caption.preset} disabled={locked} onChange={(preset) => updateCaption({ preset: preset as CaptionStyle['preset'] })}><option value="default">기본</option><option value="bold">볼드 쇼츠</option><option value="minimal">미니멀</option><option value="karaoke">단어 강조</option></SelectField>
           <NumberField label="글자 크기" value={caption.fontSize} suffix="%" min={40} max={240} disabled={locked} onChange={(fontSize) => updateCaption({ fontSize })} />

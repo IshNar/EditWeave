@@ -3,12 +3,13 @@ import { normalizeAudioBuses } from './audioBuses'
 import { normalizeSourceTargets } from './trackTargeting'
 import { normalizeSequenceTransitionDefaults } from './transitions'
 import { assertProjectIntegrity } from './projectIntegrity'
-import type { AdrCue, AiActivityRecord, AspectRatio, AudioBusMap, CreatorLearningProfile, CutlineProjectDocument, EditSuggestion, MediaAsset, PersistedMediaAsset, ProjectMergeConflictKind, ProjectMergeSession, ProjectSequence, SpeakerVoiceProfile, TimelineMarker, TimelineTrack, TranscriptSegment } from './types'
+import type { AdrCue, AiActivityRecord, AspectRatio, AudioBusMap, CreatorLearningProfile, EditWeaveProjectDocument, EditSuggestion, MediaAsset, PersistedMediaAsset, ProjectMergeConflictKind, ProjectMergeSession, ProjectSequence, SpeakerVoiceProfile, TimelineMarker, TimelineTrack, TranscriptSegment } from './types'
 import { normalizeAiActivityLog } from '../ai/activity'
+import { migrateLegacyBrandValue } from '../legacyBrandMigration'
 
-export const PROJECT_EXTENSION = 'cutline.json'
-export const AUTOSAVE_KEY = 'cutline.autosave.v1'
-export const AUTOSAVE_HISTORY_KEY = 'cutline.autosave.history.v1'
+export const PROJECT_EXTENSION = 'editweave.json'
+export const AUTOSAVE_KEY = 'editweave.autosave.v1'
+export const AUTOSAVE_HISTORY_KEY = 'editweave.autosave.history.v1'
 const LEGACY_DEMO_CLIP_IDS = new Set(['clip-intro', 'clip-topic', 'clip-demo', 'clip-outro', 'audio-dialogue', 'caption-1', 'caption-2'])
 const MERGE_CONFLICT_KINDS = new Set<ProjectMergeConflictKind>(['sequence', 'track', 'clip', 'transcript', 'suggestion', 'marker', 'audio-bus', 'asset', 'adr-cue', 'dictionary'])
 
@@ -35,7 +36,7 @@ interface ProjectSnapshotInput {
   aiActivityLog?: AiActivityRecord[]
 }
 
-export function createProjectDocument(input: ProjectSnapshotInput): CutlineProjectDocument {
+export function createProjectDocument(input: ProjectSnapshotInput): EditWeaveProjectDocument {
   const preset = sequencePresets.find((item) => item.ratio === input.aspectRatio) ?? sequencePresets[0]
   const now = new Date().toISOString()
   const activeSequenceId = input.activeSequenceId ?? 'sequence-main'
@@ -104,7 +105,7 @@ export function createProjectDocument(input: ProjectSnapshotInput): CutlineProje
   }
 }
 
-export function getProjectSequences(project: CutlineProjectDocument): ProjectSequence[] {
+export function getProjectSequences(project: EditWeaveProjectDocument): ProjectSequence[] {
   if (project.sequences?.length) return project.sequences.map((sequence) => ({ ...sequence, transitionDefaults: normalizeSequenceTransitionDefaults(sequence.transitionDefaults), tracks: normalizeSourceTargets(sequence.tracks), audioBuses: normalizeAudioBuses(sequence.audioBuses) }))
   return [{
     id: project.sequence.id,
@@ -126,7 +127,7 @@ export function getProjectSequences(project: CutlineProjectDocument): ProjectSeq
   }]
 }
 
-export function saveAutosave(project: CutlineProjectDocument): boolean {
+export function saveAutosave(project: EditWeaveProjectDocument): boolean {
   try {
     const history = readAutosaveHistory()
     const latest = history[history.length - 1]
@@ -140,7 +141,7 @@ export function saveAutosave(project: CutlineProjectDocument): boolean {
   }
 }
 
-export function readAutosaveHistory(): CutlineProjectDocument[] {
+export function readAutosaveHistory(): EditWeaveProjectDocument[] {
   const raw = localStorage.getItem(AUTOSAVE_HISTORY_KEY)
   if (!raw) return []
   try {
@@ -158,7 +159,7 @@ export function readAutosaveHistory(): CutlineProjectDocument[] {
   }
 }
 
-export function readAutosave(): CutlineProjectDocument | undefined {
+export function readAutosave(): EditWeaveProjectDocument | undefined {
   const raw = localStorage.getItem(AUTOSAVE_KEY)
   if (!raw) return undefined
   try {
@@ -168,10 +169,10 @@ export function readAutosave(): CutlineProjectDocument | undefined {
   }
 }
 
-export function parseProjectDocument(raw: string): CutlineProjectDocument {
-  const value: unknown = JSON.parse(raw)
+export function parseProjectDocument(raw: string): EditWeaveProjectDocument {
+  const value: unknown = migrateLegacyBrandValue(JSON.parse(raw))
   if (!value || typeof value !== 'object') throw new Error('프로젝트 파일 형식이 올바르지 않습니다.')
-  const candidate = value as Partial<CutlineProjectDocument>
+  const candidate = value as Partial<EditWeaveProjectDocument>
   if (candidate.schemaVersion !== 1) throw new Error('지원하지 않는 프로젝트 파일 버전입니다.')
   if (typeof candidate.id !== 'string' || typeof candidate.name !== 'string' || !candidate.sequence || !Array.isArray(candidate.tracks) || !Array.isArray(candidate.assets)) {
     throw new Error('프로젝트에 필수 데이터가 없습니다.')
@@ -179,8 +180,8 @@ export function parseProjectDocument(raw: string): CutlineProjectDocument {
   const validTrackShape = (track: unknown): track is TimelineTrack => Boolean(track && typeof track === 'object' && typeof (track as TimelineTrack).id === 'string' && Array.isArray((track as TimelineTrack).clips))
   if (!candidate.tracks.every(validTrackShape) || candidate.assets.some((asset) => !asset || typeof asset !== 'object' || typeof asset.id !== 'string')) throw new Error('프로젝트의 미디어 또는 트랙 데이터가 손상됐습니다.')
   if (candidate.sequences !== undefined && (!Array.isArray(candidate.sequences) || candidate.sequences.some((sequence) => !sequence || typeof sequence !== 'object' || typeof sequence.id !== 'string' || !Array.isArray(sequence.tracks) || !sequence.tracks.every(validTrackShape) || !Array.isArray(sequence.transcript) || !Array.isArray(sequence.suggestions)))) throw new Error('프로젝트의 시퀀스 데이터가 손상됐습니다.')
-  const project = candidate as CutlineProjectDocument
-  const normalized: CutlineProjectDocument = {
+  const project = candidate as EditWeaveProjectDocument
+  const normalized: EditWeaveProjectDocument = {
     ...project,
     mediaBins: [...new Set([...(Array.isArray(project.mediaBins) ? project.mediaBins : []), ...project.assets.map((asset) => asset.folder ?? '')].filter((name): name is string => typeof name === 'string').map((name) => name.trim()).filter(Boolean))],
     assets: project.assets.map((asset) => ({ ...asset, audioPeak: normalizePersistedAudioPeak(asset.audioPeak) })),
@@ -237,7 +238,7 @@ function restorePersistedAsset(asset: PersistedMediaAsset): MediaAsset {
   }
 }
 
-export function restoreAssets(project: CutlineProjectDocument): MediaAsset[] {
+export function restoreAssets(project: EditWeaveProjectDocument): MediaAsset[] {
   return project.assets.map(restorePersistedAsset)
 }
 

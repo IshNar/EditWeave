@@ -1,4 +1,4 @@
-import type { CutlineProjectDocument, ProjectSequence } from './types'
+import type { EditWeaveProjectDocument, ProjectSequence } from './types'
 
 export interface ProjectIntegrityIssue {
   id: string
@@ -13,7 +13,7 @@ type IntegritySequence = Pick<ProjectSequence, 'id' | 'name' | 'sourceSequenceId
  * stricter than Delivery Guard: a delivery warning may be reviewed by the user, while a
  * broken ID or non-finite time can corrupt later edits and must stop project loading.
  */
-export function inspectProjectIntegrity(project: CutlineProjectDocument): ProjectIntegrityIssue[] {
+export function inspectProjectIntegrity(project: EditWeaveProjectDocument): ProjectIntegrityIssue[] {
   const issues: ProjectIntegrityIssue[] = []
   const add = (id: string, level: ProjectIntegrityIssue['level'], detail: string) => issues.push({ id, level, detail })
   const unique = <T extends { id: string }>(items: T[] | undefined, scope: string) => {
@@ -29,7 +29,7 @@ export function inspectProjectIntegrity(project: CutlineProjectDocument): Projec
 
   if (!project.id.trim()) add('project-empty-id', 'blocker', '프로젝트 ID가 비어 있습니다.')
   for (const record of project.aiActivityLog ?? []) {
-    if (record.version !== 'cutline-ai-activity-v1' || !record.id || !record.label || !record.input?.dataCategories?.length) add(`ai-activity-${record.id || 'empty'}`, 'warning', 'AI 활동 기록 일부가 손상되어 실행 근거를 완전히 표시할 수 없습니다.')
+    if (record.version !== 'editweave-ai-activity-v1' || !record.id || !record.label || !record.input?.dataCategories?.length) add(`ai-activity-${record.id || 'empty'}`, 'warning', 'AI 활동 기록 일부가 손상되어 실행 근거를 완전히 표시할 수 없습니다.')
     if (record.processing?.location === 'external-user-service' && record.approval !== 'user-confirmed-external-transfer') add(`ai-external-approval-${record.id}`, 'blocker', `외부 AI 활동 “${record.label}”에 전송 승인 기록이 없습니다.`)
   }
   unique(project.assets, '미디어')
@@ -51,7 +51,7 @@ export function inspectProjectIntegrity(project: CutlineProjectDocument): Projec
     if (sequence.sourceSequenceId && !sequence.sourceFingerprint) add(`source-fingerprint-${sequence.id}`, 'warning', `파생 시퀀스 “${sequence.name}”에 변경 감지 fingerprint가 없습니다.`)
     if (sequence.sourceGraphSnapshot) {
       const fingerprints = sequence.sourceGraphSnapshot.fingerprints as Partial<Record<'video' | 'audio' | 'transcript' | 'suggestions' | 'markers' | 'settings', unknown>>
-      const valid = sequence.sourceGraphSnapshot.version === 'cutline-source-graph-v1'
+      const valid = sequence.sourceGraphSnapshot.version === 'editweave-source-graph-v1'
         && ['video', 'audio', 'transcript', 'suggestions', 'markers', 'settings'].every((domain) => typeof fingerprints[domain as keyof typeof fingerprints] === 'string' && Boolean(fingerprints[domain as keyof typeof fingerprints]))
       if (!valid) add(`source-graph-${sequence.id}`, 'warning', `파생 시퀀스 “${sequence.name}”의 영역별 변경 기준이 손상되어 전체 영역을 다시 검토해야 합니다.`)
     }
@@ -85,12 +85,12 @@ export function inspectProjectIntegrity(project: CutlineProjectDocument): Projec
   return deduplicateIssues(issues)
 }
 
-export function assertProjectIntegrity(project: CutlineProjectDocument): void {
+export function assertProjectIntegrity(project: EditWeaveProjectDocument): void {
   const blockers = inspectProjectIntegrity(project).filter((issue) => issue.level === 'blocker')
   if (blockers.length) throw new Error(`프로젝트 무결성 검사 실패: ${blockers.slice(0, 3).map((issue) => issue.detail).join(' / ')}${blockers.length > 3 ? ` 외 ${blockers.length - 3}건` : ''}`)
 }
 
-function integritySequences(project: CutlineProjectDocument): IntegritySequence[] {
+function integritySequences(project: EditWeaveProjectDocument): IntegritySequence[] {
   if (project.sequences?.length) return project.sequences
   return [{
     id: project.sequence.id,
@@ -125,7 +125,7 @@ function inspectSequenceCycles(sequences: IntegritySequence[], add: (id: string,
 }
 
 function inspectAdrIntegrity(
-  project: CutlineProjectDocument,
+  project: EditWeaveProjectDocument,
   sequences: IntegritySequence[],
   assetIds: Set<string>,
   add: (id: string, level: ProjectIntegrityIssue['level'], detail: string) => void,

@@ -4,6 +4,7 @@ dist/
 src-tauri/target/
 .codex-test-media/
 .cutline-conformance/
+.editweave-conformance/
 .release-smoke/
 public/e2e/
 public/vision/

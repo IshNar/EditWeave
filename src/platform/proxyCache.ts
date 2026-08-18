@@ -54,21 +54,21 @@ export async function loadProxyFile(cachePath: string, assetName: string): Promi
   const audioProxy = /\.wav$/i.test(cachePath)
   const imageProxy = /\.png$/i.test(cachePath)
   const extension = audioProxy ? 'wav' : imageProxy ? 'png' : 'mp4'
-  const file = new File([], `${safeName}.cutline-proxy.${extension}`, { type: audioProxy ? 'audio/wav' : imageProxy ? 'image/png' : 'video/mp4' })
-  Object.defineProperty(file, '__cutlineSourcePath', { value: absolutePath, enumerable: false })
-  Object.defineProperty(file, '__cutlineFileSize', { value: info.size, enumerable: false })
-  Object.defineProperty(file, '__cutlineStreaming', { value: true, enumerable: false })
-  Object.defineProperty(file, '__cutlinePreviewUrl', { value: convertFileSrc(absolutePath), enumerable: false })
+  const file = new File([], `${safeName}.editweave-proxy.${extension}`, { type: audioProxy ? 'audio/wav' : imageProxy ? 'image/png' : 'video/mp4' })
+  Object.defineProperty(file, '__editweaveSourcePath', { value: absolutePath, enumerable: false })
+  Object.defineProperty(file, '__editweaveFileSize', { value: info.size, enumerable: false })
+  Object.defineProperty(file, '__editweaveStreaming', { value: true, enumerable: false })
+  Object.defineProperty(file, '__editweavePreviewUrl', { value: convertFileSrc(absolutePath), enumerable: false })
   return file
 }
 
 export function proxyPreviewUrl(file: File): string {
-  const pathFile = file as File & { __cutlinePreviewUrl?: string; __cutlineStreamUrl?: string }
-  return pathFile.__cutlinePreviewUrl ?? pathFile.__cutlineStreamUrl ?? URL.createObjectURL(file)
+  const pathFile = file as File & { __editweavePreviewUrl?: string; __editweaveStreamUrl?: string }
+  return pathFile.__editweavePreviewUrl ?? pathFile.__editweaveStreamUrl ?? URL.createObjectURL(file)
 }
 
 export function proxyFileSize(file: File): number {
-  return (file as File & { __cutlineFileSize?: number }).__cutlineFileSize ?? file.size
+  return (file as File & { __editweaveFileSize?: number }).__editweaveFileSize ?? file.size
 }
 
 export async function deleteProxyFile(cachePath?: string): Promise<void> {

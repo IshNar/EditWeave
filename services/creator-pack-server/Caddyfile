@@ -1,4 +1,4 @@
-{$CUTLINE_CREATOR_PACK_DOMAIN} {
+{$EDITWEAVE_CREATOR_PACK_DOMAIN} {
   reverse_proxy creator-pack-server:8792
   header {
     Strict-Transport-Security "max-age=31536000; includeSubDomains"
